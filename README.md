@@ -1,7 +1,7 @@
 # zsdk
 
 Zebra Link OS SDK Flutter plugin.
-This plugin flutter interface of Link-OS Multiplatform SDK for [Zebra Multiplatform Library](https://www.zebra.com/ap/en/support-downloads/printer-software/link-os-multiplatform-sdk.html)
+This is a flutter plugin for the Link-OS Multiplatform SDK for [Zebra](https://www.zebra.com/ap/en/support-downloads/printer-software/link-os-multiplatform-sdk.html)
 
 
 ## Getting Started
