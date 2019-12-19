@@ -21,12 +21,6 @@ rootProject.allprojects {
 
 apply plugin: 'com.android.library'
 
-dependencies {
-
-    implementation fileTree(include: '*.jar', dir: 'libs')
-}// Some other dependencies should be here as well. }
-
-
 android {
     packagingOptions {
         exclude 'META-INF/LICENSE.txt'
@@ -44,6 +38,13 @@ android {
     lintOptions {
         disable 'InvalidPackage'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
 
+dependencies {
+    implementation fileTree(include: '*.jar', dir: 'libs')
 }
 

@@ -1,68 +1,45 @@
 import 'dart:async';
-import 'dart:io' show Platform;
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
-class ZebraBluetoothDevice {
-  final String mac;
-  String friendlyName = "Unknown";
+class ZSDK {
 
-  ZebraBluetoothDevice(this.mac, this.friendlyName);
+  /** Channel */
+  static const String _METHOD_CHANNEL = "zsdk";
 
-  Future<Map<String, Map<String, String>>> properties() => Zsdk._getDeviceProperties(mac);
+  /** Methods */
+  static const String _PRINT_PDF_OVER_TCP_IP = "printPdfOverTCPIP";
 
-  Future<String> batteryLevel() async {
-    return await Zsdk._getBatteryLevel(mac);
+  /** Properties */
+  static const String _filePath = "filePath";
+  static const String _address = "address";
+  static const String _port = "port";
+
+  MethodChannel _channel;
+
+  ZSDK() {
+    _channel = const MethodChannel(_METHOD_CHANNEL);
+    _channel.setMethodCallHandler(_onMethodCall);
   }
 
-  Future<void> sendZplOverBluetooth(String data) => Zsdk._sendZplOverBluetooth(mac, data);
-
-  Future<bool> isOnline() => Zsdk._isOnline(mac);
-}
-
-class Zsdk {
-  static const MethodChannel _channel = const MethodChannel('zsdk');
-
-  static Future<List<ZebraBluetoothDevice>> discoverBluetoothDevices() async {
-    dynamic d = await _channel.invokeMethod("discoverBluetoothDevices");
-
-    List<ZebraBluetoothDevice> devices = List();
-
-    d.forEach((k, v) {
-      devices.add(ZebraBluetoothDevice(k, v));
-    });
-
-    return devices;
-  }
-
-  static Future<Map<String, Map<String, String>>> _getDeviceProperties(String mac) async {
-    dynamic d = await _channel.invokeMethod("getDeviceProperties", {"mac": mac});
-    Map<String, Map<String, String>> map = Map();
-
-    d.forEach((k, v) {
-      map[k] = Map<String, String>.from(v);
-    });
-    return map;
-  }
-
-  static Future<String> _getBatteryLevel(String mac) async {
-    dynamic d = await _channel.invokeMethod("getBatteryLevel", {"mac": mac});
-    return d.toString().replaceAll("% Full", "");
-  }
-
-  static Future<void> _sendZplOverBluetooth(String mac, String data) async {
-    await _channel.invokeMethod("sendZplOverBluetooth", {"mac": mac, "data": data});
-  }
-
-  static Future<bool> _isOnline(String mac) async {
-    dynamic d;
-    if (Platform.isAndroid) {
-      d = await _channel.invokeMethod("isOnline", {"mac": mac});
-    } else {
-      d = await _channel.invokeMethod("discoverBluetoothDevices"); // paired before
+  Future _onMethodCall(MethodCall call) {
+    try {
+      switch (call.method) {
+        default:
+          print(call.arguments);
+      }
     }
-    print(d);
-
-    return d.length > 0;
+    catch(e)
+    {
+      print(e);
+    }
   }
+
+  Future printPdfOverTCPIP({@required String filePath, @required String address, int port}) =>
+    _channel.invokeMethod(_PRINT_PDF_OVER_TCP_IP, {
+    _filePath: filePath,
+    _address: address,
+    _port: port,
+  });
+
 }
