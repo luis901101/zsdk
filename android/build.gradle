@@ -46,5 +46,6 @@ android {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
+    implementation 'com.joanzapata.pdfview:android-pdfview:1.0.4@aar'
 }
 

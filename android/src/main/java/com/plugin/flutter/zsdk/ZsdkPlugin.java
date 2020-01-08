@@ -19,11 +19,16 @@ public class ZsdkPlugin implements MethodCallHandler {
 
   /** Methods */
   static final String _PRINT_PDF_OVER_TCP_IP = "printPdfOverTCPIP";
+  static final String _PRINT_ZPL_OVER_TCP_IP = "printZplOverTCPIP";
 
   /** Properties */
   static final String _filePath = "filePath";
   static final String _address = "address";
   static final String _port = "port";
+  static final String _cmWidth = "cmWidth";
+  static final String _cmHeight = "cmHeight";
+  static final String _orientation = "orientation";
+  static final String _dpi = "dpi";
 
 
   private MethodChannel channel;
@@ -40,10 +45,31 @@ public class ZsdkPlugin implements MethodCallHandler {
   public void onMethodCall(MethodCall call, Result result) {
     try
     {
+      ZPrinter printer = new ZPrinter(
+          context,
+          channel,
+          result,
+          new PrinterConf(
+              call.argument(_cmWidth),
+              call.argument(_cmHeight),
+              call.argument(_dpi),
+              Orientation.getValueOfName(call.argument(_orientation))
+          )
+      );
       switch(call.method){
         case _PRINT_PDF_OVER_TCP_IP:
-          new ZPdfPrinter(context, channel, result)
-            .printPdfOverTCPIP(call.argument(_filePath), call.argument(_address), call.argument(_port));
+          printer.printPdfOverTCPIP(
+              call.argument(_filePath),
+              call.argument(_address),
+              call.argument(_port)
+          );
+          break;
+        case _PRINT_ZPL_OVER_TCP_IP:
+          printer.printZplOverTCPIP(
+              call.argument(_filePath),
+              call.argument(_address),
+              call.argument(_port)
+          );
           break;
         default:
           result.notImplemented();
@@ -52,7 +78,7 @@ public class ZsdkPlugin implements MethodCallHandler {
     catch(Exception e)
     {
       e.printStackTrace();
-      result.error(e.getMessage(), null, null);
+      result.error(null, e.getMessage(), null);
     }
   }
 }
