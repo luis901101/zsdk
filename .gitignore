@@ -31,6 +31,8 @@ flutter_export_environment.sh
 /build/
 *.chopper.dart
 *.g.dart
+ios.old.zip
+ios.old/
 
 # Android related
 **/android/**/gradle-wrapper.jar
