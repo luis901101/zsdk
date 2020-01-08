@@ -8,7 +8,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
-/** BlueBirdScannerPlugin */
+/** ZsdkPlugin */
 public class ZsdkPlugin implements MethodCallHandler {
 
   /** Plugin registration. */

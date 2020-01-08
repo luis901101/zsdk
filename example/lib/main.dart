@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:zsdk/zsdk.dart' as Printer;
+import 'dart:io';
 
 void main() => runApp(MyApp());
 
@@ -220,6 +221,9 @@ class _MyAppState extends State<MyApp> {
           .then((value){
             setState(() {
               printStatus = PrintStatus.SUCCESS;
+              if(Platform.isIOS){
+                message = "$value";
+              } else
               message = "Successful print";
             });
           }, onError: (error, stacktrace){

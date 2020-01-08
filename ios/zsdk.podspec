@@ -4,9 +4,9 @@
 Pod::Spec.new do |s|
   s.name             = 'zsdk'
   s.version          = '0.0.1'
-  s.summary          = 'Zebra Link OS SDK Flutter'
+  s.summary          = 'A Flutter plugin for Zebra Link OS SDK'
   s.description      = <<-DESC
-Zebra Link OS SDK Flutter
+A Flutter plugin for Zebra Link OS SDK
                        DESC
   s.homepage         = 'http://example.com'
   s.license          = { :file => '../LICENSE' }
