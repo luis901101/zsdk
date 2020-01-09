@@ -78,7 +78,7 @@ public class ZsdkPlugin implements MethodCallHandler {
     catch(Exception e)
     {
       e.printStackTrace();
-      result.error(null, e.getMessage(), null);
+      result.error(ErrorCode.EXCEPTION.name(), e.getMessage(), null);
     }
   }
 }

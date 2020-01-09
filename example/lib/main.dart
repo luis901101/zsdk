@@ -269,7 +269,10 @@ class _MyAppState extends State<MyApp> {
           .then((value){
             setState(() {
               printStatus = PrintStatus.SUCCESS;
-              message = "Successful print";
+              if(Platform.isIOS){
+                message = "$value";
+              } else
+                message = "Successful print";
             });
           }, onError: (error, stacktrace){
             try{

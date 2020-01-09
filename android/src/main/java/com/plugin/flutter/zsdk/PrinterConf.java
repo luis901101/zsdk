@@ -22,7 +22,7 @@ public class PrinterConf {
     {
         this.cmWidth = cmWidth != null ? cmWidth : 15.20;
         this.cmHeight = cmHeight != null ? cmHeight : 7.00;
-        this.dpi = dpi != null ? dpi : null;
+        this.dpi = dpi;
         this.orientation = orientation != null ? orientation : Orientation.LANDSCAPE;
     }
 

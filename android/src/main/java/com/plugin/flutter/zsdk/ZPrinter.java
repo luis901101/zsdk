@@ -49,7 +49,7 @@ public class ZPrinter
         printerConf.init(connection);
     }
 
-    void printPdfOverTCPIP(final String filePath, final String address, final Integer port) {
+    public void printPdfOverTCPIP(final String filePath, final String address, final Integer port) {
         new Thread(() -> {
             try
             {
@@ -73,7 +73,7 @@ public class ZPrinter
                     } else {
                         PrinterErrorDetails printerErrorDetails = new PrinterErrorDetails(
                                 getStatusInfo(printer), "Printer is not ready");
-                        handler.post(() -> result.error(printerErrorDetails.statusInfo.status.name(),
+                        handler.post(() -> result.error(ErrorCode.PRINTER_ERROR.name(),
                                 printerErrorDetails.message, printerErrorDetails.toMap()));
                     }
 
@@ -84,12 +84,12 @@ public class ZPrinter
             catch(Exception e)
             {
                 e.printStackTrace();
-                handler.post(() -> result.error(null, e.toString(), null));
+                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(), e.toString(), null));
             }
         }).start();
     }
 
-    void printZplOverTCPIP(final String filePath, final String address, final Integer port) {
+    public void printZplOverTCPIP(final String filePath, final String address, final Integer port) {
         new Thread(() -> {
             try
             {
@@ -119,7 +119,7 @@ public class ZPrinter
             catch(Exception e)
             {
                 e.printStackTrace();
-                handler.post(() -> result.error(null, e.toString(), null));
+                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(), e.toString(), null));
             }
         }).start();
     }
@@ -169,7 +169,7 @@ public class ZPrinter
 
         if(language == null) language = ZPL_LANGUAGE_VALUE;
 
-        final String printerLanguage = SGD.GET("device.languages", connection);
+        final String printerLanguage = SGD.GET(PRINTER_LANGUAGES_CONF_KEY, connection);
         if(!printerLanguage.equals(language))
             SGD.SET(PRINTER_LANGUAGES_CONF_KEY, language, connection);
     }
