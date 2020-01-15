@@ -37,7 +37,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    pathController.text = "/sdcard/ticket.pdf";
+    pathController.text = "/sdcard/ticket.zpl";
     addressIpController.text = "10.0.1.100";
   }
 
