@@ -16,14 +16,39 @@
 #import "ZPrinter.h"
 
 @implementation ZsdkPlugin
+
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  FlutterMethodChannel* channel = [FlutterMethodChannel
-      methodChannelWithName:@"zsdk"
-            binaryMessenger:[registrar messenger]];
-  ZsdkPlugin* instance = [[ZsdkPlugin alloc] init];
-  [registrar addMethodCallDelegate:instance channel:channel];
+    [[ZsdkPlugin alloc] init:registrar];
 }
 
+/* Channel */
+NSString* _METHOD_CHANNEL = @"zsdk";
+
+/* Methods */
+NSString* _PRINT_PDF_FILE_OVER_TCP_IP = @"printPdfFileOverTCPIP";
+NSString* _PRINT_PDF_DATA_OVER_TCP_IP = @"printPdfDataOverTCPIP";
+NSString* _PRINT_ZPL_FILE_OVER_TCP_IP = @"printZplFileOverTCPIP";
+NSString* _PRINT_ZPL_DATA_OVER_TCP_IP = @"printZplDataOverTCPIP";
+
+/* Properties */
+NSString* _filePath = @"filePath";
+NSString* _data = @"data";
+NSString* _address = @"address";
+NSString* _port = @"port";
+NSString* _cmWidth = @"cmWidth";
+NSString* _cmHeight = @"cmHeight";
+NSString* _orientation = @"orientation";
+NSString* _dpi = @"dpi";
+
+- (id)init:(id<FlutterPluginRegistrar,NSObject>)registrar {
+    self = [self init];
+    if(self){
+        self.channel =[FlutterMethodChannel
+        methodChannelWithName:_METHOD_CHANNEL binaryMessenger:[registrar messenger]];
+        [registrar addMethodCallDelegate:self channel:self.channel];
+    }
+    return self;
+}
 
 - (void)discoverBluetoothDevices:(FlutterResult)result {
     @try {
@@ -50,13 +75,11 @@
                                        details:nil]);
     }
 }
-
 - (void)getDeviceProperties:(NSString*) serial result:(FlutterResult)result {
      NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
      [dict setObject:@"Not Implemented" forKey:@"error"];
      result(dict);
 }
-
 - (void)getBatteryLevel:(NSString*) serial result:(FlutterResult)result {
    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         @try {
@@ -85,7 +108,6 @@
         }
     });
 }
-
 - (void)sendZplOverBluetooth:(NSString *)serial data:(NSString*)data result:(FlutterResult)result {
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
@@ -127,7 +149,6 @@
     });
     
 }
-
 - (void)test:(FlutterResult)result {
     @try {
         id<ZebraPrinterConnection,NSObject> connection = [[TcpPrinterConnection alloc] initWithAddress:@"10.0.1.100" andWithPort:9100];
@@ -143,59 +164,26 @@
     }
 }
 
+
+
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    NSLog(@"Loooooog %@", [CauseUtils getNameByValue:(HEAD_TOOHOT)]);
-    NSLog(@"Loooooog %@", [ErrorCodeUtils getNameByValue:(PRINTER_ERROR)]);
-    NSLog(@"Loooooog %@", [OrientationUtils getNameByValue:(LANDSCAPE)]);
-    
-    StatusInfo *statusInfo = [[StatusInfo alloc] init:PAUSED cause:HEAD_TOOHOT];
-    PrinterResponse *printerResponse = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer is not ready"];
-    
-    NSLog(@"Loooooog Status %lu", (unsigned long)[statusInfo status]);
-    NSLog(@"Loooooog Cause %lu", (unsigned long)[statusInfo cause]);
-    NSLog(@"Loooooog StatusInfo %@", [statusInfo toMap]);
-    NSLog(@"Loooooog PrinterErrorDetails %@", [printerResponse toMap]);
-    
-//    result([FlutterError errorWithCode:@"asd" message: @"asd" details:nil]);
-//    result([FlutterError errorWithCode:[ErrorCodeUtils getNameByValue:PRINTER_ERROR] message: @"Printer is not ready" details:nil]);
-    
-//    [self test:result];
-    
-    ZPrinter *printer = [[ZPrinter alloc] initWithMethodChannel:nil result:result printerConf:[[PrinterConf alloc] initWithCmWidth:nil cmHeight:nil dpi:nil orientation:nil]];
-    
-    [printer printZplDataOverTCPIP:@"^XA^FO17,16^GB379,371,8^FS^FT65,255^A0N,135,134^FDTEST^FS^XZ" address:@"10.0.1.100" port:@"9100"];
-    if(true) return;
+    NSDictionary *arguments = [call arguments];
+    ZPrinter *printer = [[ZPrinter alloc]
+                         initWithMethodChannel:self.channel
+                         result:result
+                         printerConf:[[PrinterConf alloc]
+                                      initWithCmWidth:arguments[_cmWidth]
+                                      cmHeight:arguments[_cmHeight]
+                                      dpi:arguments[_dpi]
+                                      orientation:arguments[_orientation]
+                                      ]
+                         ];
    
-    NSLog(@"Handle method call");
-    
-   if ([@"discoverBluetoothDevices" isEqualToString:call.method]) {
-       [self discoverBluetoothDevices:result];
-   }
-   else if ([@"getDeviceProperties" isEqualToString:call.method]) {
-       NSDictionary *arguments = [call arguments];
-       
-       NSString* serial = arguments[@"mac"];
-       
-       [self getDeviceProperties:serial result:result];
-   }
-   else if ([@"getBatteryLevel" isEqualToString:call.method]) {
-       NSDictionary *arguments = [call arguments];
-       
-       NSString* serial = arguments[@"mac"];
-       
-       [self getBatteryLevel:serial result:result];
-   }
-   else if ([@"sendZplOverBluetooth" isEqualToString:call.method]) {
-       NSDictionary *arguments = [call arguments];
-       
-       NSString *serial = arguments[@"mac"];
-       NSString *data = arguments[@"data"];
-       
-       [self sendZplOverBluetooth:serial data:data result:result];
-   }
-   else {
-     result(FlutterMethodNotImplemented);
-   }
+    if ([_PRINT_ZPL_FILE_OVER_TCP_IP isEqualToString:call.method])
+       [printer printZplFileOverTCPIP:arguments[_filePath] address:arguments[_address] port:arguments[_port]];
+    else if ([_PRINT_ZPL_DATA_OVER_TCP_IP isEqualToString:call.method])
+        [printer printZplDataOverTCPIP:arguments[_data] address:arguments[_address] port:arguments[_port]];
+    else result(FlutterMethodNotImplemented);
 }
        
 

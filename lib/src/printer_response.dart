@@ -1,22 +1,26 @@
 
 import 'package:zsdk/src/cause.dart';
+import 'package:zsdk/src/error_code.dart';
 import 'package:zsdk/src/status.dart';
 import 'package:zsdk/src/status_info.dart';
 
 /// Created by luis901101 on 2020-01-07.
-class PrinterErrorDetails
+class PrinterResponse
 {
+    ErrorCode errorCode;
     StatusInfo statusInfo;
     String message;
 
-    PrinterErrorDetails(this.statusInfo, this.message) {
+    PrinterResponse(this.errorCode, this.statusInfo, this.message) {
+        this.errorCode ??= ErrorCode.UNKNOWN;
         this.statusInfo ??= StatusInfo(Status.UNKNOWN, Cause.UNKNOWN);
         this.message = message;
     }
 
-    factory PrinterErrorDetails.fromMap(Map<dynamic, dynamic> map) =>
+    factory PrinterResponse.fromMap(Map<dynamic, dynamic> map) =>
         map != null ?
-        PrinterErrorDetails(
+        PrinterResponse(
+            map['errorCode'],
             StatusInfo.fromMap(map['statusInfo']),
             map['message'],
         ) : null;

@@ -207,7 +207,7 @@ class _MyAppState extends State<MyApp> {
             message = "Print job started...";
             printStatus = PrintStatus.PRINTING;
           });
-          widget.zsdk.printPdfOverTCPIP(
+          widget.zsdk.printPdfFileOverTCPIP(
             filePath: pathController.text,
             address: addressIpController.text,
             port: int.tryParse(addressPortController.text),
@@ -230,10 +230,10 @@ class _MyAppState extends State<MyApp> {
             try{
               throw error;
             } on PlatformException catch(e) {
-              Printer.PrinterErrorDetails printerErrorDetails;
+              Printer.PrinterResponse printerResponse;
               try{
-                printerErrorDetails = Printer.PrinterErrorDetails.fromMap(e.details);
-                message = "${printerErrorDetails?.message} ${printerErrorDetails?.statusInfo?.status} ${printerErrorDetails?.statusInfo?.cause}";
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                message = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause}";
               }catch(e){
                 print(e);
                 message = "${e?.toString()}";
@@ -255,7 +255,7 @@ class _MyAppState extends State<MyApp> {
             message = "Print job started...";
             printStatus = PrintStatus.PRINTING;
           });
-          widget.zsdk.printZplOverTCPIP(
+          widget.zsdk.printZplFileOverTCPIP(
             filePath: pathController.text,
             address: addressIpController.text,
             port: int.tryParse(addressPortController.text),
@@ -278,10 +278,10 @@ class _MyAppState extends State<MyApp> {
             try{
               throw error;
             } on PlatformException catch(e) {
-              Printer.PrinterErrorDetails printerErrorDetails;
+              Printer.PrinterResponse printerResponse;
               try{
-                printerErrorDetails = Printer.PrinterErrorDetails.fromMap(e.details);
-                message = "${printerErrorDetails?.message} ${printerErrorDetails?.statusInfo?.status} ${printerErrorDetails?.statusInfo?.cause}";
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                message = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause}";
               }catch(e){
                 print(e);
                 message = "${e?.toString()}";
