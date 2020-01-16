@@ -13,5 +13,6 @@ typedef NS_ENUM(NSUInteger, Cause) {
     PAPER_OUT = 4,
     RIBBON_OUT = 5,
     RECEIVE_BUFFER_FULL = 6,
-    UNKNOWN_CAUSE = 7,
+    NO_CONNECTION = 7,
+    UNKNOWN_CAUSE = 8,
 };

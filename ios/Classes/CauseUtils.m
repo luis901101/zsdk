@@ -18,6 +18,7 @@
         case PAPER_OUT: return @"PAPER_OUT";
         case RIBBON_OUT: return @"RIBBON_OUT";
         case RECEIVE_BUFFER_FULL: return @"RECEIVE_BUFFER_FULL";
+        case NO_CONNECTION: return @"NO_CONNECTION";
         case UNKNOWN_CAUSE:
         default: return @"UNKNOWN";
     }
@@ -32,6 +33,7 @@
     if([name  isEqual: @"PAPER_OUT"]) return PAPER_OUT;
     if([name  isEqual: @"RIBBON_OUT"]) return RIBBON_OUT;
     if([name  isEqual: @"RECEIVE_BUFFER_FULL"]) return RECEIVE_BUFFER_FULL;
+    if([name  isEqual: @"NO_CONNECTION"]) return NO_CONNECTION;
     if([name  isEqual: @"UNKNOWN"]) return UNKNOWN_CAUSE;
     return UNKNOWN_CAUSE;
 }

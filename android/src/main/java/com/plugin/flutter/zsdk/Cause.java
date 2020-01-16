@@ -12,5 +12,6 @@ public enum Cause
     PAPER_OUT,
     RIBBON_OUT,
     RECEIVE_BUFFER_FULL,
+    NO_CONNECTION,
     UNKNOWN,
 }

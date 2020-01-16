@@ -8,6 +8,7 @@ enum Cause
     PAPER_OUT,
     RIBBON_OUT,
     RECEIVE_BUFFER_FULL,
+    NO_CONNECTION,
     UNKNOWN,
 }
 
@@ -31,6 +32,7 @@ class CauseUtils {
         'PAPER_OUT': Cause.PAPER_OUT,
         'RIBBON_OUT': Cause.RIBBON_OUT,
         'RECEIVE_BUFFER_FULL': Cause.RECEIVE_BUFFER_FULL,
+        'NO_CONNECTION': Cause.NO_CONNECTION,
         'UNKNOWN': Cause.UNKNOWN,
     };
 

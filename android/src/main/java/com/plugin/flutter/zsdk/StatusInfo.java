@@ -8,8 +8,8 @@ import java.util.Map;
  */
 public class StatusInfo
 {
-    public final Status status;
-    public final Cause cause;
+    public Status status;
+    public Cause cause;
 
     public StatusInfo(Status status, Cause cause)
     {

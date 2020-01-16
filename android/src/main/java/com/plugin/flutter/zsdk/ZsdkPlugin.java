@@ -18,11 +18,15 @@ public class ZsdkPlugin implements MethodCallHandler {
   static final String _METHOD_CHANNEL = "zsdk";
 
   /** Methods */
-  static final String _PRINT_PDF_OVER_TCP_IP = "printPdfOverTCPIP";
-  static final String _PRINT_ZPL_OVER_TCP_IP = "printZplOverTCPIP";
+  static final String _PRINT_PDF_FILE_OVER_TCP_IP = "printPdfFileOverTCPIP";
+  static final String _PRINT_PDF_DATA_OVER_TCP_IP = "printPdfDataOverTCPIP";
+  static final String _PRINT_ZPL_FILE_OVER_TCP_IP = "printZplFileOverTCPIP";
+  static final String _PRINT_ZPL_DATA_OVER_TCP_IP = "printZplDataOverTCPIP";
+  static final String _CHECK_PRINTER_STATUS_OVER_TCP_IP = "checkPrinterStatusOverTCPIP";
 
   /** Properties */
   static final String _filePath = "filePath";
+  static final String _data = "data";
   static final String _address = "address";
   static final String _port = "port";
   static final String _cmWidth = "cmWidth";
@@ -57,16 +61,32 @@ public class ZsdkPlugin implements MethodCallHandler {
           )
       );
       switch(call.method){
-        case _PRINT_PDF_OVER_TCP_IP:
+        case _CHECK_PRINTER_STATUS_OVER_TCP_IP:
+          printer.checkPrinterStatusOverTCPIP(
+              call.argument(_address),
+              call.argument(_port)
+          );
+          break;
+        case _PRINT_PDF_FILE_OVER_TCP_IP:
           printer.printPdfOverTCPIP(
               call.argument(_filePath),
               call.argument(_address),
               call.argument(_port)
           );
           break;
-        case _PRINT_ZPL_OVER_TCP_IP:
-          printer.printZplOverTCPIP(
+        case _PRINT_PDF_DATA_OVER_TCP_IP:
+          result.notImplemented();
+          break;
+        case _PRINT_ZPL_FILE_OVER_TCP_IP:
+          printer.printZplFileOverTCPIP(
               call.argument(_filePath),
+              call.argument(_address),
+              call.argument(_port)
+          );
+          break;
+        case _PRINT_ZPL_DATA_OVER_TCP_IP:
+          printer.printZplDataOverTCPIP(
+              call.argument(_data),
               call.argument(_address),
               call.argument(_port)
           );

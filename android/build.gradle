@@ -22,14 +22,7 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    packagingOptions {
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/DEPENDENCIES'
-    }
-    compileSdkVersion 27
+    compileSdkVersion 28
 
     defaultConfig {
         minSdkVersion 16
@@ -48,4 +41,3 @@ dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'com.joanzapata.pdfview:android-pdfview:1.0.4@aar'
 }
-

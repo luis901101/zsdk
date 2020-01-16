@@ -29,6 +29,7 @@ NSString* _PRINT_PDF_FILE_OVER_TCP_IP = @"printPdfFileOverTCPIP";
 NSString* _PRINT_PDF_DATA_OVER_TCP_IP = @"printPdfDataOverTCPIP";
 NSString* _PRINT_ZPL_FILE_OVER_TCP_IP = @"printZplFileOverTCPIP";
 NSString* _PRINT_ZPL_DATA_OVER_TCP_IP = @"printZplDataOverTCPIP";
+NSString* _CHECK_PRINTER_STATUS_OVER_TCP_IP = @"checkPrinterStatusOverTCPIP";
 
 /* Properties */
 NSString* _filePath = @"filePath";
@@ -167,23 +168,31 @@ NSString* _dpi = @"dpi";
 
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    NSDictionary *arguments = [call arguments];
-    ZPrinter *printer = [[ZPrinter alloc]
-                         initWithMethodChannel:self.channel
-                         result:result
-                         printerConf:[[PrinterConf alloc]
-                                      initWithCmWidth:arguments[_cmWidth]
-                                      cmHeight:arguments[_cmHeight]
-                                      dpi:arguments[_dpi]
-                                      orientation:arguments[_orientation]
-                                      ]
-                         ];
-   
-    if ([_PRINT_ZPL_FILE_OVER_TCP_IP isEqualToString:call.method])
-       [printer printZplFileOverTCPIP:arguments[_filePath] address:arguments[_address] port:arguments[_port]];
-    else if ([_PRINT_ZPL_DATA_OVER_TCP_IP isEqualToString:call.method])
-        [printer printZplDataOverTCPIP:arguments[_data] address:arguments[_address] port:arguments[_port]];
-    else result(FlutterMethodNotImplemented);
+    @try {
+        NSDictionary *arguments = [call arguments];
+         ZPrinter *printer = [[ZPrinter alloc]
+                              initWithMethodChannel:self.channel
+                              result:result
+                              printerConf:[[PrinterConf alloc]
+                                           initWithCmWidth:arguments[_cmWidth]
+                                           cmHeight:arguments[_cmHeight]
+                                           dpi:arguments[_dpi]
+                                           orientation:arguments[_orientation]
+                                           ]
+                              ];
+        
+         if ([_CHECK_PRINTER_STATUS_OVER_TCP_IP isEqualToString:call.method])
+             [printer checkPrinterStatusOverTCPIP:arguments[_address] port:arguments[_port]];
+         else if ([_PRINT_ZPL_FILE_OVER_TCP_IP isEqualToString:call.method])
+            [printer printZplFileOverTCPIP:arguments[_filePath] address:arguments[_address] port:arguments[_port]];
+         else if ([_PRINT_ZPL_DATA_OVER_TCP_IP isEqualToString:call.method])
+             [printer printZplDataOverTCPIP:arguments[_data] address:arguments[_address] port:arguments[_port]];
+         else result(FlutterMethodNotImplemented);
+    } @catch (NSException *e) {
+        StatusInfo *statusInfo = [[StatusInfo alloc] init:UNKNOWN_STATUS cause:UNKNOWN_CAUSE];
+        PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:[NSString stringWithFormat: @"%@ %@", @"Exception handling MethodCall", e.reason]];
+        result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+    }
 }
        
 

@@ -7,3 +7,24 @@ enum ErrorCode
     PRINTER_ERROR,
     UNKNOWN,
 }
+
+class ErrorCodeUtils {
+
+    ErrorCodeUtils.get();
+
+    ErrorCode valueOf(String name) {
+        try{
+            return _mapValueOfName[name];
+        } catch(e){
+            return ErrorCode.UNKNOWN;
+        }
+    }
+
+    final _mapValueOfName = {
+        'SUCCESS': ErrorCode.SUCCESS,
+        'EXCEPTION': ErrorCode.EXCEPTION,
+        'PRINTER_ERROR': ErrorCode.PRINTER_ERROR,
+        'UNKNOWN': ErrorCode.UNKNOWN,
+    };
+
+}

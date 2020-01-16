@@ -23,7 +23,7 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
     if(self){
         self.channel = channel;
         self.result = result;
-        self.printerConf = printerConf != nil ? printerConf : [[PrinterConf alloc] initWithCmWidth:nil cmHeight:nil dpi:nil orientation:nil];
+        self.printerConf = ![ObjectUtils isNull:printerConf] ? printerConf : [[PrinterConf alloc] initWithCmWidth:nil cmHeight:nil dpi:nil orientation:nil];
     }
     return self;
 }
@@ -32,24 +32,67 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
     [self.printerConf initValues:connection];
 }
 
-- (void)printZplFileOverTCPIP:(NSString *)filePath address:(NSString *)address port:(id)port {
-    //check if file exist.
-    //Extract data from file
-    //call printZplDataOverTCPIP passing the extracted data from file
-}
-
-- (void)printZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(id)port {
+- (void)checkPrinterStatusOverTCPIP:(NSString *)address port:(NSNumber *)port {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         id<ZebraPrinter,NSObject> printer;
         id<ZebraPrinterConnection,NSObject> connection;
         @try {
-            if(data == nil)
-                @throw [NSException exceptionWithName:@"Printer Error" reason:@"ZPL data can not be empty" userInfo:nil];
-
-            int tcpPort = port != nil ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
+            int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
             
             connection = [[TcpPrinterConnection alloc] initWithAddress:address andWithPort:tcpPort];
-            [connection open];
+            if(![connection open]){
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                statusInfo.cause = NO_CONNECTION;
+                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
+                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+                return;
+            }
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Successful print"];
+                self.result([response toMap]);
+            }
+            @catch (NSException *e) {
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            StatusInfo *statusInfo = [self getStatusInfo:printer];
+            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
+            response.statusInfo.cause = UNKNOWN_CAUSE;
+            self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+        }
+    });
+}
+
+- (void)printZplFileOverTCPIP:(NSString *)filePath address:(NSString *)address port:(NSNumber*)port {
+    //check if file exist.
+    //Extract data from file
+    //call printZplDataOverTCPIP passing the extracted data from file
+    self.result(FlutterMethodNotImplemented);
+}
+
+- (void)printZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(NSNumber*)port {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            if([ObjectUtils isNull:data])
+                @throw [NSException exceptionWithName:@"Printer Error" reason:@"ZPL data can not be empty" userInfo:nil];
+
+            int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
+            
+            connection = [[TcpPrinterConnection alloc] initWithAddress:address andWithPort:tcpPort];
+            if(![connection open]){
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                statusInfo.cause = NO_CONNECTION;
+                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
+                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+                return;
+            }
             NSError *error = nil;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
@@ -60,8 +103,8 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
                     
                     [connection write:dataBytes error:&error];
                     
-                    if (error != nil) {
-                        @throw [NSException exceptionWithName:@"Printer Error"
+                    if (![ObjectUtils isNull:error]) {
+                        @throw [NSException exceptionWithName:@"Printer error"
                                                        reason:[error description]
                                                        userInfo:nil];
                     } else {
@@ -82,7 +125,7 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
         }
         @catch (NSException *e) {
             StatusInfo *statusInfo = [self getStatusInfo:printer];
-            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer is not ready"];
+            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
             response.statusInfo.cause = UNKNOWN_CAUSE;
             self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
         }
@@ -93,7 +136,7 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
     @try {
         NSError *error = nil;
         bool value = [[printer getCurrentStatus:&error] isReadyToPrint];
-        if (error != nil)
+        if (![ObjectUtils isNull:error])
             @throw [NSException exceptionWithName:@"Printer Error" reason:[error description] userInfo:nil];
         return value;
     } @catch (NSException *e) {
@@ -108,7 +151,7 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
     @try {
         NSError *error = nil;
         PrinterStatus *printerStatus = [printer getCurrentStatus:&error];
-        if (error != nil)
+        if (![ObjectUtils isNull:error])
             @throw [NSException exceptionWithName:@"Printer Error" reason:[error description] userInfo:nil];
         
         if([printerStatus isPaused]) status = PAUSED;
@@ -129,14 +172,14 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
 }
 
 - (void)changePrinterLanguage:(id<ZebraPrinterConnection,NSObject>)connection language:(NSString *)language {
-    if(connection == nil) return;
+    if([ObjectUtils isNull:connection]) return;
     if(![connection isConnected]) [connection open];
 
-    if(language == nil) language = ZPL_LANGUAGE_VALUE;
+    if([ObjectUtils isNull:language]) language = ZPL_LANGUAGE_VALUE;
 
     NSError *error = nil;
     const NSString *printerLanguage = [SGD GET:PRINTER_LANGUAGES_CONF_KEY withPrinterConnection:connection error:&error];
-    if (error != nil)
+    if (![ObjectUtils isNull:error])
         @throw [NSException exceptionWithName:@"Printer Error" reason:[error description] userInfo:nil];
     if(![printerLanguage isEqualToString:language]){
         [SGD SET:PRINTER_LANGUAGES_CONF_KEY withValue:language andWithPrinterConnection:connection error:&error];

@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 #import "Status.h"
 #import "Cause.h"
+#import "ObjectUtils.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

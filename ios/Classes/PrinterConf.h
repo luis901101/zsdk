@@ -9,6 +9,7 @@
 #import "Orientation.h"
 #import "ZebraPrinterConnection.h"
 #import "SGD.h"
+#import "ObjectUtils.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -18,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property double dpi;
 @property Orientation orientation;
 
-- (id) initWithCmWidth:(id)cmWidth cmHeight:(id)cmHeight dpi:(id)dpi orientation:(id)orientation;
+- (id) initWithCmWidth:(NSNumber*)cmWidth cmHeight:(NSNumber*)cmHeight dpi:(NSNumber*)dpi orientation:(NSString*)orientation;
 - (void) initValues: (id<ZebraPrinterConnection, NSObject>)connection;
 /**
  * cm the amount of centimeters to convert to pixels

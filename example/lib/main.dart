@@ -24,6 +24,13 @@ enum PrintStatus {
   NONE,
 }
 
+enum CheckingStatus {
+  CHECKING,
+  SUCCESS,
+  ERROR,
+  NONE,
+}
+
 class _MyAppState extends State<MyApp> {
   final addressIpController = TextEditingController();
   final addressPortController = TextEditingController();
@@ -33,15 +40,16 @@ class _MyAppState extends State<MyApp> {
   final dpiController = TextEditingController();
   Printer.Orientation printerOrientation = Printer.Orientation.LANDSCAPE;
   String message;
+  String statusMessage;
   PrintStatus printStatus = PrintStatus.NONE;
+  CheckingStatus checkingStatus = CheckingStatus.NONE;
   String filePath;
   String zplData;
 
   @override
   void initState() {
     super.initState();
-    pathController.text = "/sdcard/ticket.zpl";
-    addressIpController.text = "10.0.1.100";
+//    addressIpController.text = "10.0.1.100";
   }
 
   @override
@@ -106,11 +114,14 @@ class _MyAppState extends State<MyApp> {
                                   color: Colors.green,
                                   textColor: Colors.white,
                                   onPressed: () async {
-                                    // Will filter and only let you pick files with svg extension
-                                    filePath = await FilePicker.getFilePath(type: FileType.CUSTOM, fileExtension: 'all');
-                                    setState(() {
-                                      pathController.text = filePath;
-                                    });
+                                    try{
+                                      filePath = await FilePicker.getFilePath(type: FileType.ANY);
+                                      setState(() {
+                                        pathController.text = filePath;
+                                      });
+                                    } catch(e){
+                                      Fluttertoast.showToast(msg: e.toString());
+                                    }
                                   },
                                 ),
                               ),
@@ -140,6 +151,63 @@ class _MyAppState extends State<MyApp> {
                                 labelText: "Printer port (defaults to 9100)"
                             ),
                           ),
+                          Divider(color: Colors.transparent,),
+                          Visibility(
+                            child: Column(
+                              children: <Widget>[
+                                Text("$statusMessage",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: getCheckStatusColor(checkingStatus)),
+                                ),
+                                Divider(color: Colors.transparent,),
+                              ],
+                            ),
+                            visible: checkingStatus != CheckingStatus.NONE,
+                          ),
+                          RaisedButton(
+                            child: Text("Check printer status".toUpperCase()),
+                            color: Colors.orange,
+                            textColor: Colors.white,
+                            onPressed: checkingStatus == CheckingStatus.CHECKING ? null : () async {
+                              try{
+                                setState(() {
+                                  statusMessage = "Checking printer status...";
+                                  checkingStatus = CheckingStatus.CHECKING;
+                                });
+                                widget.zsdk.checkPrinterStatusOverTCPIP(
+                                    address: addressIpController.text,
+                                    port: int.tryParse(addressPortController.text),
+                                ).then((value){
+                                  setState(() {
+                                    checkingStatus = CheckingStatus.SUCCESS;
+                                    statusMessage = "$value";
+                                  });
+                                }, onError: (error, stacktrace){
+                                  try{
+                                    throw error;
+                                  } on PlatformException catch(e) {
+                                    Printer.PrinterResponse printerResponse;
+                                    try{
+                                      printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                                      statusMessage = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause}";
+                                    }catch(e){
+                                      print(e);
+                                      statusMessage = "${e?.toString()}";
+                                    }
+                                  } on MissingPluginException catch(e) {
+                                    statusMessage = "${e?.message}";
+                                  } catch (e){
+                                    statusMessage = "${e?.toString()}";
+                                  }
+                                  setState(() {
+                                    checkingStatus = CheckingStatus.ERROR;
+                                  });
+                                });
+                              } catch(e){
+                                Fluttertoast.showToast(msg: e.toString());
+                              }
+                            },
+                          )
                         ],
                       ),
                     ),
@@ -241,6 +309,15 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Color getCheckStatusColor(CheckingStatus checkingStatus){
+    switch(checkingStatus){
+      case CheckingStatus.CHECKING: return Colors.blue;
+      case CheckingStatus.SUCCESS: return Colors.green;
+      case CheckingStatus.ERROR: return Colors.red;
+      default: return Colors.black;
+    }
+  }
+
   onClick(String id) {
     try{
       switch(id){
@@ -266,10 +343,7 @@ class _MyAppState extends State<MyApp> {
           .then((value){
             setState(() {
               printStatus = PrintStatus.SUCCESS;
-              if(Platform.isIOS){
-                message = "$value";
-              } else
-              message = "Successful print";
+              message = "$value";
             });
           }, onError: (error, stacktrace){
             try{
@@ -316,10 +390,7 @@ class _MyAppState extends State<MyApp> {
           .then((value){
             setState(() {
               printStatus = PrintStatus.SUCCESS;
-              if(Platform.isIOS){
                 message = "$value";
-              } else
-                message = "Successful print";
             });
           }, onError: (error, stacktrace){
             try{

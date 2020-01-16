@@ -5,6 +5,7 @@ package com.plugin.flutter.zsdk;
  */
 public enum ErrorCode
 {
+    SUCCESS,
     EXCEPTION,
     PRINTER_ERROR,
     UNKNOWN,

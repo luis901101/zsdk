@@ -20,7 +20,7 @@ class PrinterResponse
     factory PrinterResponse.fromMap(Map<dynamic, dynamic> map) =>
         map != null ?
         PrinterResponse(
-            map['errorCode'],
+            ErrorCodeUtils.get().valueOf(map['errorCode']),
             StatusInfo.fromMap(map['statusInfo']),
             map['message'],
         ) : null;
