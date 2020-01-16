@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -33,6 +34,8 @@ class _MyAppState extends State<MyApp> {
   Printer.Orientation printerOrientation = Printer.Orientation.LANDSCAPE;
   String message;
   PrintStatus printStatus = PrintStatus.NONE;
+  String filePath;
+  String zplData;
 
   @override
   void initState() {
@@ -72,6 +75,47 @@ class _MyAppState extends State<MyApp> {
                                 labelText: "File path"
                             ),
                           ),
+                          Divider(color: Colors.transparent,),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: RaisedButton(
+                                  child: Text("Pick .zpl file".toUpperCase()),
+                                  color: Colors.green,
+                                  textColor: Colors.white,
+                                  onPressed: () async {
+                                    try{
+                                      filePath = await FilePicker.getFilePath(type: FileType.ANY);
+                                      File zplFile = File(filePath);
+                                      if(await zplFile.exists()){
+                                        zplData = await zplFile.readAsString();
+                                      }
+                                      setState(() {
+                                        pathController.text = filePath;
+                                      });
+                                    } catch(e){
+                                      Fluttertoast.showToast(msg: e.toString());
+                                    }
+                                  },
+                                ),
+                              ),
+                              VerticalDivider(color: Colors.transparent,),
+                              Expanded(
+                                child: RaisedButton(
+                                  child: Text("Pick .pdf file".toUpperCase()),
+                                  color: Colors.green,
+                                  textColor: Colors.white,
+                                  onPressed: () async {
+                                    // Will filter and only let you pick files with svg extension
+                                    filePath = await FilePicker.getFilePath(type: FileType.CUSTOM, fileExtension: 'all');
+                                    setState(() {
+                                      pathController.text = filePath;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          )
                         ],
                       ),
                     ),
@@ -201,8 +245,9 @@ class _MyAppState extends State<MyApp> {
     try{
       switch(id){
         case btnPrintPdfOverTCPIP:
+          if(Platform.isIOS) throw Exception("Not implemented for iOS");
           if(pathController.text == null || !pathController.text.endsWith(".pdf"))
-            throw Exception("Make sure you write the path of a proper pdf file");
+            throw Exception("Make sure you properly write the path or selected a proper pdf file");
           setState(() {
             message = "Print job started...";
             printStatus = PrintStatus.PRINTING;
@@ -250,13 +295,15 @@ class _MyAppState extends State<MyApp> {
           break;
         case btnPrintZplOverTCPIP:
           if(pathController.text == null || !pathController.text.endsWith(".zpl"))
-            throw Exception("Make sure you write the path of a proper zpl file");
+            throw Exception("Make sure you properly write the path or selected a proper zpl file");
+          if(zplData == null || zplData.isEmpty)
+            throw Exception("Make sure you properly write the path or selected a proper zpl file");
           setState(() {
             message = "Print job started...";
             printStatus = PrintStatus.PRINTING;
           });
-          widget.zsdk.printZplFileOverTCPIP(
-            filePath: pathController.text,
+          widget.zsdk.printZplDataOverTCPIP(
+            data: zplData,
             address: addressIpController.text,
             port: int.tryParse(addressPortController.text),
             printerConf: Printer.PrinterConf(
