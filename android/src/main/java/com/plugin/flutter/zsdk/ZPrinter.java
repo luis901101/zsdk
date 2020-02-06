@@ -272,7 +272,7 @@ public class ZPrinter
             if(printerStatus.isPartialFormatInProgress) cause = Cause.PARTIAL_FORMAT_IN_PROGRESS;
             if(printerStatus.isHeadCold) cause = Cause.HEAD_COLD;
             if(printerStatus.isHeadOpen) cause = Cause.HEAD_OPEN;
-            if(printerStatus.isHeadTooHot) cause = Cause.HEAD_TOOHOT;
+            if(printerStatus.isHeadTooHot) cause = Cause.HEAD_TOO_HOT;
             if(printerStatus.isPaperOut) cause = Cause.PAPER_OUT;
             if(printerStatus.isRibbonOut) cause = Cause.RIBBON_OUT;
             if(printerStatus.isReceiveBufferFull) cause = Cause.RECEIVE_BUFFER_FULL;

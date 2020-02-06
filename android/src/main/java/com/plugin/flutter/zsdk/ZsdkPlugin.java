@@ -74,9 +74,6 @@ public class ZsdkPlugin implements MethodCallHandler {
               call.argument(_port)
           );
           break;
-        case _PRINT_PDF_DATA_OVER_TCP_IP:
-          result.notImplemented();
-          break;
         case _PRINT_ZPL_FILE_OVER_TCP_IP:
           printer.printZplFileOverTCPIP(
               call.argument(_filePath),
@@ -91,6 +88,7 @@ public class ZsdkPlugin implements MethodCallHandler {
               call.argument(_port)
           );
           break;
+        case _PRINT_PDF_DATA_OVER_TCP_IP:
         default:
           result.notImplemented();
       }
