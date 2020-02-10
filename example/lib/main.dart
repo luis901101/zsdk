@@ -9,6 +9,8 @@ void main() => runApp(MyApp());
 
 const String btnPrintPdfOverTCPIP = 'btnPrintPdfOverTCPIP';
 const String btnPrintZplOverTCPIP = 'btnPrintZplOverTCPIP';
+const String btnCheckPrinterStatus = 'btnCheckPrinterStatus';
+const String btnGetPrinterSettings = 'btnGetPrinterSettings';
 
 class MyApp extends StatefulWidget {
   Printer.ZSDK zsdk = Printer.ZSDK();
@@ -31,6 +33,13 @@ enum CheckingStatus {
   NONE,
 }
 
+enum SettingsStatus {
+  GETTING,
+  SUCCESS,
+  ERROR,
+  NONE,
+}
+
 class _MyAppState extends State<MyApp> {
   final addressIpController = TextEditingController();
   final addressPortController = TextEditingController();
@@ -41,15 +50,17 @@ class _MyAppState extends State<MyApp> {
   Printer.Orientation printerOrientation = Printer.Orientation.LANDSCAPE;
   String message;
   String statusMessage;
+  String settingsMessage;
   PrintStatus printStatus = PrintStatus.NONE;
   CheckingStatus checkingStatus = CheckingStatus.NONE;
+  SettingsStatus settingsStatus = SettingsStatus.NONE;
   String filePath;
   String zplData;
 
   @override
   void initState() {
     super.initState();
-//    addressIpController.text = "10.0.1.100";
+    addressIpController.text = "10.0.1.100";
   }
 
   @override
@@ -88,7 +99,7 @@ class _MyAppState extends State<MyApp> {
                             children: <Widget>[
                               Expanded(
                                 child: RaisedButton(
-                                  child: Text("Pick .zpl file".toUpperCase()),
+                                  child: Text("Pick .zpl file".toUpperCase(), textAlign: TextAlign.center,),
                                   color: Colors.green,
                                   textColor: Colors.white,
                                   onPressed: () async {
@@ -110,7 +121,7 @@ class _MyAppState extends State<MyApp> {
                               VerticalDivider(color: Colors.transparent,),
                               Expanded(
                                 child: RaisedButton(
-                                  child: Text("Pick .pdf file".toUpperCase()),
+                                  child: Text("Pick .pdf file".toUpperCase(), textAlign: TextAlign.center,),
                                   color: Colors.green,
                                   textColor: Colors.white,
                                   onPressed: () async {
@@ -164,50 +175,40 @@ class _MyAppState extends State<MyApp> {
                             ),
                             visible: checkingStatus != CheckingStatus.NONE,
                           ),
-                          RaisedButton(
-                            child: Text("Check printer status".toUpperCase()),
-                            color: Colors.orange,
-                            textColor: Colors.white,
-                            onPressed: checkingStatus == CheckingStatus.CHECKING ? null : () async {
-                              try{
-                                setState(() {
-                                  statusMessage = "Checking printer status...";
-                                  checkingStatus = CheckingStatus.CHECKING;
-                                });
-                                widget.zsdk.checkPrinterStatusOverTCPIP(
-                                    address: addressIpController.text,
-                                    port: int.tryParse(addressPortController.text),
-                                ).then((value){
-                                  setState(() {
-                                    checkingStatus = CheckingStatus.SUCCESS;
-                                    statusMessage = "$value";
-                                  });
-                                }, onError: (error, stacktrace){
-                                  try{
-                                    throw error;
-                                  } on PlatformException catch(e) {
-                                    Printer.PrinterResponse printerResponse;
-                                    try{
-                                      printerResponse = Printer.PrinterResponse.fromMap(e.details);
-                                      statusMessage = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause}";
-                                    }catch(e){
-                                      print(e);
-                                      statusMessage = "${e?.toString()}";
-                                    }
-                                  } on MissingPluginException catch(e) {
-                                    statusMessage = "${e?.message}";
-                                  } catch (e){
-                                    statusMessage = "${e?.toString()}";
-                                  }
-                                  setState(() {
-                                    checkingStatus = CheckingStatus.ERROR;
-                                  });
-                                });
-                              } catch(e){
-                                Fluttertoast.showToast(msg: e.toString());
-                              }
-                            },
-                          )
+                          Visibility(
+                            child: Column(
+                              children: <Widget>[
+                                Text("$settingsMessage",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: getSettingsStatusColor(settingsStatus)),
+                                ),
+                                Divider(color: Colors.transparent,),
+                              ],
+                            ),
+                            visible: settingsStatus != SettingsStatus.NONE,
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: RaisedButton(
+                                  child: Text("Check printer status".toUpperCase(), textAlign: TextAlign.center,),
+                                  color: Colors.orange,
+                                  textColor: Colors.white,
+                                  onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnCheckPrinterStatus),
+                                ),
+                              ),
+                              VerticalDivider(color: Colors.transparent,),
+                              Expanded(
+                                child: RaisedButton(
+                                  child: Text("Get printer settings".toUpperCase(), textAlign: TextAlign.center,),
+                                  color: Colors.orange,
+                                  textColor: Colors.white,
+                                  onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnGetPrinterSettings),
+                                ),
+                              ),
+                            ],
+                          ),
+
                         ],
                       ),
                     ),
@@ -219,7 +220,7 @@ class _MyAppState extends State<MyApp> {
                       padding: EdgeInsets.all(8),
                       child: Column(
                         children: <Widget>[
-                          Text('Print configurations', style: TextStyle(fontSize: 16),),
+                          Text('PDF print configurations', style: TextStyle(fontSize: 16),),
                           TextField(
                             controller: widthController,
                             keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -273,7 +274,7 @@ class _MyAppState extends State<MyApp> {
                     children: <Widget>[
                       Expanded(
                         child: RaisedButton(
-                          child: Text("Print zpl".toUpperCase()),
+                          child: Text("Print zpl".toUpperCase(), textAlign: TextAlign.center,),
                           color: Theme.of(context).accentColor,
                           textColor: Colors.white,
                           onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnPrintZplOverTCPIP),
@@ -282,7 +283,7 @@ class _MyAppState extends State<MyApp> {
                       VerticalDivider(color: Colors.transparent,),
                       Expanded(
                         child: RaisedButton(
-                          child: Text("Print pdf".toUpperCase()),
+                          child: Text("Print pdf".toUpperCase(), textAlign: TextAlign.center,),
                           color: Theme.of(context).accentColor,
                           textColor: Colors.white,
                           onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnPrintPdfOverTCPIP),
@@ -300,8 +301,8 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Color getPrintStatusColor(PrintStatus printStatus){
-    switch(printStatus){
+  Color getPrintStatusColor(PrintStatus status){
+    switch(status){
       case PrintStatus.PRINTING: return Colors.blue;
       case PrintStatus.SUCCESS: return Colors.green;
       case PrintStatus.ERROR: return Colors.red;
@@ -309,8 +310,8 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Color getCheckStatusColor(CheckingStatus checkingStatus){
-    switch(checkingStatus){
+  Color getCheckStatusColor(CheckingStatus status){
+    switch(status){
       case CheckingStatus.CHECKING: return Colors.blue;
       case CheckingStatus.SUCCESS: return Colors.green;
       case CheckingStatus.ERROR: return Colors.red;
@@ -318,9 +319,89 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Color getSettingsStatusColor(SettingsStatus status){
+    switch(status){
+      case SettingsStatus.GETTING: return Colors.blue;
+      case SettingsStatus.SUCCESS: return Colors.green;
+      case SettingsStatus.ERROR: return Colors.red;
+      default: return Colors.black;
+    }
+  }
+
   onClick(String id) {
     try{
       switch(id){
+        case btnGetPrinterSettings:
+          setState(() {
+            settingsMessage = "Getting printer settings...";
+            settingsStatus = SettingsStatus.GETTING;
+          });
+          widget.zsdk.getPrinterSettingsOverTCPIP(
+            address: addressIpController.text,
+            port: int.tryParse(addressPortController.text),
+          ).then((value){
+            setState(() {
+              settingsStatus = SettingsStatus.SUCCESS;
+              settingsMessage = "$value";
+            });
+          }, onError: (error, stacktrace){
+            try{
+              throw error;
+            } on PlatformException catch(e) {
+              Printer.PrinterResponse printerResponse;
+              try{
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                settingsMessage = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause} \n"
+                    "${printerResponse?.settings?.toString()}";
+              }catch(e){
+                print(e);
+                settingsMessage = "${e?.toString()}";
+              }
+            } on MissingPluginException catch(e) {
+              settingsMessage = "${e?.message}";
+            } catch (e){
+              settingsMessage = "${e?.toString()}";
+            }
+            setState(() {
+              settingsStatus = SettingsStatus.ERROR;
+            });
+          });
+          break;
+        case btnCheckPrinterStatus:
+          setState(() {
+            statusMessage = "Checking printer status...";
+            checkingStatus = CheckingStatus.CHECKING;
+          });
+          widget.zsdk.checkPrinterStatusOverTCPIP(
+            address: addressIpController.text,
+            port: int.tryParse(addressPortController.text),
+          ).then((value){
+            setState(() {
+              checkingStatus = CheckingStatus.SUCCESS;
+              statusMessage = "$value";
+            });
+          }, onError: (error, stacktrace){
+            try{
+              throw error;
+            } on PlatformException catch(e) {
+              Printer.PrinterResponse printerResponse;
+              try{
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                statusMessage = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause}";
+              }catch(e){
+                print(e);
+                statusMessage = "${e?.toString()}";
+              }
+            } on MissingPluginException catch(e) {
+              statusMessage = "${e?.message}";
+            } catch (e){
+              statusMessage = "${e?.toString()}";
+            }
+            setState(() {
+              checkingStatus = CheckingStatus.ERROR;
+            });
+          });
+          break;
         case btnPrintPdfOverTCPIP:
           if(Platform.isIOS) throw Exception("Not implemented for iOS");
           if(pathController.text == null || !pathController.text.endsWith(".pdf"))

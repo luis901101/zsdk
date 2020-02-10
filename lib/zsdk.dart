@@ -22,6 +22,7 @@ class ZSDK {
   static const String _PRINT_ZPL_FILE_OVER_TCP_IP = "printZplFileOverTCPIP";
   static const String _PRINT_ZPL_DATA_OVER_TCP_IP = "printZplDataOverTCPIP";
   static const String _CHECK_PRINTER_STATUS_OVER_TCP_IP = "checkPrinterStatusOverTCPIP";
+  static const String _GET_PRINTER_SETTINGS_OVER_TCP_IP = "getPrinterSettingsOverTCPIP";
 
   /// Properties
   static const String _filePath = "filePath";
@@ -54,8 +55,14 @@ class ZSDK {
     return null;
   }
 
-  Future checkPrinterStatusOverTCPIP({@required String address, int port, PrinterConf printerConf}) =>
+  Future checkPrinterStatusOverTCPIP({@required String address, int port}) =>
       _channel.invokeMethod(_CHECK_PRINTER_STATUS_OVER_TCP_IP, {
+        _address: address,
+        _port: port,
+      });
+
+  Future getPrinterSettingsOverTCPIP({@required String address, int port}) =>
+      _channel.invokeMethod(_GET_PRINTER_SETTINGS_OVER_TCP_IP, {
         _address: address,
         _port: port,
       });

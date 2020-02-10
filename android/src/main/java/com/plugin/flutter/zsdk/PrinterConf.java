@@ -12,9 +12,6 @@ public class PrinterConf {
     private Orientation orientation;
     private Double dpi;
 
-    public final String PRINTER_DPI_CONF_KEY = "head.resolution.in_dpi";
-    public final double DEFAULT_DPI = 203;
-
     public PrinterConf() {
         this(null, null, null, null);
     }
@@ -32,13 +29,13 @@ public class PrinterConf {
                 if(!connection.isConnected()) connection.open();
 //                ZebraPrinterLinkOs printerLinkOs = ZebraPrinterFactory.getLinkOsPrinter(connection);
 //                dpi = Double.parseDouble(printerLinkOs.getSettingValue(PRINTER_DPI_CONF_KEY));
-                dpi = Double.parseDouble(SGD.GET(PRINTER_DPI_CONF_KEY, connection));
+                dpi = Double.parseDouble(SGD.GET(SettingsParams.KEY_PRINTER_DPI, connection));
             }
             catch(Exception e) {
                 e.printStackTrace();
             }
         }
-        if(dpi == null) dpi = DEFAULT_DPI;
+        if(dpi == null) dpi = SettingsParams.VALUE_DPI_DEFAULT;
         width = (int) convertCmToPx(cmWidth, dpi);
         height = (int) convertCmToPx(cmHeight, dpi);
     }

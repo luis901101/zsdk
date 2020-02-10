@@ -23,6 +23,7 @@ public class ZsdkPlugin implements MethodCallHandler {
   static final String _PRINT_ZPL_FILE_OVER_TCP_IP = "printZplFileOverTCPIP";
   static final String _PRINT_ZPL_DATA_OVER_TCP_IP = "printZplDataOverTCPIP";
   static final String _CHECK_PRINTER_STATUS_OVER_TCP_IP = "checkPrinterStatusOverTCPIP";
+  static final String _GET_PRINTER_SETTINGS_OVER_TCP_IP = "getPrinterSettingsOverTCPIP";
 
   /** Properties */
   static final String _filePath = "filePath";
@@ -63,6 +64,12 @@ public class ZsdkPlugin implements MethodCallHandler {
       switch(call.method){
         case _CHECK_PRINTER_STATUS_OVER_TCP_IP:
           printer.checkPrinterStatusOverTCPIP(
+              call.argument(_address),
+              call.argument(_port)
+          );
+          break;
+        case _GET_PRINTER_SETTINGS_OVER_TCP_IP:
+          printer.getPrinterSettingsOverTCPIP(
               call.argument(_address),
               call.argument(_port)
           );

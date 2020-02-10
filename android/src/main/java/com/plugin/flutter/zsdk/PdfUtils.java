@@ -99,7 +99,7 @@ public class PdfUtils
         return list;
     }
 
-    /** Returns the width of the pdf page in inches for scaling later
+    /** Returns the printWidth of the pdf page in inches for scaling later
      * PdfRenderer is only available for devices running Android Lollipop or newer
      */
     public static Integer getPageWidth(Context context, String filePath) throws IOException

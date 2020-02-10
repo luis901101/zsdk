@@ -33,9 +33,6 @@ public class ZPrinter
     protected final Handler handler = new Handler();
     protected PrinterConf printerConf;
 
-    public final String PRINTER_LANGUAGES_CONF_KEY = "device.languages";
-    public final String ZPL_LANGUAGE_VALUE = "hybrid_xml_zpl";
-
     public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf)
     {
         this.context = context;
@@ -64,6 +61,47 @@ public class ZPrinter
 
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Printer status");
+                    handler.post(() -> result.success(response.toMap()));
+                } finally {
+                    connection.close();
+                }
+            }
+            catch(ConnectionException e)
+            {
+                e.printStackTrace();
+                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                        getStatusInfo(printer), "Printer error. "+e.toString());
+                response.statusInfo.cause = Cause.NO_CONNECTION;
+                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
+                        response.message, response.toMap()));
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                        getStatusInfo(printer), "Printer error. "+e.toString());
+                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
+                        response.message, response.toMap()));
+            }
+        }).start();
+    }
+
+    public void getPrinterSettingsOverTCPIP(final String address, final Integer port) {
+        new Thread(() -> {
+            Connection connection;
+            ZebraPrinter printer = null;
+            try
+            {
+                int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
+
+                connection = new TcpConnection(address, tcpPort);
+                connection.open();
+
+                try {
+                    printer = ZebraPrinterFactory.getInstance(connection);
+                    PrinterSettings settings = PrinterSettings.get(connection);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), settings, "Printer status");
                     handler.post(() -> result.success(response.toMap()));
                 } finally {
                     connection.close();
@@ -161,7 +199,7 @@ public class ZPrinter
                     printer = ZebraPrinterFactory.getInstance(connection);
                     if (isReadyToPrint(printer)) {
                         init(connection);
-                        changePrinterLanguage(connection, ZPL_LANGUAGE_VALUE);
+                        changePrinterLanguage(connection, SettingsParams.VALUE_ZPL_LANGUAGE);
                         printer.sendFileContents(filePath);
                         PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                                 getStatusInfo(printer), "Successful print");
@@ -213,7 +251,7 @@ public class ZPrinter
                     printer = ZebraPrinterFactory.getInstance(connection);
                     if (isReadyToPrint(printer)) {
                         init(connection);
-                        changePrinterLanguage(connection, ZPL_LANGUAGE_VALUE);
+                        changePrinterLanguage(connection, SettingsParams.VALUE_ZPL_LANGUAGE);
                         connection.write(data.getBytes());
                         PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                                 getStatusInfo(printer), "Successful print");
@@ -284,7 +322,7 @@ public class ZPrinter
     }
 
     /**
-     * This method implements best practices to check the language of the printer and set the language of the printer to ZPL.
+     * This printMethod implements best practices to check the language of the printer and set the language of the printer to ZPL.
      * @return printer
      * @throws ConnectionException
      */
@@ -292,11 +330,11 @@ public class ZPrinter
         if(connection == null) return;
         if(!connection.isConnected()) connection.open();
 
-        if(language == null) language = ZPL_LANGUAGE_VALUE;
+        if(language == null) language = SettingsParams.VALUE_ZPL_LANGUAGE;
 
-        final String printerLanguage = SGD.GET(PRINTER_LANGUAGES_CONF_KEY, connection);
+        final String printerLanguage = SGD.GET(SettingsParams.KEY_PRINTER_LANGUAGES, connection);
         if(!printerLanguage.equals(language))
-            SGD.SET(PRINTER_LANGUAGES_CONF_KEY, language, connection);
+            SGD.SET(SettingsParams.KEY_PRINTER_LANGUAGES, language, connection);
     }
 
     public void printAllSettings(Connection connection) throws Exception {
