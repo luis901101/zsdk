@@ -8,7 +8,6 @@
 #import <Foundation/Foundation.h>
 #import "Orientation.h"
 #import "ZebraPrinterConnection.h"
-#import "SGD.h"
 #import "ObjectUtils.h"
 
 NS_ASSUME_NONNULL_BEGIN

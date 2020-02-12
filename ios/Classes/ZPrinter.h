@@ -12,6 +12,7 @@
 #import "ZebraPrinter.h"
 #import "ZebraPrinterConnection.h"
 #import "ObjectUtils.h"
+#import "PrinterSettings.h"
 
 
 NS_ASSUME_NONNULL_BEGIN
@@ -22,7 +23,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property PrinterConf *printerConf;
 - (id) initWithMethodChannel:(FlutterMethodChannel *)channel result:(FlutterResult)result printerConf:(PrinterConf *)printerConf;
 - (void) initValues:(id<ZebraPrinterConnection, NSObject>)connection;
+- (void) doManualCalibrationOverTCPIP:(NSString *)address port:(NSNumber*)port;
 - (void) checkPrinterStatusOverTCPIP:(NSString *)address port:(NSNumber*)port;
+- (void) getPrinterSettingsOverTCPIP:(NSString *)address port:(NSNumber*)port;
+- (void) setPrinterSettingsOverTCPIP:(NSString *)address port:(NSNumber*)port settings:(PrinterSettings *)settings;
 - (void) printZplFileOverTCPIP:(NSString *)filePath address:(NSString *)address port:(NSNumber*)port;
 - (void) printZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(NSNumber*)port;
 - (bool) isReadyToPrint:(id<ZebraPrinter, NSObject>)printer;

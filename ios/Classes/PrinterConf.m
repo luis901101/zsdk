@@ -7,10 +7,10 @@
 
 #import "PrinterConf.h"
 #import "OrientationUtils.h"
+#import "SGDParams.h"
+#import "SGD.h"
 
 @implementation PrinterConf
-NSString *PRINTER_DPI_CONF_KEY = @"head.resolution.in_dpi";
-const double DEFAULT_DPI = 203;
 
 - (id)initWithCmWidth:(NSNumber *)cmWidth cmHeight:(NSNumber *)cmHeight dpi:(NSNumber *)dpi orientation:(NSString *)orientation {
     self = [super init];
@@ -28,7 +28,7 @@ const double DEFAULT_DPI = 203;
         @try {
             if(![connection isConnected]) [connection open];
             NSError *error = nil;
-            const NSString *dpiAsString = [SGD GET:PRINTER_DPI_CONF_KEY withPrinterConnection:connection error:&error];
+            const NSString *dpiAsString = [SGD GET:SGDParams.KEY_PRINTER_DPI withPrinterConnection:connection error:&error];
             if(![ObjectUtils isNull:dpiAsString])
                 self.dpi = [dpiAsString doubleValue];
         }
@@ -37,7 +37,7 @@ const double DEFAULT_DPI = 203;
             NSLog(@"%@", e.reason);
         }
     }
-    if(self.dpi == 0) self.dpi = DEFAULT_DPI;
+    if(self.dpi == 0) self.dpi = SGDParams.VALUE_DPI_DEFAULT;
     self.width = [self convertCmToPx:self.cmWidth dpi:self.dpi];
     self.height = [self convertCmToPx:self.cmHeight dpi:self.dpi];
 }

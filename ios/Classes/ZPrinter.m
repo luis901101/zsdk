@@ -6,17 +6,18 @@
 //
 
 #import "ZPrinter.h"
-#import "SGD.h"
 #import "ZebraPrinterFactory.h"
 #import "TcpPrinterConnection.h"
 #import "ErrorCodeUtils.h"
 #import "PrinterResponse.h"
+#import "SGDParams.h"
+#import "SGD.h"
+#import "PrinterSettings.h"
 
 @implementation ZPrinter
-NSString *PRINTER_LANGUAGES_CONF_KEY = @"device.languages";
-NSString *ZPL_LANGUAGE_VALUE = @"hybrid_xml_zpl";
 const int DEFAULT_ZPL_TCP_PORT = 9100;
-
+const int MAX_TIME_OUT_FOR_READ = 5000;
+const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
 
 - (id)initWithMethodChannel:(FlutterMethodChannel *)channel result:(FlutterResult)result printerConf:(PrinterConf *)printerConf{
     self = [self init];
@@ -28,8 +29,51 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
     return self;
 }
 
++ (TcpPrinterConnection *) initWithAddress:(NSString *)anAddress andWithPort:(NSInteger)aPort {
+    return [[TcpPrinterConnection alloc] initWithAddress:anAddress withPort:aPort withMaxTimeoutForRead:MAX_TIME_OUT_FOR_READ andWithTimeToWaitForMoreData:TIME_TO_WAIT_FOR_MORE_DATA];
+}
+
 - (void)initValues:(id<ZebraPrinterConnection,NSObject>)connection{
     [self.printerConf initValues:connection];
+}
+
+- (void)doManualCalibrationOverTCPIP:(NSString *)address port:(NSNumber *)port {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
+            
+            connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
+            if(![connection open]){
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                statusInfo.cause = NO_CONNECTION;
+                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
+                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+                return;
+            }
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                [SGD DO:SGDParams.KEY_MANUAL_CALIBRATION withValue:nil andWithPrinterConnection:connection error:&error];
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Printer status"];
+                self.result([response toMap]);
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            NSLog(@"%@", e.reason);
+            StatusInfo *statusInfo = [self getStatusInfo:printer];
+            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
+            response.statusInfo.cause = UNKNOWN_CAUSE;
+            self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+        }
+    });
 }
 
 - (void)checkPrinterStatusOverTCPIP:(NSString *)address port:(NSNumber *)port {
@@ -39,7 +83,7 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
         @try {
             int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
             
-            connection = [[TcpPrinterConnection alloc] initWithAddress:address andWithPort:tcpPort];
+            connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
             if(![connection open]){
                 StatusInfo *statusInfo = [self getStatusInfo:printer];
                 statusInfo.cause = NO_CONNECTION;
@@ -51,15 +95,100 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
                 StatusInfo *statusInfo = [self getStatusInfo:printer];
-                PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Successful print"];
+                PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Printer status"];
                 self.result([response toMap]);
             }
             @catch (NSException *e) {
+                @throw e;
             } @finally {
                 [connection close];
             }
         }
         @catch (NSException *e) {
+            NSLog(@"%@", e.reason);
+            StatusInfo *statusInfo = [self getStatusInfo:printer];
+            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
+            response.statusInfo.cause = UNKNOWN_CAUSE;
+            self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+        }
+    });
+}
+
+- (void)getPrinterSettingsOverTCPIP:(NSString *)address port:(NSNumber *)port {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
+            
+            connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
+            if(![connection open]){
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                statusInfo.cause = NO_CONNECTION;
+                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
+                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+                return;
+            }
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                PrinterSettings *settings = [PrinterSettings get:connection];
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                PrinterResponse *response = [[PrinterResponse alloc] initWithSettings:SUCCESS statusInfo:statusInfo settings:settings message:@"Printer status"];
+                self.result([response toMap]);
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            NSLog(@"%@", e.reason);
+            StatusInfo *statusInfo = [self getStatusInfo:printer];
+            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
+            response.statusInfo.cause = UNKNOWN_CAUSE;
+            self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+        }
+    });
+}
+
+- (void)setPrinterSettingsOverTCPIP:(NSString *)address port:(NSNumber *)port settings:(PrinterSettings *)settings {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            
+            if([ObjectUtils isNull:settings])
+                @throw [NSException exceptionWithName:@"Printer Error" reason:@"Settings can't be null" userInfo:nil];
+            
+            int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
+            
+            connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
+            if(![connection open]){
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                statusInfo.cause = NO_CONNECTION;
+                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
+                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+                return;
+            }
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                [settings apply:connection];
+                PrinterSettings *settings = [PrinterSettings get:connection];
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                PrinterResponse *response = [[PrinterResponse alloc] initWithSettings:SUCCESS statusInfo:statusInfo settings:settings message:@"Printer status"];
+                self.result([response toMap]);
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            NSLog(@"%@", e.reason);
             StatusInfo *statusInfo = [self getStatusInfo:printer];
             PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
             response.statusInfo.cause = UNKNOWN_CAUSE;
@@ -85,7 +214,7 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
 
             int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
             
-            connection = [[TcpPrinterConnection alloc] initWithAddress:address andWithPort:tcpPort];
+            connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
             if(![connection open]){
                 StatusInfo *statusInfo = [self getStatusInfo:printer];
                 statusInfo.cause = NO_CONNECTION;
@@ -98,7 +227,7 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
                 if ([self isReadyToPrint:printer]) {
                     [self initValues:connection];
-                    [self changePrinterLanguage:connection language:ZPL_LANGUAGE_VALUE];
+                    [self changePrinterLanguage:connection language:SGDParams.VALUE_ZPL_LANGUAGE];
                     NSData *dataBytes = [NSData dataWithBytes:[data UTF8String] length:[data length]];
                     
                     [connection write:dataBytes error:&error];
@@ -119,11 +248,13 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
                 }
             }
             @catch (NSException *e) {
+                @throw e;
             } @finally {
                 [connection close];
             }
         }
         @catch (NSException *e) {
+            NSLog(@"%@", e.reason);
             StatusInfo *statusInfo = [self getStatusInfo:printer];
             PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
             response.statusInfo.cause = UNKNOWN_CAUSE;
@@ -175,14 +306,14 @@ const int DEFAULT_ZPL_TCP_PORT = 9100;
     if([ObjectUtils isNull:connection]) return;
     if(![connection isConnected]) [connection open];
 
-    if([ObjectUtils isNull:language]) language = ZPL_LANGUAGE_VALUE;
+    if([ObjectUtils isNull:language]) language = SGDParams.VALUE_ZPL_LANGUAGE;
 
     NSError *error = nil;
-    const NSString *printerLanguage = [SGD GET:PRINTER_LANGUAGES_CONF_KEY withPrinterConnection:connection error:&error];
+    const NSString *printerLanguage = [SGD GET:SGDParams.KEY_PRINTER_LANGUAGES withPrinterConnection:connection error:&error];
     if (![ObjectUtils isNull:error])
         @throw [NSException exceptionWithName:@"Printer Error" reason:[error description] userInfo:nil];
     if(![printerLanguage isEqualToString:language]){
-        [SGD SET:PRINTER_LANGUAGES_CONF_KEY withValue:language andWithPrinterConnection:connection error:&error];
+        [SGD SET:SGDParams.KEY_PRINTER_LANGUAGES withValue:language andWithPrinterConnection:connection error:&error];
         if (error != nil)
             @throw [NSException exceptionWithName:@"Printer Error" reason:[error description] userInfo:nil];
     }

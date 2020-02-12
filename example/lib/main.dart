@@ -427,7 +427,7 @@ class _MyAppState extends State<MyApp> {
       switch(id){
         case btnDoManualCalibration:
           setState(() {
-            calibrationMessage = "Getting printer settings...";
+            calibrationMessage = "Starting manual callibration...";
             calibrationStatus = CalibrationStatus.CALIBRATING;
           });
           widget.zsdk.doManualCalibrationOverTCPIP(
