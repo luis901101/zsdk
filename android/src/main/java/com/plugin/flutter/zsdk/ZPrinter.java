@@ -14,8 +14,12 @@ import com.zebra.sdk.printer.ZebraPrinter;
 import com.zebra.sdk.printer.ZebraPrinterFactory;
 import com.zebra.sdk.printer.ZebraPrinterLinkOs;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 
@@ -127,6 +131,50 @@ public class ZPrinter
         }).start();
     }
 
+    public void setPrinterSettingsOverTCPIP(final String address, final Integer port, final PrinterSettings settings) {
+        new Thread(() -> {
+            Connection connection;
+            ZebraPrinter printer = null;
+            try
+            {
+                if(settings == null) throw new NullPointerException("Settings can't be null");
+
+                int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
+
+                connection = new TcpConnection(address, tcpPort);
+                connection.open();
+
+                try {
+                    printer = ZebraPrinterFactory.getInstance(connection);
+                    settings.apply(connection);
+                    PrinterSettings currentSettings = PrinterSettings.get(connection);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), currentSettings, "Printer status");
+                    handler.post(() -> result.success(response.toMap()));
+                } finally {
+                    connection.close();
+                }
+            }
+            catch(ConnectionException e)
+            {
+                e.printStackTrace();
+                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                        getStatusInfo(printer), "Printer error. "+e.toString());
+                response.statusInfo.cause = Cause.NO_CONNECTION;
+                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
+                        response.message, response.toMap()));
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                        getStatusInfo(printer), "Printer error. "+e.toString());
+                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
+                        response.message, response.toMap()));
+            }
+        }).start();
+    }
+
     public void printPdfOverTCPIP(final String filePath, final String address, final Integer port) {
         new Thread(() -> {
             Connection connection;
@@ -185,50 +233,19 @@ public class ZPrinter
 
     public void printZplFileOverTCPIP(final String filePath, final String address, final Integer port) {
         new Thread(() -> {
-            Connection connection;
-            ZebraPrinter printer = null;
             try
             {
                 if(!new File(filePath).exists()) throw new FileNotFoundException("The file: "+ filePath +"doesn't exist");
-                int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
-
-                connection = new TcpConnection(address, tcpPort);
-                connection.open();
-
-                try {
-                    printer = ZebraPrinterFactory.getInstance(connection);
-                    if (isReadyToPrint(printer)) {
-                        init(connection);
-                        changePrinterLanguage(connection, SettingsParams.VALUE_ZPL_LANGUAGE);
-                        printer.sendFileContents(filePath);
-                        PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
-                                getStatusInfo(printer), "Successful print");
-                        handler.post(() -> result.success(response.toMap()));
-                    } else {
-                        PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                                getStatusInfo(printer), "Printer is not ready");
-                        handler.post(() -> result.error(ErrorCode.PRINTER_ERROR.name(),
-                                response.message, response.toMap()));
-                    }
-
-                } finally {
-                    connection.close();
-                }
-            }
-            catch(ConnectionException e)
-            {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                response.statusInfo.cause = Cause.NO_CONNECTION;
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
+                String line, data = "";
+                while ((line = bufferedReader.readLine()) != null) data += line + "\n";
+                doPrintZplDataOverTCPIP(data, address, port);
             }
             catch(Exception e)
             {
                 e.printStackTrace();
                 PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
+                        getStatusInfo(null), "Printer error. "+e.toString());
                 handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
                         response.message, response.toMap()));
             }
@@ -236,55 +253,60 @@ public class ZPrinter
     }
 
     public void printZplDataOverTCPIP(final String data, final String address, final Integer port) {
+        new Thread(() -> doPrintZplDataOverTCPIP(data, address, port)).start();
+    }
+
+    private void doPrintZplDataOverTCPIP(final String data, final String address, final Integer port) {
         new Thread(() -> {
-            Connection connection;
-            ZebraPrinter printer = null;
-            try
-            {
-                if(data == null || data.isEmpty()) throw new FileNotFoundException("ZPL data can not be empty");
-                int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
-                connection = new TcpConnection(address, tcpPort);
-                connection.open();
+        }).start();Connection connection;
+        ZebraPrinter printer = null;
+        try
+        {
+            if(data == null || data.isEmpty()) throw new NullPointerException("ZPL data can not be empty");
+            int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
-                try {
-                    printer = ZebraPrinterFactory.getInstance(connection);
-                    if (isReadyToPrint(printer)) {
-                        init(connection);
-                        changePrinterLanguage(connection, SettingsParams.VALUE_ZPL_LANGUAGE);
-                        connection.write(data.getBytes());
-                        PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
-                                getStatusInfo(printer), "Successful print");
-                        handler.post(() -> result.success(response.toMap()));
-                    } else {
-                        PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                                getStatusInfo(printer), "Printer is not ready");
-                        handler.post(() -> result.error(ErrorCode.PRINTER_ERROR.name(),
-                                response.message, response.toMap()));
-                    }
+            connection = new TcpConnection(address, tcpPort);
+            connection.open();
 
-                } finally {
-                    connection.close();
+            try {
+                printer = ZebraPrinterFactory.getInstance(connection);
+                if (isReadyToPrint(printer)) {
+                    init(connection);
+                    changePrinterLanguage(connection, SGDParams.VALUE_ZPL_LANGUAGE);
+                    connection.write(data.getBytes());
+//                    printer.sendFileContents(filePath); //This would be to send zpl as a file path
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), "Successful print");
+                    handler.post(() -> result.success(response.toMap()));
+                } else {
+                    PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                            getStatusInfo(printer), "Printer is not ready");
+                    handler.post(() -> result.error(ErrorCode.PRINTER_ERROR.name(),
+                            response.message, response.toMap()));
                 }
+
+            } finally {
+                connection.close();
             }
-            catch(ConnectionException e)
-            {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                response.statusInfo.cause = Cause.NO_CONNECTION;
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
-            }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
-            }
-        }).start();
+        }
+        catch(ConnectionException e)
+        {
+            e.printStackTrace();
+            PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                    getStatusInfo(printer), "Printer error. "+e.toString());
+            response.statusInfo.cause = Cause.NO_CONNECTION;
+            handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
+                    response.message, response.toMap()));
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                    getStatusInfo(printer), "Printer error. "+e.toString());
+            handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
+                    response.message, response.toMap()));
+        }
     }
 
     /** Sees if the printer is ready to print */
@@ -330,11 +352,15 @@ public class ZPrinter
         if(connection == null) return;
         if(!connection.isConnected()) connection.open();
 
-        if(language == null) language = SettingsParams.VALUE_ZPL_LANGUAGE;
+        if(language == null) language = SGDParams.VALUE_ZPL_LANGUAGE;
 
-        final String printerLanguage = SGD.GET(SettingsParams.KEY_PRINTER_LANGUAGES, connection);
+        final String printerLanguage = SGD.GET(SGDParams.KEY_PRINTER_LANGUAGES, connection);
         if(!printerLanguage.equals(language))
-            SGD.SET(SettingsParams.KEY_PRINTER_LANGUAGES, language, connection);
+            SGD.SET(SGDParams.KEY_PRINTER_LANGUAGES, language, connection);
+    }
+
+    public void printAllValues(Connection connection) throws Exception {
+        Log.e("allSettingsValues", SGD.GET(SGDParams.VALUE_GET_ALL, connection));
     }
 
     public void printAllSettings(Connection connection) throws Exception {
@@ -343,7 +369,7 @@ public class ZPrinter
         ZebraPrinterLinkOs printerLinkOs = ZebraPrinterFactory.getLinkOsPrinter(connection);
         Map<String, String> allSettings = printerLinkOs.getAllSettingValues();
         for(Object key : allSettings.keySet())
-            Log.e("allSettings", key+"--->"+allSettings.get(key));
+            Log.e("paramSetting", key+"--->"+allSettings.get(key));
     }
 
     /** Takes the size of the pdf and the printer's maximum size and scales the file down */

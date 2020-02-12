@@ -11,6 +11,7 @@ const String btnPrintPdfOverTCPIP = 'btnPrintPdfOverTCPIP';
 const String btnPrintZplOverTCPIP = 'btnPrintZplOverTCPIP';
 const String btnCheckPrinterStatus = 'btnCheckPrinterStatus';
 const String btnGetPrinterSettings = 'btnGetPrinterSettings';
+const String btnSetPrinterSettings = 'btnSetPrinterSettings';
 
 class MyApp extends StatefulWidget {
   Printer.ZSDK zsdk = Printer.ZSDK();
@@ -35,6 +36,7 @@ enum CheckingStatus {
 
 enum SettingsStatus {
   GETTING,
+  SETTING,
   SUCCESS,
   ERROR,
   NONE,
@@ -105,10 +107,6 @@ class _MyAppState extends State<MyApp> {
                                   onPressed: () async {
                                     try{
                                       filePath = await FilePicker.getFilePath(type: FileType.ANY);
-                                      File zplFile = File(filePath);
-                                      if(await zplFile.exists()){
-                                        zplData = await zplFile.readAsString();
-                                      }
                                       setState(() {
                                         pathController.text = filePath;
                                       });
@@ -175,6 +173,44 @@ class _MyAppState extends State<MyApp> {
                             ),
                             visible: checkingStatus != CheckingStatus.NONE,
                           ),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: RaisedButton(
+                                  child: Text("Check printer status".toUpperCase(), textAlign: TextAlign.center,),
+                                  color: Colors.orange,
+                                  textColor: Colors.white,
+                                  onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnCheckPrinterStatus),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                        ],
+                      ),
+                    ),
+                  ),
+                  Card(
+                    elevation: 4,
+                    margin: EdgeInsets.all(8),
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      child: Column(
+                        children: <Widget>[
+                          Text('Printer settings', style: TextStyle(fontSize: 16),),
+                          TextField(
+                            controller: addressIpController,
+                            decoration: InputDecoration(
+                                labelText: "Printer IP address"
+                            ),
+                          ),
+                          TextField(
+                            controller: addressPortController,
+                            decoration: InputDecoration(
+                                labelText: "Printer port (defaults to 9100)"
+                            ),
+                          ),
+                          Divider(color: Colors.transparent,),
                           Visibility(
                             child: Column(
                               children: <Widget>[
@@ -191,16 +227,16 @@ class _MyAppState extends State<MyApp> {
                             children: <Widget>[
                               Expanded(
                                 child: RaisedButton(
-                                  child: Text("Check printer status".toUpperCase(), textAlign: TextAlign.center,),
+                                  child: Text("Set settings".toUpperCase(), textAlign: TextAlign.center,),
                                   color: Colors.orange,
                                   textColor: Colors.white,
-                                  onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnCheckPrinterStatus),
+                                  onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnSetPrinterSettings),
                                 ),
                               ),
                               VerticalDivider(color: Colors.transparent,),
                               Expanded(
                                 child: RaisedButton(
-                                  child: Text("Get printer settings".toUpperCase(), textAlign: TextAlign.center,),
+                                  child: Text("Get settings".toUpperCase(), textAlign: TextAlign.center,),
                                   color: Colors.orange,
                                   textColor: Colors.white,
                                   onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnGetPrinterSettings),
@@ -321,14 +357,15 @@ class _MyAppState extends State<MyApp> {
 
   Color getSettingsStatusColor(SettingsStatus status){
     switch(status){
-      case SettingsStatus.GETTING: return Colors.blue;
+      case SettingsStatus.GETTING:
+      case SettingsStatus.SETTING: return Colors.blue;
       case SettingsStatus.SUCCESS: return Colors.green;
       case SettingsStatus.ERROR: return Colors.red;
       default: return Colors.black;
     }
   }
 
-  onClick(String id) {
+  onClick(String id) async {
     try{
       switch(id){
         case btnGetPrinterSettings:
@@ -339,6 +376,76 @@ class _MyAppState extends State<MyApp> {
           widget.zsdk.getPrinterSettingsOverTCPIP(
             address: addressIpController.text,
             port: int.tryParse(addressPortController.text),
+          ).then((value){
+            setState(() {
+              settingsStatus = SettingsStatus.SUCCESS;
+              settingsMessage = "$value";
+            });
+          }, onError: (error, stacktrace){
+            try{
+              throw error;
+            } on PlatformException catch(e) {
+              Printer.PrinterResponse printerResponse;
+              try{
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                settingsMessage = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause} \n"
+                    "${printerResponse?.settings?.toString()}";
+              }catch(e){
+                print(e);
+                settingsMessage = "${e?.toString()}";
+              }
+            } on MissingPluginException catch(e) {
+              settingsMessage = "${e?.message}";
+            } catch (e){
+              settingsMessage = "${e?.toString()}";
+            }
+            setState(() {
+              settingsStatus = SettingsStatus.ERROR;
+            });
+          });
+          break;
+        case btnSetPrinterSettings:
+          setState(() {
+            settingsMessage = "Setting printer settings...";
+            settingsStatus = SettingsStatus.SETTING;
+          });
+          widget.zsdk.setPrinterSettingsOverTCPIP(
+            address: addressIpController.text,
+            port: int.tryParse(addressPortController.text),
+            settings: Printer.PrinterSettings(
+              darkness: 10, //10
+              printSpeed: 6, //6
+              tearOff: 0,//0
+              mediaType: Printer.MediaType.MARK, //MARK
+              printMethod: Printer.PrintMethod.DIRECT_THERMAL, //DIRECT_THERMAL
+              printWidth: 568,//600
+              labelLength: 1202,//1202
+              labelLengthMax: 39,//39
+              zplMode: Printer.ZPLMode.ZPL_II,//ZPL II
+              powerUpAction: Printer.PowerUpAction.NO_MOTION,//NO MOTION
+              headCloseAction: Printer.HeadCloseAction.FEED,//FEED
+              labelTop: 0,//0
+              leftPosition: 0,//0
+              printMode: Printer.PrintMode.TEAR_OFF,//TEAR_OFF
+              reprintMode: Printer.ReprintMode.OFF,//OFF
+            )
+//            settings: Printer.PrinterSettings(
+//              darkness: 30, //10
+//              printSpeed: 3, //6
+//              tearOff: 100,//0
+//              mediaType: Printer.MediaType.CONTINUOUS, //MARK
+//              printMethod: Printer.PrintMethod.THERMAL_TRANS, //DIRECT_THERMAL
+//              printWidth: 568,//600
+//              labelLength: 1000,//1202
+//              labelLengthMax: 30,//39
+//              zplMode: Printer.ZPLMode.ZPL,//ZPL II
+//              powerUpAction: Printer.PowerUpAction.FEED,//NO MOTION
+//              headCloseAction: Printer.HeadCloseAction.NO_MOTION,//FEED
+//              labelTop: 50,//0
+//              leftPosition: 100,//0
+//              printMode: Printer.PrintMode.CUTTER,//TEAR_OFF
+//              reprintMode: Printer.ReprintMode.ON,//OFF
+//            )
           ).then((value){
             setState(() {
               settingsStatus = SettingsStatus.SUCCESS;
@@ -451,6 +558,10 @@ class _MyAppState extends State<MyApp> {
         case btnPrintZplOverTCPIP:
           if(pathController.text == null || !pathController.text.endsWith(".zpl"))
             throw Exception("Make sure you properly write the path or selected a proper zpl file");
+          File zplFile = File(filePath);
+          if(await zplFile.exists()){
+            zplData = await zplFile.readAsString();
+          }
           if(zplData == null || zplData.isEmpty)
             throw Exception("Make sure you properly write the path or selected a proper zpl file");
           setState(() {
@@ -501,5 +612,4 @@ class _MyAppState extends State<MyApp> {
       Fluttertoast.showToast(msg: "${e?.toString()}");
     }
   }
-
 }

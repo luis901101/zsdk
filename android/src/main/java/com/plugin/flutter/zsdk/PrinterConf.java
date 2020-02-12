@@ -29,13 +29,13 @@ public class PrinterConf {
                 if(!connection.isConnected()) connection.open();
 //                ZebraPrinterLinkOs printerLinkOs = ZebraPrinterFactory.getLinkOsPrinter(connection);
 //                dpi = Double.parseDouble(printerLinkOs.getSettingValue(PRINTER_DPI_CONF_KEY));
-                dpi = Double.parseDouble(SGD.GET(SettingsParams.KEY_PRINTER_DPI, connection));
+                dpi = Double.parseDouble(SGD.GET(SGDParams.KEY_PRINTER_DPI, connection));
             }
             catch(Exception e) {
                 e.printStackTrace();
             }
         }
-        if(dpi == null) dpi = SettingsParams.VALUE_DPI_DEFAULT;
+        if(dpi == null) dpi = SGDParams.VALUE_DPI_DEFAULT;
         width = (int) convertCmToPx(cmWidth, dpi);
         height = (int) convertCmToPx(cmHeight, dpi);
     }

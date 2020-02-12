@@ -2,6 +2,8 @@ package com.plugin.flutter.zsdk;
 
 import android.content.Context;
 
+import java.util.Map;
+
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -24,6 +26,7 @@ public class ZsdkPlugin implements MethodCallHandler {
   static final String _PRINT_ZPL_DATA_OVER_TCP_IP = "printZplDataOverTCPIP";
   static final String _CHECK_PRINTER_STATUS_OVER_TCP_IP = "checkPrinterStatusOverTCPIP";
   static final String _GET_PRINTER_SETTINGS_OVER_TCP_IP = "getPrinterSettingsOverTCPIP";
+  static final String _SET_PRINTER_SETTINGS_OVER_TCP_IP = "setPrinterSettingsOverTCPIP";
 
   /** Properties */
   static final String _filePath = "filePath";
@@ -72,6 +75,13 @@ public class ZsdkPlugin implements MethodCallHandler {
           printer.getPrinterSettingsOverTCPIP(
               call.argument(_address),
               call.argument(_port)
+          );
+          break;
+        case _SET_PRINTER_SETTINGS_OVER_TCP_IP:
+          printer.setPrinterSettingsOverTCPIP(
+              call.argument(_address),
+              call.argument(_port),
+              new PrinterSettings(call.arguments())
           );
           break;
         case _PRINT_PDF_FILE_OVER_TCP_IP:

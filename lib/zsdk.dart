@@ -3,13 +3,23 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:zsdk/src/orientation.dart';
 import 'package:zsdk/src/printer_conf.dart';
+import 'package:zsdk/src/printer_settings.dart';
 
 export 'package:zsdk/src/cause.dart';
+export 'package:zsdk/src/error_code.dart';
+export 'package:zsdk/src/head_close_action.dart';
+export 'package:zsdk/src/media_type.dart';
 export 'package:zsdk/src/orientation.dart';
+export 'package:zsdk/src/power_up_action.dart';
+export 'package:zsdk/src/print_method.dart';
+export 'package:zsdk/src/print_mode.dart';
 export 'package:zsdk/src/printer_conf.dart';
 export 'package:zsdk/src/printer_response.dart';
+export 'package:zsdk/src/printer_settings.dart';
+export 'package:zsdk/src/reprint_mode.dart';
 export 'package:zsdk/src/status.dart';
 export 'package:zsdk/src/status_info.dart';
+export 'package:zsdk/src/zpl_mode.dart';
 
 class ZSDK {
 
@@ -23,6 +33,7 @@ class ZSDK {
   static const String _PRINT_ZPL_DATA_OVER_TCP_IP = "printZplDataOverTCPIP";
   static const String _CHECK_PRINTER_STATUS_OVER_TCP_IP = "checkPrinterStatusOverTCPIP";
   static const String _GET_PRINTER_SETTINGS_OVER_TCP_IP = "getPrinterSettingsOverTCPIP";
+  static const String _SET_PRINTER_SETTINGS_OVER_TCP_IP = "setPrinterSettingsOverTCPIP";
 
   /// Properties
   static const String _filePath = "filePath";
@@ -66,6 +77,13 @@ class ZSDK {
         _address: address,
         _port: port,
       });
+
+  Future setPrinterSettingsOverTCPIP({@required String address, int port, PrinterSettings settings}) =>
+      _channel.invokeMethod(_SET_PRINTER_SETTINGS_OVER_TCP_IP, {
+        _address: address,
+        _port: port,
+      }..addAll(settings?.toMap())
+    );
 
   Future printPdfFileOverTCPIP({@required String filePath, @required String address, int port, PrinterConf printerConf}) =>
       _printFileOverTCPIP(method: _PRINT_PDF_FILE_OVER_TCP_IP, filePath: filePath, address: address, port: port, printerConf: printerConf);
