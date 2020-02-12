@@ -36,6 +36,8 @@ public class ZPrinter
     protected Result result;
     protected final Handler handler = new Handler();
     protected PrinterConf printerConf;
+    private final int MAX_TIME_OUT_FOR_READ = 5000;
+    private final int TIME_TO_WAIT_FOR_MORE_DATA = 0;
 
     public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf)
     {
@@ -43,6 +45,10 @@ public class ZPrinter
         this.channel = channel;
         this.result = result;
         this.printerConf = printerConf != null ? printerConf : new PrinterConf();
+    }
+
+    private TcpConnection newConnection(String address, int tcpPort){
+        return new TcpConnection(address, tcpPort, MAX_TIME_OUT_FOR_READ, TIME_TO_WAIT_FOR_MORE_DATA);
     }
 
     protected void init(Connection connection){
@@ -57,7 +63,7 @@ public class ZPrinter
             {
                 int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
-                connection = new TcpConnection(address, tcpPort);
+                connection = newConnection(address, tcpPort);
                 connection.open();
 
                 try {
@@ -98,7 +104,7 @@ public class ZPrinter
             {
                 int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
-                connection = new TcpConnection(address, tcpPort);
+                connection = newConnection(address, tcpPort);
                 connection.open();
 
                 try {
@@ -139,8 +145,11 @@ public class ZPrinter
             {
                 int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
-                connection = new TcpConnection(address, tcpPort);
+                connection = newConnection(address, tcpPort);
                 connection.open();
+
+                Log.e("aaaaaa", connection.getMaxTimeoutForRead()+"");
+                Log.e("aaaaaa", connection.getTimeToWaitForMoreData()+"");
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -182,7 +191,7 @@ public class ZPrinter
 
                 int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
-                connection = new TcpConnection(address, tcpPort);
+                connection = newConnection(address, tcpPort);
                 connection.open();
 
                 try {
@@ -225,7 +234,7 @@ public class ZPrinter
                 if(!new File(filePath).exists()) throw new FileNotFoundException("The file: "+ filePath +"doesn't exist");
                 int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
-                connection = new TcpConnection(address, tcpPort);
+                connection = newConnection(address, tcpPort);
                 connection.open();
 
                 try {
@@ -307,7 +316,7 @@ public class ZPrinter
             if(data == null || data.isEmpty()) throw new NullPointerException("ZPL data can not be empty");
             int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
-            connection = new TcpConnection(address, tcpPort);
+            connection = newConnection(address, tcpPort);
             connection.open();
 
             try {
