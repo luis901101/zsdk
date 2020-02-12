@@ -12,6 +12,7 @@ const String btnPrintZplOverTCPIP = 'btnPrintZplOverTCPIP';
 const String btnCheckPrinterStatus = 'btnCheckPrinterStatus';
 const String btnGetPrinterSettings = 'btnGetPrinterSettings';
 const String btnSetPrinterSettings = 'btnSetPrinterSettings';
+const String btnResetPrinterSettings = 'btnResetPrinterSettings';
 const String btnDoManualCalibration = 'btnDoManualCalibration';
 
 class MyApp extends StatefulWidget {
@@ -246,7 +247,7 @@ class _MyAppState extends State<MyApp> {
                               VerticalDivider(color: Colors.transparent,),
                               Expanded(
                                 child: RaisedButton(
-                                  child: Text("Get settings".toUpperCase(), textAlign: TextAlign.center,),
+                                  child: Text("Reset settings".toUpperCase(), textAlign: TextAlign.center,),
                                   color: Colors.purple,
                                   textColor: Colors.white,
                                   onPressed: settingsStatus == SettingsStatus.SETTING || settingsStatus == SettingsStatus.GETTING ? null : () => onClick(btnGetPrinterSettings),
@@ -254,7 +255,18 @@ class _MyAppState extends State<MyApp> {
                               ),
                             ],
                           ),
-
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: RaisedButton(
+                                  child: Text("Reset settings".toUpperCase(), textAlign: TextAlign.center,),
+                                  color: Colors.pink,
+                                  textColor: Colors.white,
+                                  onPressed: settingsStatus == SettingsStatus.SETTING || settingsStatus == SettingsStatus.GETTING ? null : () => onClick(btnResetPrinterSettings),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -505,40 +517,77 @@ class _MyAppState extends State<MyApp> {
           widget.zsdk.setPrinterSettingsOverTCPIP(
             address: addressIpController.text,
             port: int.tryParse(addressPortController.text),
-            settings: Printer.PrinterSettings(
-              darkness: 10, //10
-              printSpeed: 6, //6
-              tearOff: 0,//0
-              mediaType: Printer.MediaType.MARK, //MARK
-              printMethod: Printer.PrintMethod.DIRECT_THERMAL, //DIRECT_THERMAL
-              printWidth: 568,//600
-              labelLength: 1202,//1202
-              labelLengthMax: 39,//39
-              zplMode: Printer.ZPLMode.ZPL_II,//ZPL II
-              powerUpAction: Printer.PowerUpAction.NO_MOTION,//NO MOTION
-              headCloseAction: Printer.HeadCloseAction.FEED,//FEED
-              labelTop: 0,//0
-              leftPosition: 0,//0
-              printMode: Printer.PrintMode.TEAR_OFF,//TEAR_OFF
-              reprintMode: Printer.ReprintMode.OFF,//OFF
-            )
 //            settings: Printer.PrinterSettings(
-//              darkness: 30, //10
-//              printSpeed: 3, //6
-//              tearOff: 100,//0
-//              mediaType: Printer.MediaType.CONTINUOUS, //MARK
-//              printMethod: Printer.PrintMethod.THERMAL_TRANS, //DIRECT_THERMAL
+//              darkness: 10, //10
+//              printSpeed: 6, //6
+//              tearOff: 0,//0
+//              mediaType: Printer.MediaType.MARK, //MARK
+//              printMethod: Printer.PrintMethod.DIRECT_THERMAL, //DIRECT_THERMAL
 //              printWidth: 568,//600
-//              labelLength: 1000,//1202
-//              labelLengthMax: 30,//39
-//              zplMode: Printer.ZPLMode.ZPL,//ZPL II
-//              powerUpAction: Printer.PowerUpAction.FEED,//NO MOTION
-//              headCloseAction: Printer.HeadCloseAction.NO_MOTION,//FEED
-//              labelTop: 50,//0
-//              leftPosition: 100,//0
-//              printMode: Printer.PrintMode.CUTTER,//TEAR_OFF
-//              reprintMode: Printer.ReprintMode.ON,//OFF
+//              labelLength: 1202,//1202
+//              labelLengthMax: 39,//39
+//              zplMode: Printer.ZPLMode.ZPL_II,//ZPL II
+//              powerUpAction: Printer.PowerUpAction.NO_MOTION,//NO MOTION
+//              headCloseAction: Printer.HeadCloseAction.FEED,//FEED
+//              labelTop: 0,//0
+//              leftPosition: 0,//0
+//              printMode: Printer.PrintMode.TEAR_OFF,//TEAR_OFF
+//              reprintMode: Printer.ReprintMode.OFF,//OFF
 //            )
+            settings: Printer.PrinterSettings(
+              darkness: 30, //10
+              printSpeed: 3, //6
+              tearOff: 100,//0
+              mediaType: Printer.MediaType.CONTINUOUS, //MARK
+              printMethod: Printer.PrintMethod.THERMAL_TRANS, //DIRECT_THERMAL
+              printWidth: 568,//600
+              labelLength: 1000,//1202
+              labelLengthMax: 30,//39
+              zplMode: Printer.ZPLMode.ZPL,//ZPL II
+              powerUpAction: Printer.PowerUpAction.FEED,//NO MOTION
+              headCloseAction: Printer.HeadCloseAction.NO_MOTION,//FEED
+              labelTop: 50,//0
+              leftPosition: 100,//0
+              printMode: Printer.PrintMode.CUTTER,//TEAR_OFF
+              reprintMode: Printer.ReprintMode.ON,//OFF
+            )
+          ).then((value){
+            setState(() {
+              settingsStatus = SettingsStatus.SUCCESS;
+              settingsMessage = "$value";
+            });
+          }, onError: (error, stacktrace){
+            try{
+              throw error;
+            } on PlatformException catch(e) {
+              Printer.PrinterResponse printerResponse;
+              try{
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                settingsMessage = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause} \n"
+                    "${printerResponse?.settings?.toString()}";
+              }catch(e){
+                print(e);
+                settingsMessage = "${e?.toString()}";
+              }
+            } on MissingPluginException catch(e) {
+              settingsMessage = "${e?.message}";
+            } catch (e){
+              settingsMessage = "${e?.toString()}";
+            }
+            setState(() {
+              settingsStatus = SettingsStatus.ERROR;
+            });
+          });
+          break;
+        case btnResetPrinterSettings:
+          setState(() {
+            settingsMessage = "Setting default settings...";
+            settingsStatus = SettingsStatus.SETTING;
+          });
+          widget.zsdk.setPrinterSettingsOverTCPIP(
+            address: addressIpController.text,
+            port: int.tryParse(addressPortController.text),
+            settings: Printer.PrinterSettings.defaultSettings()
           ).then((value){
             setState(() {
               settingsStatus = SettingsStatus.SUCCESS;

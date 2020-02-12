@@ -35,7 +35,7 @@ class PrinterSettings {
   /// Values
   /// "0.0" to "30.0" = darkness
   /// "-0.1" to "-30.0" and "+0.1" to "+30.0" = incremental adjustments
-  int darkness;
+  double darkness;
 
   /// Instructs the printer to set the media print speed.
   /// Values
@@ -72,6 +72,17 @@ class PrinterSettings {
   /// 1 to 32000, (in dots) not to exceed the maximum label length.
   /// While the printer accepts any value for this parameter, the amount of
   /// memory installed determines the maximum length of the label.
+  ///
+  /// Comments
+  /// These formulas can be used to determine the value of y:
+  /// For 6 dot/mm printheads ---> Label length in inches x 152.4 (dots/inch) = y
+  /// For 8 dot/mm printheads ---> Label length in inches x 203.2 (dots/inch) = y
+  /// For 12 dot/mm printheads ---> Label length in inches x 304.8 (dots/inch) = y
+  /// For 24 dot/mm printheads ---> Label length in inches x 609.6 (dots/inch) = y
+  ///
+  /// Values for y depend on the memory size. If the entered value for y exceeds
+  /// the acceptable limits, the bottom of the label is cut off.
+  /// The label also shifts down from top to bottom.
   int labelLength;
 
   /// Sets the maximum label length in inches.
@@ -218,4 +229,23 @@ class PrinterSettings {
       linkOSVersion: map[FIELD_LINK_OS_VERSION],
       printerDpi: map[FIELD_PRINTER_DPI],
     ) : null;
+
+  factory PrinterSettings.defaultSettings() =>
+      PrinterSettings(
+        darkness: 4,
+        printSpeed: 2,
+        tearOff: 0,
+        mediaType: MediaType.GAP_NOTCH,
+        printMethod: PrintMethod.THERMAL_TRANS,
+        printWidth: 600,
+        labelLength: 1200,
+        labelLengthMax: 39,
+        zplMode: ZPLMode.ZPL_II,
+        powerUpAction: PowerUpAction.CALIBRATE,
+        headCloseAction: HeadCloseAction.CALIBRATE,
+        labelTop: 0,
+        leftPosition: 0,
+        printMode: PrintMode.TEAR_OFF,
+        reprintMode: ReprintMode.OFF,
+      );
 }
