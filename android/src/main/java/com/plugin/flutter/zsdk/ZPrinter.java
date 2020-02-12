@@ -49,6 +49,47 @@ public class ZPrinter
         printerConf.init(connection);
     }
 
+    public void doManualCalibrationOverTCPIP(final String address, final Integer port) {
+        new Thread(() -> {
+            Connection connection;
+            ZebraPrinter printer = null;
+            try
+            {
+                int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
+
+                connection = new TcpConnection(address, tcpPort);
+                connection.open();
+
+                try {
+                    printer = ZebraPrinterFactory.getInstance(connection);
+                    SGD.DO(SGDParams.KEY_MANUAL_CALIBRATION, null, connection);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), "Printer status");
+                    handler.post(() -> result.success(response.toMap()));
+                } finally {
+                    connection.close();
+                }
+            }
+            catch(ConnectionException e)
+            {
+                e.printStackTrace();
+                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                        getStatusInfo(printer), "Printer error. "+e.toString());
+                response.statusInfo.cause = Cause.NO_CONNECTION;
+                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
+                        response.message, response.toMap()));
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                        getStatusInfo(printer), "Printer error. "+e.toString());
+                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
+                        response.message, response.toMap()));
+            }
+        }).start();
+    }
+
     public void checkPrinterStatusOverTCPIP(final String address, final Integer port) {
         new Thread(() -> {
             Connection connection;

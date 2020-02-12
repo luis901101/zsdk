@@ -12,6 +12,7 @@ const String btnPrintZplOverTCPIP = 'btnPrintZplOverTCPIP';
 const String btnCheckPrinterStatus = 'btnCheckPrinterStatus';
 const String btnGetPrinterSettings = 'btnGetPrinterSettings';
 const String btnSetPrinterSettings = 'btnSetPrinterSettings';
+const String btnDoManualCalibration = 'btnDoManualCalibration';
 
 class MyApp extends StatefulWidget {
   Printer.ZSDK zsdk = Printer.ZSDK();
@@ -42,6 +43,13 @@ enum SettingsStatus {
   NONE,
 }
 
+enum CalibrationStatus {
+  CALIBRATING,
+  SUCCESS,
+  ERROR,
+  NONE,
+}
+
 class _MyAppState extends State<MyApp> {
   final addressIpController = TextEditingController();
   final addressPortController = TextEditingController();
@@ -53,9 +61,11 @@ class _MyAppState extends State<MyApp> {
   String message;
   String statusMessage;
   String settingsMessage;
+  String calibrationMessage;
   PrintStatus printStatus = PrintStatus.NONE;
   CheckingStatus checkingStatus = CheckingStatus.NONE;
   SettingsStatus settingsStatus = SettingsStatus.NONE;
+  CalibrationStatus calibrationStatus = CalibrationStatus.NONE;
   String filePath;
   String zplData;
 
@@ -120,7 +130,7 @@ class _MyAppState extends State<MyApp> {
                               Expanded(
                                 child: RaisedButton(
                                   child: Text("Pick .pdf file".toUpperCase(), textAlign: TextAlign.center,),
-                                  color: Colors.green,
+                                  color: Colors.lightGreen,
                                   textColor: Colors.white,
                                   onPressed: () async {
                                     try{
@@ -180,7 +190,7 @@ class _MyAppState extends State<MyApp> {
                                   child: Text("Check printer status".toUpperCase(), textAlign: TextAlign.center,),
                                   color: Colors.orange,
                                   textColor: Colors.white,
-                                  onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnCheckPrinterStatus),
+                                  onPressed: checkingStatus == CheckingStatus.CHECKING ? null : () => onClick(btnCheckPrinterStatus),
                                 ),
                               ),
                             ],
@@ -228,18 +238,56 @@ class _MyAppState extends State<MyApp> {
                               Expanded(
                                 child: RaisedButton(
                                   child: Text("Set settings".toUpperCase(), textAlign: TextAlign.center,),
-                                  color: Colors.orange,
+                                  color: Colors.deepPurple,
                                   textColor: Colors.white,
-                                  onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnSetPrinterSettings),
+                                  onPressed: settingsStatus == SettingsStatus.SETTING || settingsStatus == SettingsStatus.GETTING ? null : () => onClick(btnSetPrinterSettings),
                                 ),
                               ),
                               VerticalDivider(color: Colors.transparent,),
                               Expanded(
                                 child: RaisedButton(
                                   child: Text("Get settings".toUpperCase(), textAlign: TextAlign.center,),
-                                  color: Colors.orange,
+                                  color: Colors.purple,
                                   textColor: Colors.white,
-                                  onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnGetPrinterSettings),
+                                  onPressed: settingsStatus == SettingsStatus.SETTING || settingsStatus == SettingsStatus.GETTING ? null : () => onClick(btnGetPrinterSettings),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                        ],
+                      ),
+                    ),
+                  ),
+                  Card(
+                    elevation: 4,
+                    margin: EdgeInsets.all(8),
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      child: Column(
+                        children: <Widget>[
+                          Text('Printer calibration', style: TextStyle(fontSize: 16),),
+                          Divider(color: Colors.transparent,),
+                          Visibility(
+                            child: Column(
+                              children: <Widget>[
+                                Text("$calibrationMessage",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: getCalibrationStatusColor(calibrationStatus)),
+                                ),
+                                Divider(color: Colors.transparent,),
+                              ],
+                            ),
+                            visible: calibrationStatus != CalibrationStatus.NONE,
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: RaisedButton(
+                                  child: Text("DO MANUAL CALIBRATION".toUpperCase(), textAlign: TextAlign.center,),
+                                  color: Colors.blueGrey,
+                                  textColor: Colors.white,
+                                  onPressed: calibrationStatus == CalibrationStatus.CALIBRATING ? null : () => onClick(btnDoManualCalibration),
                                 ),
                               ),
                             ],
@@ -311,7 +359,7 @@ class _MyAppState extends State<MyApp> {
                       Expanded(
                         child: RaisedButton(
                           child: Text("Print zpl".toUpperCase(), textAlign: TextAlign.center,),
-                          color: Theme.of(context).accentColor,
+                          color: Colors.blueAccent,
                           textColor: Colors.white,
                           onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnPrintZplOverTCPIP),
                         ),
@@ -320,7 +368,7 @@ class _MyAppState extends State<MyApp> {
                       Expanded(
                         child: RaisedButton(
                           child: Text("Print pdf".toUpperCase(), textAlign: TextAlign.center,),
-                          color: Theme.of(context).accentColor,
+                          color: Colors.lightBlue,
                           textColor: Colors.white,
                           onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnPrintPdfOverTCPIP),
                         ),
@@ -365,9 +413,54 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Color getCalibrationStatusColor(CalibrationStatus status){
+    switch(status){
+      case CalibrationStatus.CALIBRATING: return Colors.blue;
+      case CalibrationStatus.SUCCESS: return Colors.green;
+      case CalibrationStatus.ERROR: return Colors.red;
+      default: return Colors.black;
+    }
+  }
+
   onClick(String id) async {
     try{
       switch(id){
+        case btnDoManualCalibration:
+          setState(() {
+            calibrationMessage = "Getting printer settings...";
+            calibrationStatus = CalibrationStatus.CALIBRATING;
+          });
+          widget.zsdk.doManualCalibrationOverTCPIP(
+            address: addressIpController.text,
+            port: int.tryParse(addressPortController.text),
+          ).then((value){
+            setState(() {
+              calibrationStatus = CalibrationStatus.SUCCESS;
+              calibrationMessage = "$value";
+            });
+          }, onError: (error, stacktrace){
+            try{
+              throw error;
+            } on PlatformException catch(e) {
+              Printer.PrinterResponse printerResponse;
+              try{
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                calibrationMessage = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause} \n"
+                    "${printerResponse?.settings?.toString()}";
+              }catch(e){
+                print(e);
+                calibrationMessage = "${e?.toString()}";
+              }
+            } on MissingPluginException catch(e) {
+              calibrationMessage = "${e?.message}";
+            } catch (e){
+              calibrationMessage = "${e?.toString()}";
+            }
+            setState(() {
+              calibrationStatus = CalibrationStatus.ERROR;
+            });
+          });
+          break;
         case btnGetPrinterSettings:
           setState(() {
             settingsMessage = "Getting printer settings...";

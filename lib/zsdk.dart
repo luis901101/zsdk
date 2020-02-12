@@ -34,6 +34,7 @@ class ZSDK {
   static const String _CHECK_PRINTER_STATUS_OVER_TCP_IP = "checkPrinterStatusOverTCPIP";
   static const String _GET_PRINTER_SETTINGS_OVER_TCP_IP = "getPrinterSettingsOverTCPIP";
   static const String _SET_PRINTER_SETTINGS_OVER_TCP_IP = "setPrinterSettingsOverTCPIP";
+  static const String _DO_MANUAL_CALIBRATION_OVER_TCP_IP = "doManualCalibrationOverTCPIP";
 
   /// Properties
   static const String _filePath = "filePath";
@@ -65,6 +66,12 @@ class ZSDK {
     }
     return null;
   }
+
+  Future doManualCalibrationOverTCPIP({@required String address, int port}) =>
+      _channel.invokeMethod(_DO_MANUAL_CALIBRATION_OVER_TCP_IP, {
+        _address: address,
+        _port: port,
+      });
 
   Future checkPrinterStatusOverTCPIP({@required String address, int port}) =>
       _channel.invokeMethod(_CHECK_PRINTER_STATUS_OVER_TCP_IP, {

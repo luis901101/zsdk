@@ -2,8 +2,6 @@ package com.plugin.flutter.zsdk;
 
 import android.content.Context;
 
-import java.util.Map;
-
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -27,6 +25,7 @@ public class ZsdkPlugin implements MethodCallHandler {
   static final String _CHECK_PRINTER_STATUS_OVER_TCP_IP = "checkPrinterStatusOverTCPIP";
   static final String _GET_PRINTER_SETTINGS_OVER_TCP_IP = "getPrinterSettingsOverTCPIP";
   static final String _SET_PRINTER_SETTINGS_OVER_TCP_IP = "setPrinterSettingsOverTCPIP";
+  static final String _DO_MANUAL_CALIBRATION_OVER_TCP_IP = "doManualCalibrationOverTCPIP";
 
   /** Properties */
   static final String _filePath = "filePath";
@@ -65,6 +64,12 @@ public class ZsdkPlugin implements MethodCallHandler {
           )
       );
       switch(call.method){
+        case _DO_MANUAL_CALIBRATION_OVER_TCP_IP:
+          printer.doManualCalibrationOverTCPIP(
+              call.argument(_address),
+              call.argument(_port)
+          );
+          break;
         case _CHECK_PRINTER_STATUS_OVER_TCP_IP:
           printer.checkPrinterStatusOverTCPIP(
               call.argument(_address),
