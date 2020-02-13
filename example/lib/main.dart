@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -58,6 +59,25 @@ class _MyAppState extends State<MyApp> {
   final widthController = TextEditingController();
   final heightController = TextEditingController();
   final dpiController = TextEditingController();
+
+  final darknessController = TextEditingController();
+  final printSpeedController = TextEditingController();
+  final tearOffController = TextEditingController();
+  final printWidthController = TextEditingController();
+  final labelLengthController = TextEditingController();
+  final labelLengthMaxController = TextEditingController();
+  final labelTopController = TextEditingController();
+  final leftPositionController = TextEditingController();
+  Printer.MediaType selectedMediaType;
+  Printer.PrintMethod selectedPrintMethod;
+  Printer.ZPLMode selectedZPLMode;
+  Printer.PowerUpAction selectedPowerUpAction;
+  Printer.HeadCloseAction selectedHeadCloseAction;
+  Printer.PrintMode selectedPrintMode;
+  Printer.ReprintMode selectedReprintMode;
+
+  Printer.PrinterSettings settings;
+
   Printer.Orientation printerOrientation = Printer.Orientation.LANDSCAPE;
   String message;
   String statusMessage;
@@ -74,6 +94,31 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     addressIpController.text = "10.0.1.100";
+  }
+
+  String getName<T>(T value){
+    String name;
+    if(value is Printer.HeadCloseAction) name = Printer.HeadCloseActionUtils.get().nameOf(value);
+    if(value is Printer.MediaType) name = Printer.MediaTypeUtils.get().nameOf(value);
+    if(value is Printer.PowerUpAction) name = Printer.PowerUpActionUtils.get().nameOf(value);
+    if(value is Printer.PrintMethod) name = Printer.PrintMethodUtils.get().nameOf(value);
+    if(value is Printer.PrintMode) name = Printer.PrintModeUtils.get().nameOf(value);
+    if(value is Printer.ReprintMode) name = Printer.ReprintModeUtils.get().nameOf(value);
+    if(value is Printer.ZPLMode) name = Printer.ZPLModeUtils.get().nameOf(value);
+    return name ?? "Unknown";
+  }
+
+  List<DropdownMenuItem<T>> generateDropdownItems<T>(List<T> values){
+    List<DropdownMenuItem<T>> items = [];
+    values.forEach((value){
+      items.add(
+        DropdownMenuItem<T>(
+          child: Text(getName(value)),
+          value: value,
+        )
+      );
+    });
+    return items;
   }
 
   @override
@@ -207,18 +252,180 @@ class _MyAppState extends State<MyApp> {
                     child: Container(
                       padding: EdgeInsets.all(8),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('Printer settings', style: TextStyle(fontSize: 16),),
-                          TextField(
-                            controller: addressIpController,
-                            decoration: InputDecoration(
-                                labelText: "Printer IP address"
+                          Center(
+                            child: Text('Printer settings', style: TextStyle(fontSize: 16),),
+                          ),
+                          Divider(color: Colors.transparent,),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(color: Theme.of(context).textTheme.title.color),
+                              children: [
+                                TextSpan(text: "Brand and model: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: "${settings?.printerModelName != null ? settings?.printerModelName : "Unknown"}"),
+                              ]
+                            ),
+                          ),
+                          Divider(color: Colors.transparent, height: 4,),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(color: Theme.of(context).textTheme.title.color),
+                              children: [
+                                TextSpan(text: "Device friendly name: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: "${settings?.deviceFriendlyName != null ? settings?.deviceFriendlyName : "Unknown"}"),
+                              ]
+                            ),
+                          ),
+                          Divider(color: Colors.transparent, height: 4,),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(color: Theme.of(context).textTheme.title.color),
+                              children: [
+                                TextSpan(text: "Firmware: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: "${settings?.firmware != null ? settings?.firmware : "Unknown"}"),
+                              ]
+                            ),
+                          ),
+                          Divider(color: Colors.transparent, height: 4,),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(color: Theme.of(context).textTheme.title.color),
+                              children: [
+                                TextSpan(text: "Link-OS Version: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: "${settings?.linkOSVersion != null ? settings?.linkOSVersion : "Unknown"}"),
+                              ]
+                            ),
+                          ),
+                          Divider(color: Colors.transparent, height: 4,),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(color: Theme.of(context).textTheme.title.color),
+                              children: [
+                                TextSpan(text: "Printer DPI: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: "${settings?.printerDpi != null ? settings?.printerDpi : "Unknown"}"),
+                              ]
                             ),
                           ),
                           TextField(
-                            controller: addressPortController,
+                            controller: darknessController,
+                            keyboardType: TextInputType.numberWithOptions(signed: true, decimal: true),
+                            textInputAction: TextInputAction.done,
                             decoration: InputDecoration(
-                                labelText: "Printer port (defaults to 9100)"
+                                labelText: "Darkness"
+                            ),
+                          ),
+                          TextField(
+                            controller: printSpeedController,
+                            keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                                labelText: "Print speed"
+                            ),
+                          ),
+                          TextField(
+                            controller: tearOffController,
+                            keyboardType: TextInputType.numberWithOptions(signed: true, decimal: false),
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                                labelText: "Tear off"
+                            ),
+                          ),
+                          DropdownButtonFormField<Printer.MediaType>(
+                            items: generateDropdownItems(Printer.MediaType.values),
+                            value: selectedMediaType,
+                            onChanged: (value) => setState(() => selectedMediaType = value),
+                            decoration: InputDecoration(
+                                labelText: "Media type"
+                            ),
+                          ),
+                          DropdownButtonFormField<Printer.PrintMethod>(
+                            items: generateDropdownItems(Printer.PrintMethod.values),
+                            value: selectedPrintMethod,
+                            onChanged: (value) => setState(() => selectedPrintMethod = value),
+                            decoration: InputDecoration(
+                                labelText: "Print method"
+                            ),
+                          ),
+                          TextField(
+                            controller: printWidthController,
+                            keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                                labelText: "Print width"
+                            ),
+                          ),
+                          TextField(
+                            controller: labelLengthController,
+                            keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                                labelText: "Label length"
+                            ),
+                          ),
+                          TextField(
+                            controller: labelLengthMaxController,
+                            keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                                labelText: "Label length max"
+                            ),
+                          ),
+                          DropdownButtonFormField<Printer.ZPLMode>(
+                            items: generateDropdownItems(Printer.ZPLMode.values),
+                            value: selectedZPLMode,
+                            onChanged: (value) => setState(() => selectedZPLMode = value),
+                            decoration: InputDecoration(
+                                labelText: "ZPL mode"
+                            ),
+                          ),
+                          DropdownButtonFormField<Printer.PowerUpAction>(
+                            items: generateDropdownItems(Printer.PowerUpAction.values),
+                            value: selectedPowerUpAction,
+                            onChanged: (value) => setState(() => selectedPowerUpAction = value),
+                            decoration: InputDecoration(
+                                labelText: "Power up action"
+                            ),
+                          ),
+                          DropdownButtonFormField<Printer.HeadCloseAction>(
+                            items: generateDropdownItems(Printer.HeadCloseAction.values),
+                            value: selectedHeadCloseAction,
+                            onChanged: (value) => setState(() => selectedHeadCloseAction = value),
+                            decoration: InputDecoration(
+                                labelText: "Head close action"
+                            ),
+                          ),
+                          TextField(
+                            controller: labelTopController,
+                            keyboardType: TextInputType.numberWithOptions(signed: true, decimal: false),
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                                labelText: "Label top"
+                            ),
+                          ),
+                          TextField(
+                            controller: leftPositionController,
+                            keyboardType: TextInputType.numberWithOptions(signed: true, decimal: false),
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                                labelText: "Left position"
+                            ),
+                          ),
+                          DropdownButtonFormField<Printer.PrintMode>(
+                            items: generateDropdownItems(Printer.PrintMode.values),
+                            value: selectedPrintMode,
+                            onChanged: (value) => setState(() => selectedPrintMode = value),
+                            decoration: InputDecoration(
+                                labelText: "Print mode"
+                            ),
+                          ),
+                          DropdownButtonFormField<Printer.ReprintMode>(
+                            items: generateDropdownItems(Printer.ReprintMode.values),
+                            value: selectedReprintMode,
+                            onChanged: (value) => setState(() => selectedReprintMode = value),
+                            decoration: InputDecoration(
+                                labelText: "Reprint mode"
                             ),
                           ),
                           Divider(color: Colors.transparent,),
@@ -247,7 +454,7 @@ class _MyAppState extends State<MyApp> {
                               VerticalDivider(color: Colors.transparent,),
                               Expanded(
                                 child: RaisedButton(
-                                  child: Text("Reset settings".toUpperCase(), textAlign: TextAlign.center,),
+                                  child: Text("Get settings".toUpperCase(), textAlign: TextAlign.center,),
                                   color: Colors.purple,
                                   textColor: Colors.white,
                                   onPressed: settingsStatus == SettingsStatus.SETTING || settingsStatus == SettingsStatus.GETTING ? null : () => onClick(btnGetPrinterSettings),
@@ -434,6 +641,26 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  void updateSettings(Printer.PrinterSettings newSettings){
+    settings = newSettings;
+
+    darknessController.text = "${settings?.darkness ?? ""}";
+    printSpeedController.text = "${settings?.printSpeed ?? ""}";
+    tearOffController.text = "${settings?.tearOff ?? ""}";
+    printWidthController.text = "${settings?.printWidth ?? ""}";
+    labelLengthController.text = "${settings?.labelLength ?? ""}";
+    labelLengthMaxController.text = "${settings?.labelLengthMax ?? ""}";
+    labelTopController.text = "${settings?.labelTop ?? ""}";
+    leftPositionController.text = "${settings?.leftPosition ?? ""}";
+    selectedMediaType = settings?.mediaType;
+    selectedPrintMethod = settings?.printMethod;
+    selectedZPLMode = settings?.zplMode;
+    selectedPowerUpAction = settings?.powerUpAction;
+    selectedHeadCloseAction = settings?.headCloseAction;
+    selectedPrintMode = settings?.printMode;
+    selectedReprintMode = settings?.reprintMode;
+  }
+
   onClick(String id) async {
     try{
       switch(id){
@@ -485,6 +712,7 @@ class _MyAppState extends State<MyApp> {
             setState(() {
               settingsStatus = SettingsStatus.SUCCESS;
               settingsMessage = "$value";
+              updateSettings((Printer.PrinterResponse.fromMap(value))?.settings);
             });
           }, onError: (error, stacktrace){
             try{
@@ -517,6 +745,23 @@ class _MyAppState extends State<MyApp> {
           widget.zsdk.setPrinterSettingsOverTCPIP(
             address: addressIpController.text,
             port: int.tryParse(addressPortController.text),
+            settings: Printer.PrinterSettings(
+              darkness: double.tryParse(darknessController.text),
+              printSpeed: double.tryParse(printSpeedController.text),
+              tearOff: int.tryParse(tearOffController.text),
+              mediaType: selectedMediaType,
+              printMethod: selectedPrintMethod,
+              printWidth: double.tryParse(printWidthController.text),
+              labelLength: int.tryParse(labelLengthController.text),
+              labelLengthMax: double.tryParse(labelLengthMaxController.text),
+              zplMode: selectedZPLMode,
+              powerUpAction: selectedPowerUpAction,
+              headCloseAction: selectedHeadCloseAction,
+              labelTop: int.tryParse(labelTopController.text),
+              leftPosition: int.tryParse(leftPositionController.text),
+              printMode: selectedPrintMode,
+              reprintMode: selectedReprintMode,
+            )
 //            settings: Printer.PrinterSettings(
 //              darkness: 10, //10
 //              printSpeed: 6, //6
@@ -534,27 +779,28 @@ class _MyAppState extends State<MyApp> {
 //              printMode: Printer.PrintMode.TEAR_OFF,//TEAR_OFF
 //              reprintMode: Printer.ReprintMode.OFF,//OFF
 //            )
-            settings: Printer.PrinterSettings(
-              darkness: 30, //10
-              printSpeed: 3, //6
-              tearOff: 100,//0
-              mediaType: Printer.MediaType.CONTINUOUS, //MARK
-              printMethod: Printer.PrintMethod.THERMAL_TRANS, //DIRECT_THERMAL
-              printWidth: 568,//600
-              labelLength: 1000,//1202
-              labelLengthMax: 30,//39
-              zplMode: Printer.ZPLMode.ZPL,//ZPL II
-              powerUpAction: Printer.PowerUpAction.FEED,//NO MOTION
-              headCloseAction: Printer.HeadCloseAction.NO_MOTION,//FEED
-              labelTop: 50,//0
-              leftPosition: 100,//0
-              printMode: Printer.PrintMode.CUTTER,//TEAR_OFF
-              reprintMode: Printer.ReprintMode.ON,//OFF
-            )
+//            settings: Printer.PrinterSettings(
+//              darkness: 30, //10
+//              printSpeed: 3, //6
+//              tearOff: 100,//0
+//              mediaType: Printer.MediaType.CONTINUOUS, //MARK
+//              printMethod: Printer.PrintMethod.THERMAL_TRANS, //DIRECT_THERMAL
+//              printWidth: 568,//600
+//              labelLength: 1000,//1202
+//              labelLengthMax: 30,//39
+//              zplMode: Printer.ZPLMode.ZPL,//ZPL II
+//              powerUpAction: Printer.PowerUpAction.FEED,//NO MOTION
+//              headCloseAction: Printer.HeadCloseAction.NO_MOTION,//FEED
+//              labelTop: 50,//0
+//              leftPosition: 100,//0
+//              printMode: Printer.PrintMode.CUTTER,//TEAR_OFF
+//              reprintMode: Printer.ReprintMode.ON,//OFF
+//            )
           ).then((value){
             setState(() {
               settingsStatus = SettingsStatus.SUCCESS;
               settingsMessage = "$value";
+              updateSettings((Printer.PrinterResponse.fromMap(value))?.settings);
             });
           }, onError: (error, stacktrace){
             try{
@@ -592,6 +838,7 @@ class _MyAppState extends State<MyApp> {
             setState(() {
               settingsStatus = SettingsStatus.SUCCESS;
               settingsMessage = "$value";
+              updateSettings((Printer.PrinterResponse.fromMap(value))?.settings);
             });
           }, onError: (error, stacktrace){
             try{
