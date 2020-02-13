@@ -1,3 +1,7 @@
-## 1.0.0+3
+## 1.0.1+4
 
-* TODO: Describe initial release.
+* Support for start manual calibration over TCP/IP.
+* Support for getting and setting printer configurations over TCP/IP.
+* Support for reset printer to default settings over TCP/IP.
+* Support for ZPL printing (iOS and Android) over TCP/IP.
+* Support for PDF printing (Android) over TCP/IP.
