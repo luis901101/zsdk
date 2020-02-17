@@ -55,6 +55,20 @@ public class ZPrinter
         printerConf.init(connection);
     }
 
+    private void onConnectionTimeOut(ConnectionException e){
+        if(e != null) e.printStackTrace();
+        PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
+                new StatusInfo(Status.UNKNOWN, Cause.NO_CONNECTION), "Connection timeout. "+e.toString());
+        handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
+    }
+
+    private void onException(Exception e, ZebraPrinter printer){
+        if(e != null) e.printStackTrace();
+        PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
+                getStatusInfo(printer), "Unknown exception. "+e.toString());
+        handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
+    }
+
     public void doManualCalibrationOverTCPIP(final String address, final Integer port) {
         new Thread(() -> {
             Connection connection;
@@ -72,26 +86,21 @@ public class ZPrinter
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Printer status");
                     handler.post(() -> result.success(response.toMap()));
-                } finally {
+                }
+                catch(Exception e) {
+                    throw e;
+                }
+                finally {
                     connection.close();
                 }
             }
             catch(ConnectionException e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                response.statusInfo.cause = Cause.NO_CONNECTION;
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onConnectionTimeOut(e);
             }
             catch(Exception e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onException(e, printer);
             }
         }).start();
     }
@@ -113,26 +122,21 @@ public class ZPrinter
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Printer status");
                     handler.post(() -> result.success(response.toMap()));
-                } finally {
+                }
+                catch(Exception e) {
+                    throw e;
+                }
+                finally {
                     connection.close();
                 }
             }
             catch(ConnectionException e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                response.statusInfo.cause = Cause.NO_CONNECTION;
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onConnectionTimeOut(e);
             }
             catch(Exception e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onException(e, printer);
             }
         }).start();
     }
@@ -148,35 +152,26 @@ public class ZPrinter
                 connection = newConnection(address, tcpPort);
                 connection.open();
 
-                Log.e("aaaaaa", connection.getMaxTimeoutForRead()+"");
-                Log.e("aaaaaa", connection.getTimeToWaitForMoreData()+"");
-
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
                     PrinterSettings settings = PrinterSettings.get(connection);
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), settings, "Printer status");
                     handler.post(() -> result.success(response.toMap()));
+                }
+                catch(Exception e) {
+                    throw e;
                 } finally {
                     connection.close();
                 }
             }
             catch(ConnectionException e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                response.statusInfo.cause = Cause.NO_CONNECTION;
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onConnectionTimeOut(e);
             }
             catch(Exception e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onException(e, printer);
             }
         }).start();
     }
@@ -201,26 +196,19 @@ public class ZPrinter
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), currentSettings, "Printer status");
                     handler.post(() -> result.success(response.toMap()));
+                }catch(Exception e) {
+                    throw e;
                 } finally {
                     connection.close();
                 }
             }
             catch(ConnectionException e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                response.statusInfo.cause = Cause.NO_CONNECTION;
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onConnectionTimeOut(e);
             }
             catch(Exception e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onException(e, printer);
             }
         }).start();
     }
@@ -257,26 +245,19 @@ public class ZPrinter
                                 response.message, response.toMap()));
                     }
 
+                }catch(Exception e) {
+                    throw e;
                 } finally {
                     connection.close();
                 }
             }
             catch(ConnectionException e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                response.statusInfo.cause = Cause.NO_CONNECTION;
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onConnectionTimeOut(e);
             }
             catch(Exception e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(printer), "Printer error. "+e.toString());
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onException(e, printer);
             }
         }).start();
     }
@@ -293,11 +274,7 @@ public class ZPrinter
             }
             catch(Exception e)
             {
-                e.printStackTrace();
-                PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                        getStatusInfo(null), "Printer error. "+e.toString());
-                handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                        response.message, response.toMap()));
+                onException(e, null);
             }
         }).start();
     }
@@ -307,9 +284,7 @@ public class ZPrinter
     }
 
     private void doPrintZplDataOverTCPIP(final String data, final String address, final Integer port) {
-        new Thread(() -> {
-
-        }).start();Connection connection;
+        Connection connection;
         ZebraPrinter printer = null;
         try
         {
@@ -336,26 +311,19 @@ public class ZPrinter
                             response.message, response.toMap()));
                 }
 
+            }catch(Exception e) {
+                throw e;
             } finally {
                 connection.close();
             }
         }
         catch(ConnectionException e)
         {
-            e.printStackTrace();
-            PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                    getStatusInfo(printer), "Printer error. "+e.toString());
-            response.statusInfo.cause = Cause.NO_CONNECTION;
-            handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                    response.message, response.toMap()));
+            onConnectionTimeOut(e);
         }
         catch(Exception e)
         {
-            e.printStackTrace();
-            PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
-                    getStatusInfo(printer), "Printer error. "+e.toString());
-            handler.post(() -> result.error(ErrorCode.EXCEPTION.name(),
-                    response.message, response.toMap()));
+            onException(e, printer);
         }
     }
 

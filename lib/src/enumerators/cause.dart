@@ -16,6 +16,11 @@ class CauseUtils {
 
     CauseUtils.get();
 
+    String nameOf(Cause value) {
+        try{return value?.toString()?.split(".")?.last;}catch(e){print(e);}
+        return null;
+    }
+
     Cause valueOf(String name) {
         try{
             return _mapValueOfName[name];

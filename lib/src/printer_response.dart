@@ -1,7 +1,7 @@
-import 'package:zsdk/src/cause.dart';
-import 'package:zsdk/src/error_code.dart';
+import 'package:zsdk/src/enumerators/cause.dart';
+import 'package:zsdk/src/enumerators/error_code.dart';
 import 'package:zsdk/src/printer_settings.dart';
-import 'package:zsdk/src/status.dart';
+import 'package:zsdk/src/enumerators/status.dart';
 import 'package:zsdk/src/status_info.dart';
 
 /// Created by luis901101 on 2020-01-07.
@@ -16,6 +16,13 @@ class PrinterResponse
         this.errorCode ??= ErrorCode.UNKNOWN;
         this.statusInfo ??= StatusInfo(Status.UNKNOWN, Cause.UNKNOWN);
     }
+
+    Map<String, dynamic> toMap() => <String, dynamic>{
+        'errorCode': ErrorCodeUtils.get().nameOf(errorCode),
+        'statusInfo': statusInfo?.toMap(),
+        'settings': settings?.toMap(),
+        'message': message,
+    };
 
     factory PrinterResponse.fromMap(Map<dynamic, dynamic> map) =>
         map != null ?

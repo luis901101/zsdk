@@ -35,20 +35,37 @@
 }
 
 - (NSDictionary *) toMap {
-    id objects[] = {
-        [ErrorCodeUtils getNameByValue:self.errorCode],
-        [self.statusInfo toMap],
-        ![ObjectUtils isNull:self.settings] ? [self.settings toMap] : @"",
-        self.message
-    };
-    id keys[] = {
-        @"errorCode",
-        @"statusInfo",
-        @"settings",
-        @"message"
-    };
-    NSUInteger count = sizeof(objects) / sizeof(id);
-    NSDictionary *map = [NSDictionary dictionaryWithObjects:objects forKeys:keys count:count];
+    NSUInteger count;
+    NSDictionary *map;
+    if(![ObjectUtils isNull:self.settings]){
+        id objects[] = {
+            [ErrorCodeUtils getNameByValue:self.errorCode],
+            [self.statusInfo toMap],
+            [self.settings toMap],
+            self.message
+        };
+        id keys[] = {
+            @"errorCode",
+            @"statusInfo",
+            @"settings",
+            @"message"
+        };
+        count = sizeof(objects) / sizeof(id);
+        map = [NSDictionary dictionaryWithObjects:objects forKeys:keys count:count];
+    } else {
+        id objects[] = {
+            [ErrorCodeUtils getNameByValue:self.errorCode],
+            [self.statusInfo toMap],
+            self.message
+        };
+        id keys[] = {
+            @"errorCode",
+            @"statusInfo",
+            @"message"
+        };
+        count = sizeof(objects) / sizeof(id);
+        map = [NSDictionary dictionaryWithObjects:objects forKeys:keys count:count];
+    }
     return map;
 }
 

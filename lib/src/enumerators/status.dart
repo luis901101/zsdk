@@ -10,6 +10,11 @@ class StatusUtils {
 
   StatusUtils.get();
 
+  String nameOf(Status value) {
+    try{return value?.toString()?.split(".")?.last;}catch(e){print(e);}
+    return null;
+  }
+
   Status valueOf(String name) {
     try{
       return _mapValueOfName[name];

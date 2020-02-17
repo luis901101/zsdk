@@ -12,6 +12,11 @@ class ErrorCodeUtils {
 
     ErrorCodeUtils.get();
 
+    String nameOf(ErrorCode value) {
+        try{return value?.toString()?.split(".")?.last;}catch(e){print(e);}
+        return null;
+    }
+
     ErrorCode valueOf(String name) {
         try{
             return _mapValueOfName[name];

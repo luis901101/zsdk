@@ -874,6 +874,8 @@ class _MyAppState extends State<MyApp> {
           ).then((value){
             setState(() {
               checkingStatus = CheckingStatus.SUCCESS;
+              Printer.PrinterResponse printerResponse;
+              printerResponse = Printer.PrinterResponse.fromMap(value);
               statusMessage = "$value";
             });
           }, onError: (error, stacktrace){

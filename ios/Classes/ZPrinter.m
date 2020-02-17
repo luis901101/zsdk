@@ -37,6 +37,20 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
     [self.printerConf initValues:connection];
 }
 
+- (void)onConnectionTimeOut {
+    StatusInfo *statusInfo = [[StatusInfo alloc] init:UNKNOWN_STATUS cause:NO_CONNECTION];
+    PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Connection timeout."];
+    self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+}
+
+- (void)onException:(id<ZebraPrinter,NSObject>)printer exception:(NSException *)exception {
+    NSLog(@"%@", exception.reason);
+    StatusInfo *statusInfo = [self getStatusInfo:printer];
+    PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:[NSString stringWithFormat:@"%@ %@ %@", @"Unknown exception.", exception.name, exception.reason]];
+    self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+}
+
+
 - (void)doManualCalibrationOverTCPIP:(NSString *)address port:(NSNumber *)port {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         id<ZebraPrinter,NSObject> printer;
@@ -45,13 +59,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
             
             connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
-            if(![connection open]){
-                StatusInfo *statusInfo = [self getStatusInfo:printer];
-                statusInfo.cause = NO_CONNECTION;
-                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
-                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
-                return;
-            }
+            if(![connection open]) return [self onConnectionTimeOut];
             NSError *error = nil;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
@@ -67,11 +75,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             }
         }
         @catch (NSException *e) {
-            NSLog(@"%@", e.reason);
-            StatusInfo *statusInfo = [self getStatusInfo:printer];
-            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
-            response.statusInfo.cause = UNKNOWN_CAUSE;
-            self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+            [self onException:printer exception:e];
         }
     });
 }
@@ -82,15 +86,8 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
         id<ZebraPrinterConnection,NSObject> connection;
         @try {
             int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
-            
             connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
-            if(![connection open]){
-                StatusInfo *statusInfo = [self getStatusInfo:printer];
-                statusInfo.cause = NO_CONNECTION;
-                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
-                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
-                return;
-            }
+            if(![connection open]) return [self onConnectionTimeOut];
             NSError *error = nil;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
@@ -105,11 +102,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             }
         }
         @catch (NSException *e) {
-            NSLog(@"%@", e.reason);
-            StatusInfo *statusInfo = [self getStatusInfo:printer];
-            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
-            response.statusInfo.cause = UNKNOWN_CAUSE;
-            self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+            [self onException:printer exception:e];
         }
     });
 }
@@ -122,13 +115,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
             
             connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
-            if(![connection open]){
-                StatusInfo *statusInfo = [self getStatusInfo:printer];
-                statusInfo.cause = NO_CONNECTION;
-                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
-                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
-                return;
-            }
+            if(![connection open]) return [self onConnectionTimeOut];
             NSError *error = nil;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
@@ -144,11 +131,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             }
         }
         @catch (NSException *e) {
-            NSLog(@"%@", e.reason);
-            StatusInfo *statusInfo = [self getStatusInfo:printer];
-            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
-            response.statusInfo.cause = UNKNOWN_CAUSE;
-            self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+            [self onException:printer exception:e];
         }
     });
 }
@@ -165,13 +148,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
             
             connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
-            if(![connection open]){
-                StatusInfo *statusInfo = [self getStatusInfo:printer];
-                statusInfo.cause = NO_CONNECTION;
-                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
-                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
-                return;
-            }
+            if(![connection open]) return [self onConnectionTimeOut];
             NSError *error = nil;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
@@ -188,11 +165,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             }
         }
         @catch (NSException *e) {
-            NSLog(@"%@", e.reason);
-            StatusInfo *statusInfo = [self getStatusInfo:printer];
-            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
-            response.statusInfo.cause = UNKNOWN_CAUSE;
-            self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+            [self onException:printer exception:e];
         }
     });
 }
@@ -215,13 +188,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
             
             connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
-            if(![connection open]){
-                StatusInfo *statusInfo = [self getStatusInfo:printer];
-                statusInfo.cause = NO_CONNECTION;
-                PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer error"];
-                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
-                return;
-            }
+            if(![connection open]) return [self onConnectionTimeOut];
             NSError *error = nil;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
@@ -254,11 +221,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             }
         }
         @catch (NSException *e) {
-            NSLog(@"%@", e.reason);
-            StatusInfo *statusInfo = [self getStatusInfo:printer];
-            PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer error"];
-            response.statusInfo.cause = UNKNOWN_CAUSE;
-            self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+            [self onException:printer exception:e];
         }
     });
 }

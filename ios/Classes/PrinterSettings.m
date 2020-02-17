@@ -35,7 +35,7 @@ const NSString *FIELD_PRINTER_DPI = @"printerDpi";
 
 - (id)initWithArguments:(NSDictionary *)arguments {
     self = [super init];
-    if(self){
+    if(self && ![ObjectUtils isNull:arguments]){
         self.darkness = arguments[FIELD_DARKNESS];
         self.printSpeed = arguments[FIELD_PRINT_SPEED];
         self.tearOff = arguments[FIELD_TEAR_OFF];

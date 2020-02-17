@@ -1,10 +1,10 @@
-import 'package:zsdk/src/head_close_action.dart';
-import 'package:zsdk/src/media_type.dart';
-import 'package:zsdk/src/power_up_action.dart';
-import 'package:zsdk/src/print_method.dart';
-import 'package:zsdk/src/print_mode.dart';
-import 'package:zsdk/src/reprint_mode.dart';
-import 'package:zsdk/src/zpl_mode.dart';
+import 'package:zsdk/src/enumerators/head_close_action.dart';
+import 'package:zsdk/src/enumerators/media_type.dart';
+import 'package:zsdk/src/enumerators/power_up_action.dart';
+import 'package:zsdk/src/enumerators/print_method.dart';
+import 'package:zsdk/src/enumerators/print_mode.dart';
+import 'package:zsdk/src/enumerators/reprint_mode.dart';
+import 'package:zsdk/src/enumerators/zpl_mode.dart';
 
 /// Created by luis901101 on 2020-02-10.
 class PrinterSettings {

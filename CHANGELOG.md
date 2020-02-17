@@ -1,3 +1,9 @@
+## 1.0.2+5
+
+* Support for custom timeout.
+* Bug fixes in iOS connection exceptions
+
+
 ## 1.0.1+4
 
 * Support for start manual calibration over TCP/IP.

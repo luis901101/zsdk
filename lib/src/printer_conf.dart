@@ -1,4 +1,4 @@
-import 'package:zsdk/src/orientation.dart';
+import 'package:zsdk/src/enumerators/orientation.dart';
 
 /// Created by luis901101 on 2020-01-07.
 class PrinterConf {
