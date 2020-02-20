@@ -23,9 +23,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property PrinterConf *printerConf;
 - (id) initWithMethodChannel:(FlutterMethodChannel *)channel result:(FlutterResult)result printerConf:(PrinterConf *)printerConf;
 - (void) initValues:(id<ZebraPrinterConnection, NSObject>)connection;
-- (void)onConnectionTimeOut;
-- (void)onException:(id<ZebraPrinter,NSObject>)printer exception:(NSException*)exception;
+- (void) onConnectionTimeOut;
+- (void) onException:(id<ZebraPrinter,NSObject>)printer exception:(NSException*)exception;
 - (void) doManualCalibrationOverTCPIP:(NSString *)address port:(NSNumber*)port;
+- (void) printConfigurationLabelOverTCPIP:(NSString *)address port:(NSNumber*)port;
 - (void) checkPrinterStatusOverTCPIP:(NSString *)address port:(NSNumber*)port;
 - (void) getPrinterSettingsOverTCPIP:(NSString *)address port:(NSNumber*)port;
 - (void) setPrinterSettingsOverTCPIP:(NSString *)address port:(NSNumber*)port settings:(PrinterSettings *)settings;

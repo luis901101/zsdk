@@ -82,7 +82,44 @@ public class ZPrinter
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
-                    SGD.DO(SGDParams.KEY_MANUAL_CALIBRATION, null, connection);
+//                    SGD.DO(SGDParams.KEY_MANUAL_CALIBRATION, null, connection);
+                    printer.calibrate();
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), "Printer status");
+                    handler.post(() -> result.success(response.toMap()));
+                }
+                catch(Exception e) {
+                    throw e;
+                }
+                finally {
+                    connection.close();
+                }
+            }
+            catch(ConnectionException e)
+            {
+                onConnectionTimeOut(e);
+            }
+            catch(Exception e)
+            {
+                onException(e, printer);
+            }
+        }).start();
+    }
+
+    public void printConfigurationLabelOverTCPIP(final String address, final Integer port) {
+        new Thread(() -> {
+            Connection connection;
+            ZebraPrinter printer = null;
+            try
+            {
+                int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
+
+                connection = newConnection(address, tcpPort);
+                connection.open();
+
+                try {
+                    printer = ZebraPrinterFactory.getInstance(connection);
+                    printer.printConfigurationLabel();
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Printer status");
                     handler.post(() -> result.success(response.toMap()));

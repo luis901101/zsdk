@@ -34,6 +34,7 @@ NSString* _CHECK_PRINTER_STATUS_OVER_TCP_IP = @"checkPrinterStatusOverTCPIP";
 NSString* _GET_PRINTER_SETTINGS_OVER_TCP_IP = @"getPrinterSettingsOverTCPIP";
 NSString* _SET_PRINTER_SETTINGS_OVER_TCP_IP = @"setPrinterSettingsOverTCPIP";
 NSString* _DO_MANUAL_CALIBRATION_OVER_TCP_IP = @"doManualCalibrationOverTCPIP";
+NSString* _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP = @"printConfigurationLabelOverTCPIP";
 
 /* Properties */
 NSString* _filePath = @"filePath";
@@ -189,6 +190,8 @@ NSString* _dpi = @"dpi";
         
         if ([_DO_MANUAL_CALIBRATION_OVER_TCP_IP isEqualToString:call.method])
             [printer doManualCalibrationOverTCPIP:arguments[_address] port:arguments[_port]];
+        else if ([_PRINT_CONFIGURATION_LABEL_OVER_TCP_IP isEqualToString:call.method])
+            [printer printConfigurationLabelOverTCPIP:arguments[_address] port:arguments[_port]];
         else if ([_CHECK_PRINTER_STATUS_OVER_TCP_IP isEqualToString:call.method])
             [printer checkPrinterStatusOverTCPIP:arguments[_address] port:arguments[_port]];
         else if ([_GET_PRINTER_SETTINGS_OVER_TCP_IP isEqualToString:call.method])

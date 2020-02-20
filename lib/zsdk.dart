@@ -44,6 +44,7 @@ class ZSDK {
   static const String _GET_PRINTER_SETTINGS_OVER_TCP_IP = "getPrinterSettingsOverTCPIP";
   static const String _SET_PRINTER_SETTINGS_OVER_TCP_IP = "setPrinterSettingsOverTCPIP";
   static const String _DO_MANUAL_CALIBRATION_OVER_TCP_IP = "doManualCalibrationOverTCPIP";
+  static const String _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP = "printConfigurationLabelOverTCPIP";
 
   /// Properties
   static const String _filePath = "filePath";
@@ -95,6 +96,12 @@ class ZSDK {
       _port: port,
     }).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT), onTimeout: () => _onTimeout(timeout: timeout));
 
+  Future printConfigurationLabelOverTCPIP({@required String address, int port, Duration timeout}) =>
+    _channel.invokeMethod(_PRINT_CONFIGURATION_LABEL_OVER_TCP_IP, {
+      _address: address,
+      _port: port,
+    }).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT), onTimeout: () => _onTimeout(timeout: timeout));
+
   Future checkPrinterStatusOverTCPIP({@required String address, int port, Duration timeout}) =>
     _channel.invokeMethod(_CHECK_PRINTER_STATUS_OVER_TCP_IP, {
       _address: address,
@@ -107,12 +114,15 @@ class ZSDK {
       _port: port,
     }).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT), onTimeout: () => _onTimeout(timeout: timeout));
 
-  Future setPrinterSettingsOverTCPIP({@required String address, int port, PrinterSettings settings, Duration timeout}) =>
+  Future setPrinterSettingsOverTCPIP({@required PrinterSettings settings, @required String address, int port, Duration timeout}) =>
     _channel.invokeMethod(_SET_PRINTER_SETTINGS_OVER_TCP_IP, {
       _address: address,
       _port: port,
     }..addAll(settings?.toMap())
     ).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT), onTimeout: () => _onTimeout(timeout: timeout));
+
+  Future resetPrinterSettingsOverTCPIP({@required String address, int port, Duration timeout}) =>
+    setPrinterSettingsOverTCPIP(settings: PrinterSettings.defaultSettings(), address: address, port: port, timeout: timeout);
 
   Future printPdfFileOverTCPIP({@required String filePath, @required String address, int port, PrinterConf printerConf, Duration timeout}) =>
     _printFileOverTCPIP(method: _PRINT_PDF_FILE_OVER_TCP_IP, filePath: filePath, address: address, port: port, printerConf: printerConf, timeout: timeout);

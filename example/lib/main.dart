@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:zsdk/zsdk.dart' as Printer;
@@ -15,6 +14,7 @@ const String btnGetPrinterSettings = 'btnGetPrinterSettings';
 const String btnSetPrinterSettings = 'btnSetPrinterSettings';
 const String btnResetPrinterSettings = 'btnResetPrinterSettings';
 const String btnDoManualCalibration = 'btnDoManualCalibration';
+const String btnPrintConfigurationLabel = 'btnPrintConfigurationLabel';
 
 class MyApp extends StatefulWidget {
   Printer.ZSDK zsdk = Printer.ZSDK();
@@ -573,6 +573,12 @@ class _MyAppState extends State<MyApp> {
                     ),
                     visible: printStatus != PrintStatus.NONE,
                   ),
+                  RaisedButton(
+                    child: Text("Test Print".toUpperCase(), textAlign: TextAlign.center,),
+                    color: Colors.cyan,
+                    textColor: Colors.white,
+                    onPressed: printStatus == PrintStatus.PRINTING ? null : () => onClick(btnPrintConfigurationLabel),
+                  ),
                   Row(
                     children: <Widget>[
                       Expanded(
@@ -897,6 +903,42 @@ class _MyAppState extends State<MyApp> {
             }
             setState(() {
               checkingStatus = CheckingStatus.ERROR;
+            });
+          });
+          break;
+        case btnPrintConfigurationLabel:
+          setState(() {
+            message = "Print job started...";
+            printStatus = PrintStatus.PRINTING;
+          });
+          widget.zsdk.printConfigurationLabelOverTCPIP(
+            address: addressIpController.text,
+            port: int.tryParse(addressPortController.text),
+          )
+          .then((value){
+            setState(() {
+              printStatus = PrintStatus.SUCCESS;
+              message = "$value";
+            });
+          }, onError: (error, stacktrace){
+            try{
+              throw error;
+            } on PlatformException catch(e) {
+              Printer.PrinterResponse printerResponse;
+              try{
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                message = "${printerResponse?.message} ${printerResponse?.errorCode} ${printerResponse?.statusInfo?.status} ${printerResponse?.statusInfo?.cause}";
+              }catch(e){
+                print(e);
+                message = "${e?.toString()}";
+              }
+            } on MissingPluginException catch(e) {
+              message = "${e?.message}";
+            } catch (e){
+              message = "${e?.toString()}";
+            }
+            setState(() {
+              printStatus = PrintStatus.ERROR;
             });
           });
           break;

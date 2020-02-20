@@ -50,7 +50,6 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
     self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
 }
 
-
 - (void)doManualCalibrationOverTCPIP:(NSString *)address port:(NSNumber *)port {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         id<ZebraPrinter,NSObject> printer;
@@ -63,10 +62,52 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             NSError *error = nil;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
+//                id<ToolsUtil,NSObject> toolsUtils = [printer getToolsUtil];
+//                [toolsUtils calibrate:&error];
                 [SGD DO:SGDParams.KEY_MANUAL_CALIBRATION withValue:nil andWithPrinterConnection:connection error:&error];
-                StatusInfo *statusInfo = [self getStatusInfo:printer];
-                PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Printer status"];
-                self.result([response toMap]);
+                
+                if (![ObjectUtils isNull:error])
+                    @throw [NSException exceptionWithName:@"Printer error" reason:[error description] userInfo:nil];
+                else {
+                    StatusInfo *statusInfo = [self getStatusInfo:printer];
+                    PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Printer status"];
+                    self.result([response toMap]);
+                }
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            [self onException:printer exception:e];
+        }
+    });
+}
+
+- (void)printConfigurationLabelOverTCPIP:(NSString *)address port:(NSNumber *)port {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
+            
+            connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
+            if(![connection open]) return [self onConnectionTimeOut];
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                id<ToolsUtil,NSObject> toolsUtils = [printer getToolsUtil];
+                [toolsUtils printConfigurationLabel:&error];
+                
+                if (![ObjectUtils isNull:error])
+                    @throw [NSException exceptionWithName:@"Printer error" reason:[error description] userInfo:nil];
+                else {
+                    StatusInfo *statusInfo = [self getStatusInfo:printer];
+                    PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Printer status"];
+                    self.result([response toMap]);
+                }
             }
             @catch (NSException *e) {
                 @throw e;
@@ -199,11 +240,9 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
                     
                     [connection write:dataBytes error:&error];
                     
-                    if (![ObjectUtils isNull:error]) {
-                        @throw [NSException exceptionWithName:@"Printer error"
-                                                       reason:[error description]
-                                                       userInfo:nil];
-                    } else {
+                    if (![ObjectUtils isNull:error])
+                        @throw [NSException exceptionWithName:@"Printer error" reason:[error description] userInfo:nil];
+                    else {
                         StatusInfo *statusInfo = [self getStatusInfo:printer];
                         PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Successful print"];
                         self.result([response toMap]);

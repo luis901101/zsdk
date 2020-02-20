@@ -1,3 +1,8 @@
+## 1.0.3+6
+
+* Support for printing configurations label.
+
+
 ## 1.0.2+5
 
 * Support for custom timeout.

@@ -26,6 +26,7 @@ public class ZsdkPlugin implements MethodCallHandler {
   static final String _GET_PRINTER_SETTINGS_OVER_TCP_IP = "getPrinterSettingsOverTCPIP";
   static final String _SET_PRINTER_SETTINGS_OVER_TCP_IP = "setPrinterSettingsOverTCPIP";
   static final String _DO_MANUAL_CALIBRATION_OVER_TCP_IP = "doManualCalibrationOverTCPIP";
+  static final String _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP = "printConfigurationLabelOverTCPIP";
 
   /** Properties */
   static final String _filePath = "filePath";
@@ -66,6 +67,12 @@ public class ZsdkPlugin implements MethodCallHandler {
       switch(call.method){
         case _DO_MANUAL_CALIBRATION_OVER_TCP_IP:
           printer.doManualCalibrationOverTCPIP(
+              call.argument(_address),
+              call.argument(_port)
+          );
+          break;
+        case _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP:
+          printer.printConfigurationLabelOverTCPIP(
               call.argument(_address),
               call.argument(_port)
           );
