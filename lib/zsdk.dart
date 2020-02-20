@@ -81,7 +81,7 @@ class ZSDK {
       code: ErrorCodeUtils.get().nameOf(ErrorCode.EXCEPTION),
       message: "Connection timeout${timeout != null ? " after ${timeout.inSeconds} seconds of waiting" : "."}",
       details: PrinterResponse(
-        errorCode: ErrorCode.PRINTER_ERROR,
+        errorCode: ErrorCode.EXCEPTION,
         message: "Connection timeout${timeout != null ? " after ${timeout.inSeconds} seconds of waiting" : "."}",
         statusInfo: StatusInfo(
           Status.UNKNOWN,

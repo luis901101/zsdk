@@ -1,6 +1,7 @@
-## 1.0.3+6
+## 1.0.3+7
 
 * Support for printing configurations label.
+* Minor bugs fixed.
 
 
 ## 1.0.2+5
