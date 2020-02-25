@@ -33,6 +33,7 @@ flutter_export_environment.sh
 *.g.dart
 ios.old.zip
 ios.old/
+.flutter-plugins-dependencies
 
 # Android related
 **/android/**/gradle-wrapper.jar

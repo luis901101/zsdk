@@ -1,3 +1,7 @@
+## 1.0.4+8
+* Bug fixed when applying settings in Android.
+* New read only setting added: resolution of the print head in dots per millimeter (dpmm)
+
 ## 1.0.3+7
 
 * Support for printing configurations label.

@@ -1,5 +1,6 @@
 name: zsdk_example
 description: Demonstrates how to use the zsdk plugin.
+version: 1.0.0+15
 publish_to: 'none'
 
 environment:

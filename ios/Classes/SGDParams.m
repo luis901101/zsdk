@@ -35,6 +35,7 @@
 + (NSString*)KEY_FIRMWARE {return @"appl.name";}
 + (NSString*)KEY_LINK_OS_VERSION {return @"appl.link_os_version";}
 + (NSString*)KEY_PRINTER_DPI {return @"head.resolution.in_dpi";}
++ (NSString*)KEY_DEVICE_PRINT_HEAD_RESOLUTION {return @"device.printhead.resolution";}
 
 /** Actions */
 + (NSString*)KEY_MANUAL_CALIBRATION {return @"ezpl.manual_calibration";}

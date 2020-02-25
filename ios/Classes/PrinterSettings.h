@@ -36,9 +36,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property NSString *firmware;
 @property NSString *linkOSVersion;
 @property NSString *printerDpi;
+@property NSString *devicePrintHeadResolution;
 
 - (id) initWithArguments:(NSDictionary*)arguments;
-- (id) initWithValues:(NSString*)printerModelName deviceFriendlyName:(NSString*)deviceFriendlyName firmware:(NSString*)firmware linkOSVersion:(NSString*)linkOSVersion printerDpi:(NSString*)printerDpi;
+- (id) initWithValues:(NSString*)printerModelName deviceFriendlyName:(NSString*)deviceFriendlyName firmware:(NSString*)firmware linkOSVersion:(NSString*)linkOSVersion printerDpi:(NSString*)printerDpi devicePrintHeadResolution:(NSString*)devicePrintHeadResolution;
 
 - (void) apply: (id<ZebraPrinterConnection, NSObject>)connection;
 - (NSDictionary *) toMap;

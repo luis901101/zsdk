@@ -5,7 +5,10 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:zsdk/zsdk.dart' as Printer;
 import 'dart:io';
 
-void main() => runApp(MyApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
+}
 
 const String btnPrintPdfOverTCPIP = 'btnPrintPdfOverTCPIP';
 const String btnPrintZplOverTCPIP = 'btnPrintZplOverTCPIP';
@@ -308,6 +311,15 @@ class _MyAppState extends State<MyApp> {
                               ]
                             ),
                           ),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(color: Theme.of(context).textTheme.title.color),
+                              children: [
+                                TextSpan(text: "Resolution in dots per millimeter (dpmm): ", style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: "${settings?.devicePrintHeadResolution != null ? "${double.tryParse(settings?.devicePrintHeadResolution)?.truncate()}dpmm" : "Unknown"}"),
+                              ]
+                            ),
+                          ),
                           TextField(
                             controller: darknessController,
                             keyboardType: TextInputType.numberWithOptions(signed: true, decimal: true),
@@ -350,7 +362,7 @@ class _MyAppState extends State<MyApp> {
                           ),
                           TextField(
                             controller: printWidthController,
-                            keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+                            keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
                             textInputAction: TextInputAction.done,
                             decoration: InputDecoration(
                                 labelText: "Print width"
@@ -757,7 +769,7 @@ class _MyAppState extends State<MyApp> {
               tearOff: int.tryParse(tearOffController.text),
               mediaType: selectedMediaType,
               printMethod: selectedPrintMethod,
-              printWidth: double.tryParse(printWidthController.text),
+              printWidth: int.tryParse(printWidthController.text),
               labelLength: int.tryParse(labelLengthController.text),
               labelLengthMax: double.tryParse(labelLengthMaxController.text),
               zplMode: selectedZPLMode,

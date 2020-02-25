@@ -29,6 +29,7 @@
 .pub/
 build/
 ios.old/
+.flutter-plugins-dependencies
 
 # Android related
 **/android/**/gradle-wrapper.jar

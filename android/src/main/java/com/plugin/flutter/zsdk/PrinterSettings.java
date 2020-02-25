@@ -32,6 +32,7 @@ public class PrinterSettings
     public static final String FIELD_FIRMWARE = "firmware";
     public static final String FIELD_LINK_OS_VERSION = "linkOSVersion";
     public static final String FIELD_PRINTER_DPI = "printerDpi";
+    public static final String FIELD_DEVICE_PRINT_HEAD_RESOLUTION = "devicePrintHeadResolution";
 
     /** Writable settings */
     private String darkness;
@@ -56,6 +57,7 @@ public class PrinterSettings
     private final String firmware;
     private final String linkOSVersion;
     private final String printerDpi;
+    private final String devicePrintHeadResolution;
 
     private static String getValue(Object argument) {
         return argument != null ?  String.valueOf(argument) : null;
@@ -68,7 +70,8 @@ public class PrinterSettings
             getValue(arguments != null ? arguments.get(FIELD_DEVICE_FRIENDLY_NAME) : null),
             getValue(arguments != null ? arguments.get(FIELD_FIRMWARE) : null),
             getValue(arguments != null ? arguments.get(FIELD_LINK_OS_VERSION) : null),
-            getValue(arguments != null ? arguments.get(FIELD_PRINTER_DPI) : null)
+            getValue(arguments != null ? arguments.get(FIELD_PRINTER_DPI) : null),
+            getValue(arguments != null ? arguments.get(FIELD_DEVICE_PRINT_HEAD_RESOLUTION) : null)
         );
         if(arguments == null) arguments = new HashMap();
         darkness = getValue(arguments.get(FIELD_DARKNESS));
@@ -89,13 +92,14 @@ public class PrinterSettings
     }
 
     public PrinterSettings(String printerModelName, String deviceFriendlyName, String firmware,
-                           String linkOSVersion, String printerDpi)
+                           String linkOSVersion, String printerDpi, String devicePrintHeadResolution)
     {
         this.printerModelName = printerModelName;
         this.deviceFriendlyName = deviceFriendlyName;
         this.firmware = firmware;
         this.linkOSVersion = linkOSVersion;
         this.printerDpi = printerDpi;
+        this.devicePrintHeadResolution = devicePrintHeadResolution;
     }
 
     public void apply(Connection connection){
@@ -146,6 +150,7 @@ public class PrinterSettings
         map.put(FIELD_FIRMWARE, firmware);
         map.put(FIELD_LINK_OS_VERSION, linkOSVersion);
         map.put(FIELD_PRINTER_DPI, printerDpi);
+        map.put(FIELD_DEVICE_PRINT_HEAD_RESOLUTION, devicePrintHeadResolution);
         return map;
     }
 
@@ -160,7 +165,8 @@ public class PrinterSettings
                     SGD.GET(SGDParams.KEY_DEVICE_FRIENDLY_NAME, connection),
                     SGD.GET(SGDParams.KEY_FIRMWARE, connection),
                     SGD.GET(SGDParams.KEY_LINK_OS_VERSION, connection),
-                    SGD.GET(SGDParams.KEY_PRINTER_DPI, connection)
+                    SGD.GET(SGDParams.KEY_PRINTER_DPI, connection),
+                    SGD.GET(SGDParams.KEY_DEVICE_PRINT_HEAD_RESOLUTION, connection)
                 );
                 settings.darkness = SGD.GET(SGDParams.KEY_DARKNESS, connection);
                 settings.printSpeed = SGD.GET(SGDParams.KEY_PRINT_SPEED, connection);

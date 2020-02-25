@@ -32,6 +32,7 @@ const NSString *FIELD_DEVICE_FRIENDLY_NAME = @"deviceFriendlyName";
 const NSString *FIELD_FIRMWARE = @"firmware";
 const NSString *FIELD_LINK_OS_VERSION = @"linkOSVersion";
 const NSString *FIELD_PRINTER_DPI = @"printerDpi";
+const NSString *FIELD_DEVICE_PRINT_HEAD_RESOLUTION = @"devicePrintHeadResolution";
 
 - (id)initWithArguments:(NSDictionary *)arguments {
     self = [super init];
@@ -60,7 +61,7 @@ const NSString *FIELD_PRINTER_DPI = @"printerDpi";
     return self;
 }
 
-- (id)initWithValues:(NSString *)printerModelName deviceFriendlyName:(NSString *)deviceFriendlyName firmware:(NSString *)firmware linkOSVersion:(NSString *)linkOSVersion printerDpi:(NSString *)printerDpi {
+- (id)initWithValues:(NSString *)printerModelName deviceFriendlyName:(NSString *)deviceFriendlyName firmware:(NSString *)firmware linkOSVersion:(NSString *)linkOSVersion printerDpi:(NSString *)printerDpi devicePrintHeadResolution:(NSString*)devicePrintHeadResolution{
     self = [super init];
     if(self){
         self.printerModelName = printerModelName;
@@ -68,6 +69,7 @@ const NSString *FIELD_PRINTER_DPI = @"printerDpi";
         self.firmware = firmware;
         self.linkOSVersion = linkOSVersion;
         self.printerDpi = printerDpi;
+        self.devicePrintHeadResolution = devicePrintHeadResolution;
     }
     return self;
 }
@@ -123,6 +125,7 @@ const NSString *FIELD_PRINTER_DPI = @"printerDpi";
         _firmware,
         _linkOSVersion,
         _printerDpi,
+        _devicePrintHeadResolution,
     };
     id keys[] = {
         FIELD_DARKNESS,
@@ -145,6 +148,7 @@ const NSString *FIELD_PRINTER_DPI = @"printerDpi";
         FIELD_FIRMWARE,
         FIELD_LINK_OS_VERSION,
         FIELD_PRINTER_DPI,
+        FIELD_DEVICE_PRINT_HEAD_RESOLUTION,
     };
     NSUInteger count = sizeof(objects) / sizeof(id);
     NSDictionary *map = [NSDictionary dictionaryWithObjects:objects forKeys:keys count:count];
@@ -163,6 +167,7 @@ const NSString *FIELD_PRINTER_DPI = @"printerDpi";
                firmware:[SGD GET:SGDParams.KEY_FIRMWARE withPrinterConnection:connection error:&error]
                linkOSVersion:[SGD GET:SGDParams.KEY_LINK_OS_VERSION withPrinterConnection:connection error:&error]
                printerDpi:[SGD GET:SGDParams.KEY_PRINTER_DPI withPrinterConnection:connection error:&error]
+               devicePrintHeadResolution:[SGD GET:SGDParams.KEY_DEVICE_PRINT_HEAD_RESOLUTION withPrinterConnection:connection error:&error]
             ];
             
             settings.darkness = [SGD GET:SGDParams.KEY_DARKNESS withPrinterConnection:connection error:&error];

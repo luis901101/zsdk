@@ -29,6 +29,7 @@ class PrinterSettings {
   static const String FIELD_FIRMWARE = "firmware";
   static const String FIELD_LINK_OS_VERSION = "linkOSVersion";
   static const String FIELD_PRINTER_DPI = "printerDpi";
+  static const String FIELD_DEVICE_PRINT_HEAD_RESOLUTION = "devicePrintHeadResolution";
 
   // Writable settings
   /// To set the darkness and relative darkness
@@ -63,7 +64,7 @@ class PrinterSettings {
   /// This command sets the print width of the label
   /// Values
   /// any printhead width
-  double printWidth;
+  int printWidth;
 
   /// Defines the length of the label. This is necessary
   /// when using continuous media (media that is not divided into separate
@@ -160,6 +161,10 @@ class PrinterSettings {
   /// Shows the resolution of the print head in dots per inch as an integer.
   final String printerDpi;
 
+  /// Shows the resolution of the print head in dots per millimeter (dpmm) as an integer
+  /// Valid values are "6dpmm", "8dpmm", "12dpmm", and "24dpmm".
+  final String devicePrintHeadResolution;
+
   PrinterSettings({
     this.darkness,
     this.printSpeed,
@@ -180,7 +185,8 @@ class PrinterSettings {
     this.deviceFriendlyName,
     this.firmware,
     this.linkOSVersion,
-    this.printerDpi
+    this.printerDpi,
+    this.devicePrintHeadResolution,
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
@@ -204,6 +210,7 @@ class PrinterSettings {
     FIELD_FIRMWARE: firmware,
     FIELD_LINK_OS_VERSION: linkOSVersion,
     FIELD_PRINTER_DPI: printerDpi,
+    FIELD_DEVICE_PRINT_HEAD_RESOLUTION: devicePrintHeadResolution,
   };
 
   factory PrinterSettings.fromMap(Map<dynamic, dynamic> map) => map != null
@@ -213,7 +220,7 @@ class PrinterSettings {
       tearOff: int.tryParse(map[FIELD_TEAR_OFF]),
       mediaType: MediaTypeUtils.get().valueOf(map[FIELD_MEDIA_TYPE]),
       printMethod: PrintMethodUtils.get().valueOf(map[FIELD_PRINT_METHOD]),
-      printWidth: double.tryParse(map[FIELD_PRINT_WIDTH]),
+      printWidth: int.tryParse(map[FIELD_PRINT_WIDTH]),
       labelLength: int.tryParse(map[FIELD_LABEL_LENGTH]),
       labelLengthMax: double.tryParse(map[FIELD_LABEL_LENGTH_MAX]),
       zplMode: ZPLModeUtils.get().valueOf(map[FIELD_ZPL_MODE]),
@@ -228,6 +235,7 @@ class PrinterSettings {
       firmware: map[FIELD_FIRMWARE],
       linkOSVersion: map[FIELD_LINK_OS_VERSION],
       printerDpi: map[FIELD_PRINTER_DPI],
+      devicePrintHeadResolution: map[FIELD_DEVICE_PRINT_HEAD_RESOLUTION],
     ) : null;
 
   factory PrinterSettings.defaultSettings() =>
