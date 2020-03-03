@@ -32,6 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void) setPrinterSettingsOverTCPIP:(NSString *)address port:(NSNumber*)port settings:(PrinterSettings *)settings;
 - (void) printZplFileOverTCPIP:(NSString *)filePath address:(NSString *)address port:(NSNumber*)port;
 - (void) printZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(NSNumber*)port;
+- (void) doPrintZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(NSNumber*)port;
 - (bool) isReadyToPrint:(id<ZebraPrinter, NSObject>)printer;
 - (StatusInfo *) getStatusInfo:(id<ZebraPrinter, NSObject>)printer;
 - (void) changePrinterLanguage:(id<ZebraPrinterConnection, NSObject>)connection language:(NSString *)language;

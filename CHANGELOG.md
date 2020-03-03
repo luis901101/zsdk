@@ -1,3 +1,7 @@
+## 1.0.5+9
+* Android ZPL print updated to send content in chunks, this way is better for big zpl templates
+* iOS ZPL print updated to fix bug when printing big zpl templates
+
 ## 1.0.4+8
 * Bug fixed when applying settings in Android.
 * New read only setting added: resolution of the print head in dots per millimeter (dpmm)

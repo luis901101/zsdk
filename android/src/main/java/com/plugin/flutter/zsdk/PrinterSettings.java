@@ -129,7 +129,7 @@ public class PrinterSettings
     }
 
     Map toMap() {
-        Map map = new HashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put(FIELD_DARKNESS, darkness);
         map.put(FIELD_PRINT_SPEED, printSpeed);
         map.put(FIELD_TEAR_OFF, tearOff);

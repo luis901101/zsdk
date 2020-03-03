@@ -48,8 +48,7 @@ public class PrinterConf {
      * */
     private double convertCmToPx(double cm, double dpi) {
         final double inchCm = 2.54; //One inch in centimeters
-        final double pixels = (dpi / inchCm) * cm;
-        return pixels;
+        return (dpi / inchCm) * cm;
     }
 
     public int getWidth()

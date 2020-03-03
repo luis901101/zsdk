@@ -12,6 +12,7 @@
 #import "PrinterResponse.h"
 #import "SGDParams.h"
 #import "SGD.h"
+#import "ToolsUtil.h"
 #import "PrinterSettings.h"
 
 @implementation ZPrinter
@@ -219,6 +220,10 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
 }
 
 - (void)printZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(NSNumber*)port {
+    [self doPrintZplDataOverTCPIP:data address:address port:port];
+}
+
+- (void) doPrintZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(NSNumber*)port; {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         id<ZebraPrinter,NSObject> printer;
         id<ZebraPrinterConnection,NSObject> connection;
@@ -236,9 +241,8 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
                 if ([self isReadyToPrint:printer]) {
                     [self initValues:connection];
                     [self changePrinterLanguage:connection language:SGDParams.VALUE_ZPL_LANGUAGE];
-                    NSData *dataBytes = [NSData dataWithBytes:[data UTF8String] length:[data length]];
                     
-                    [connection write:dataBytes error:&error];
+                    [connection write:[data dataUsingEncoding:NSUTF8StringEncoding] error:&error];
                     
                     if (![ObjectUtils isNull:error])
                         @throw [NSException exceptionWithName:@"Printer error" reason:[error description] userInfo:nil];

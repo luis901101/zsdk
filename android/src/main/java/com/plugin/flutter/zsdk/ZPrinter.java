@@ -13,13 +13,16 @@ import com.zebra.sdk.printer.SGD;
 import com.zebra.sdk.printer.ZebraPrinter;
 import com.zebra.sdk.printer.ZebraPrinterFactory;
 import com.zebra.sdk.printer.ZebraPrinterLinkOs;
+import com.zebra.sdk.util.internal.FileUtilities;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.StringReader;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -304,10 +307,7 @@ public class ZPrinter
             try
             {
                 if(!new File(filePath).exists()) throw new FileNotFoundException("The file: "+ filePath +"doesn't exist");
-                BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
-                String line, data = "";
-                while ((line = bufferedReader.readLine()) != null) data += line + "\n";
-                doPrintZplDataOverTCPIP(data, address, port);
+                doPrintZplDataOverTCPIP(new FileInputStream(filePath), address, port);
             }
             catch(Exception e)
             {
@@ -317,15 +317,18 @@ public class ZPrinter
     }
 
     public void printZplDataOverTCPIP(final String data, final String address, final Integer port) {
-        new Thread(() -> doPrintZplDataOverTCPIP(data, address, port)).start();
+        if(data == null || data.isEmpty()) throw new NullPointerException("ZPL data can not be empty");
+        new Thread(() -> doPrintZplDataOverTCPIP(
+            new ByteArrayInputStream(data.getBytes(Charset.forName("UTF-8"))), address, port))
+            .start();
     }
 
-    private void doPrintZplDataOverTCPIP(final String data, final String address, final Integer port) {
+    private void doPrintZplDataOverTCPIP(final InputStream dataStream, final String address, final Integer port) {
         Connection connection;
         ZebraPrinter printer = null;
         try
         {
-            if(data == null || data.isEmpty()) throw new NullPointerException("ZPL data can not be empty");
+            if(dataStream == null) throw new NullPointerException("ZPL data can not be empty");
             int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
             connection = newConnection(address, tcpPort);
@@ -336,8 +339,9 @@ public class ZPrinter
                 if (isReadyToPrint(printer)) {
                     init(connection);
                     changePrinterLanguage(connection, SGDParams.VALUE_ZPL_LANGUAGE);
-                    connection.write(data.getBytes());
+//                    connection.write(data.getBytes()); //This would be to send zpl as a string, this fails if the string is too big
 //                    printer.sendFileContents(filePath); //This would be to send zpl as a file path
+                    FileUtilities.sendFileContentsInChunks(connection, dataStream);
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Successful print");
                     handler.post(() -> result.success(response.toMap()));
@@ -400,8 +404,6 @@ public class ZPrinter
 
     /**
      * This printMethod implements best practices to check the language of the printer and set the language of the printer to ZPL.
-     * @return printer
-     * @throws ConnectionException
      */
     public void changePrinterLanguage(Connection connection, String language) throws ConnectionException {
         if(connection == null) return;

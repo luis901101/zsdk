@@ -5,8 +5,6 @@ package com.plugin.flutter.zsdk;
  */
 public class SGDParams
 {
-    /** Settings */
-
     /** Writable settings */
     public static final String KEY_DARKNESS = "print.tone";
     public static final String KEY_PRINT_SPEED = "media.speed";

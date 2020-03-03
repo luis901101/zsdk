@@ -18,7 +18,7 @@ public class StatusInfo
     }
 
     Map toMap() {
-        Map map = new HashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("status", status.name());
         map.put("cause", cause.name());
         return map;
