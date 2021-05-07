@@ -1,31 +1,21 @@
 /// Created by luis901101 on 2020-02-11.
-enum ReprintMode
-{
-    ON,
-    OFF,
+enum ReprintMode {
+  ON,
+  OFF,
 }
 
-class ReprintModeUtils {
+final _mapValueOfName = {
+  'on': ReprintMode.ON,
+  'off': ReprintMode.OFF,
+};
 
-    ReprintModeUtils.get();
+final _mapNameOfValue = {
+  ReprintMode.ON: 'on',
+  ReprintMode.OFF: 'off',
+};
 
-    ReprintMode valueOf(String name) {
-        try {return _mapValueOfName[name];} catch (e) {}
-        return null;
-    }
+extension ReprintModeUtils on ReprintMode {
+  String get name => _mapNameOfValue[this]!;
 
-    String nameOf(ReprintMode value) {
-        try {return _mapNameOfValue[value];} catch (e) {}
-        return null;
-    }
-
-    final _mapValueOfName = {
-        'on': ReprintMode.ON,
-        'off': ReprintMode.OFF,
-    };
-
-    final _mapNameOfValue = {
-        ReprintMode.ON: 'on',
-        ReprintMode.OFF: 'off',
-    };
+  static ReprintMode? valueOf(String? name) => _mapValueOfName[name!];
 }

@@ -1,44 +1,21 @@
 /// Created by luis901101 on 2020-01-07.
-enum Cause
-{
-    PARTIAL_FORMAT_IN_PROGRESS,
-    HEAD_COLD,
-    HEAD_OPEN,
-    HEAD_TOO_HOT,
-    PAPER_OUT,
-    RIBBON_OUT,
-    RECEIVE_BUFFER_FULL,
-    NO_CONNECTION,
-    UNKNOWN,
+enum Cause {
+  PARTIAL_FORMAT_IN_PROGRESS,
+  HEAD_COLD,
+  HEAD_OPEN,
+  HEAD_TOO_HOT,
+  PAPER_OUT,
+  RIBBON_OUT,
+  RECEIVE_BUFFER_FULL,
+  NO_CONNECTION,
+  UNKNOWN,
 }
 
-class CauseUtils {
+extension CauseUtils on Cause {
+  String get name => toString().split('.').last;
 
-    CauseUtils.get();
-
-    String nameOf(Cause value) {
-        try{return value?.toString()?.split(".")?.last;}catch(e){print(e);}
-        return null;
-    }
-
-    Cause valueOf(String name) {
-        try{
-            return _mapValueOfName[name];
-        } catch(e){
-            return Cause.UNKNOWN;
-        }
-    }
-
-    final _mapValueOfName = {
-        'PARTIAL_FORMAT_IN_PROGRESS': Cause.PARTIAL_FORMAT_IN_PROGRESS,
-        'HEAD_COLD': Cause.HEAD_COLD,
-        'HEAD_OPEN': Cause.HEAD_OPEN,
-        'HEAD_TOO_HOT': Cause.HEAD_TOO_HOT,
-        'PAPER_OUT': Cause.PAPER_OUT,
-        'RIBBON_OUT': Cause.RIBBON_OUT,
-        'RECEIVE_BUFFER_FULL': Cause.RECEIVE_BUFFER_FULL,
-        'NO_CONNECTION': Cause.NO_CONNECTION,
-        'UNKNOWN': Cause.UNKNOWN,
-    };
-
+  static Cause? valueOf(String name) {
+    for (Cause value in Cause.values) if (value.name == name) return value;
+    return Cause.UNKNOWN;
+  }
 }

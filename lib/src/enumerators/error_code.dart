@@ -1,35 +1,17 @@
-
 /// Created by luis901101 on 2020-01-09.
-enum ErrorCode
-{
-    SUCCESS,
-    EXCEPTION,
-    PRINTER_ERROR,
-    UNKNOWN,
+enum ErrorCode {
+  SUCCESS,
+  EXCEPTION,
+  PRINTER_ERROR,
+  UNKNOWN,
 }
 
-class ErrorCodeUtils {
+extension ErrorCodeUtils on ErrorCode {
+  String get name => toString().split('.').last;
 
-    ErrorCodeUtils.get();
-
-    String nameOf(ErrorCode value) {
-        try{return value?.toString()?.split(".")?.last;}catch(e){print(e);}
-        return null;
-    }
-
-    ErrorCode valueOf(String name) {
-        try{
-            return _mapValueOfName[name];
-        } catch(e){
-            return ErrorCode.UNKNOWN;
-        }
-    }
-
-    final _mapValueOfName = {
-        'SUCCESS': ErrorCode.SUCCESS,
-        'EXCEPTION': ErrorCode.EXCEPTION,
-        'PRINTER_ERROR': ErrorCode.PRINTER_ERROR,
-        'UNKNOWN': ErrorCode.UNKNOWN,
-    };
-
+  static ErrorCode? valueOf(String name) {
+    for (ErrorCode value in ErrorCode.values)
+      if (value.name == name) return value;
+    return ErrorCode.UNKNOWN;
+  }
 }

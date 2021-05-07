@@ -1,3 +1,7 @@
+## 2.0.0  (2021-05-07)
+### Added
+- Support for null safety
+
 ## 1.0.6+10  (2020-10-12)
 ### Added
 - Support for latest flutter frameworks

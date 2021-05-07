@@ -1,29 +1,15 @@
 /// Created by luis901101 on 2020-01-07.
 enum Orientation {
-    PORTRAIT,
-    LANDSCAPE,
+  PORTRAIT,
+  LANDSCAPE,
 }
 
-class OrientationUtils {
+extension OrientationUtils on Orientation {
+  String get name => toString().split('.').last;
 
-    OrientationUtils.get();
-
-    Orientation valueOf(String name) {
-        try{
-            return _mapValueOfName[name];
-        } catch(e){
-            return Orientation.LANDSCAPE;
-        }
-    }
-
-    String nameOf(Orientation value) {
-        try{return value?.toString()?.split(".")?.last;}catch(e){print(e);}
-        return null;
-    }
-
-    final _mapValueOfName = {
-        'PORTRAIT': Orientation.PORTRAIT,
-        'LANDSCAPE': Orientation.LANDSCAPE,
-    };
-
+  static Orientation? valueOf(String name) {
+    for (Orientation value in Orientation.values)
+      if (value.name == name) return value;
+    return Orientation.LANDSCAPE;
+  }
 }

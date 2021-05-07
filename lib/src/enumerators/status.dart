@@ -1,32 +1,15 @@
 /// Created by luis901101 on 2020-01-07.
-enum Status
-{
-    PAUSED,
-    READY_TO_PRINT,
-    UNKNOWN,
+enum Status {
+  PAUSED,
+  READY_TO_PRINT,
+  UNKNOWN,
 }
 
-class StatusUtils {
+extension StatusUtils on Status {
+  String get name => toString().split('.').last;
 
-  StatusUtils.get();
-
-  String nameOf(Status value) {
-    try{return value?.toString()?.split(".")?.last;}catch(e){print(e);}
-    return null;
+  static Status? valueOf(String name) {
+    for (Status value in Status.values) if (value.name == name) return value;
+    return Status.UNKNOWN;
   }
-
-  Status valueOf(String name) {
-    try{
-      return _mapValueOfName[name];
-    } catch(e){
-      return Status.UNKNOWN;
-    }
-  }
-
-  final _mapValueOfName = {
-    'PAUSED': Status.PAUSED,
-    'READY_TO_PRINT': Status.READY_TO_PRINT,
-    'UNKNOWN': Status.UNKNOWN,
-  };
-
 }

@@ -29,42 +29,43 @@ class PrinterSettings {
   static const String FIELD_FIRMWARE = "firmware";
   static const String FIELD_LINK_OS_VERSION = "linkOSVersion";
   static const String FIELD_PRINTER_DPI = "printerDpi";
-  static const String FIELD_DEVICE_PRINT_HEAD_RESOLUTION = "devicePrintHeadResolution";
+  static const String FIELD_DEVICE_PRINT_HEAD_RESOLUTION =
+      "devicePrintHeadResolution";
 
   // Writable settings
   /// To set the darkness and relative darkness
   /// Values
   /// "0.0" to "30.0" = darkness
   /// "-0.1" to "-30.0" and "+0.1" to "+30.0" = incremental adjustments
-  double darkness;
+  double? darkness;
 
   /// Instructs the printer to set the media print speed.
   /// Values
   /// 2-12 inches per second (ips)
-  double printSpeed;
+  double? printSpeed;
 
   /// To set the tear-off position
   /// Values
   /// "-120" to "120"
-  int tearOff;
+  int? tearOff;
 
   /// To set the media type used in the printer
   /// Values
   /// • "continuous"
   /// • "gap/notch"
   /// • "mark"
-  MediaType mediaType;
+  MediaType? mediaType;
 
   /// To set the print method.
   /// Values
   /// • "thermal trans"
   /// • "direct thermal"
-  PrintMethod printMethod;
+  PrintMethod? printMethod;
 
   /// This command sets the print width of the label
   /// Values
   /// any printhead width
-  int printWidth;
+  int? printWidth;
 
   /// Defines the length of the label. This is necessary
   /// when using continuous media (media that is not divided into separate
@@ -84,18 +85,18 @@ class PrinterSettings {
   /// Values for y depend on the memory size. If the entered value for y exceeds
   /// the acceptable limits, the bottom of the label is cut off.
   /// The label also shifts down from top to bottom.
-  int labelLength;
+  int? labelLength;
 
   /// Sets the maximum label length in inches.
   /// Values
   /// 1.0 to 39.0 inches
-  double labelLengthMax;
+  double? labelLengthMax;
 
   /// Sets the ZPL mode.
   /// Values
   /// • "zpl"
   /// • "zpl II"
-  ZPLMode zplMode;
+  ZPLMode? zplMode;
 
   /// To set the media motion and calibration setting at printer power up
   /// Values
@@ -104,7 +105,7 @@ class PrinterSettings {
   /// • "length" = is used to set the label length. Depending on the size of the label, the printer feeds one or more blank labels.
   /// • "no motion" = no media feed
   /// • "short cal" = short calibration
-  PowerUpAction powerUpAction;
+  PowerUpAction? powerUpAction;
 
   /// This command sets what happens to the media after the printhead is closed
   /// and the printer is taken out of pause.
@@ -114,17 +115,17 @@ class PrinterSettings {
   /// • "length" = is used to set the label length. Depending on the size of the label, the printer feeds one or more blank labels.
   /// • "no motion" = no media feed
   /// • "short cal" = short calibration
-  HeadCloseAction headCloseAction;
+  HeadCloseAction? headCloseAction;
 
   /// Sets the label’s top margin offset in dots
   /// Values
   /// "-60 to 60"
-  int labelTop;
+  int? labelTop;
 
   /// Sets the label’s left margin offset in dots.
   /// Values
   /// "-9999 to 9999"
-  int leftPosition;
+  int? leftPosition;
 
   /// Sets the print mode
   /// Values
@@ -137,33 +138,33 @@ class PrinterSettings {
   /// • "linerless rewind"
   /// • "linerless tear"
   /// • "applicator"
-  PrintMode printMode;
+  PrintMode? printMode;
 
   /// Turns on/off the reprint mode.
   /// Values
   /// • "on"
   /// • "off"
-  ReprintMode reprintMode;
+  ReprintMode? reprintMode;
 
   // Read only settings
   /// Shows the manufacturer and model name
-  final String printerModelName;
+  final String? printerModelName;
 
   /// Shows the name assigned to the printer
-  final String deviceFriendlyName;
+  final String? deviceFriendlyName;
 
   /// Shows the printer’s firmware version
-  final String firmware;
+  final String? firmware;
 
   /// Shows the version of the Link-OS TM feature set that is supported by the printer.
-  final String linkOSVersion;
+  final String? linkOSVersion;
 
   /// Shows the resolution of the print head in dots per inch as an integer.
-  final String printerDpi;
+  final String? printerDpi;
 
   /// Shows the resolution of the print head in dots per millimeter (dpmm) as an integer
   /// Valid values are "6dpmm", "8dpmm", "12dpmm", and "24dpmm".
-  final String devicePrintHeadResolution;
+  final String? devicePrintHeadResolution;
 
   PrinterSettings({
     this.darkness,
@@ -190,56 +191,55 @@ class PrinterSettings {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    FIELD_DARKNESS: darkness,
-    FIELD_PRINT_SPEED: printSpeed,
-    FIELD_TEAR_OFF: tearOff,
-    FIELD_MEDIA_TYPE: MediaTypeUtils.get().nameOf(mediaType),
-    FIELD_PRINT_METHOD: PrintMethodUtils.get().nameOf(printMethod),
-    FIELD_PRINT_WIDTH: printWidth,
-    FIELD_LABEL_LENGTH: labelLength,
-    FIELD_LABEL_LENGTH_MAX: labelLengthMax,
-    FIELD_ZPL_MODE: ZPLModeUtils.get().nameOf(zplMode),
-    FIELD_POWER_UP_ACTION: PowerUpActionUtils.get().nameOf(powerUpAction),
-    FIELD_HEAD_CLOSE_ACTION: HeadCloseActionUtils.get().nameOf(headCloseAction),
-    FIELD_LABEL_TOP: labelTop,
-    FIELD_LEFT_POSITION: leftPosition,
-    FIELD_PRINT_MODE: PrintModeUtils.get().nameOf(printMode),
-    FIELD_REPRINT_MODE: ReprintModeUtils.get().nameOf(reprintMode),
-    FIELD_PRINTER_MODEL_NAME: printerModelName,
-    FIELD_DEVICE_FRIENDLY_NAME: deviceFriendlyName,
-    FIELD_FIRMWARE: firmware,
-    FIELD_LINK_OS_VERSION: linkOSVersion,
-    FIELD_PRINTER_DPI: printerDpi,
-    FIELD_DEVICE_PRINT_HEAD_RESOLUTION: devicePrintHeadResolution,
-  };
+        FIELD_DARKNESS: darkness,
+        FIELD_PRINT_SPEED: printSpeed,
+        FIELD_TEAR_OFF: tearOff,
+        FIELD_MEDIA_TYPE: mediaType?.name,
+        FIELD_PRINT_METHOD: printMethod?.name,
+        FIELD_PRINT_WIDTH: printWidth,
+        FIELD_LABEL_LENGTH: labelLength,
+        FIELD_LABEL_LENGTH_MAX: labelLengthMax,
+        FIELD_ZPL_MODE: zplMode?.name,
+        FIELD_POWER_UP_ACTION: powerUpAction?.name,
+        FIELD_HEAD_CLOSE_ACTION: headCloseAction?.name,
+        FIELD_LABEL_TOP: labelTop,
+        FIELD_LEFT_POSITION: leftPosition,
+        FIELD_PRINT_MODE: printMode?.name,
+        FIELD_REPRINT_MODE: reprintMode?.name,
+        FIELD_PRINTER_MODEL_NAME: printerModelName,
+        FIELD_DEVICE_FRIENDLY_NAME: deviceFriendlyName,
+        FIELD_FIRMWARE: firmware,
+        FIELD_LINK_OS_VERSION: linkOSVersion,
+        FIELD_PRINTER_DPI: printerDpi,
+        FIELD_DEVICE_PRINT_HEAD_RESOLUTION: devicePrintHeadResolution,
+      };
 
-  factory PrinterSettings.fromMap(Map<dynamic, dynamic> map) => map != null
-    ? PrinterSettings(
-      darkness: double.tryParse(map[FIELD_DARKNESS]),
-      printSpeed: double.tryParse(map[FIELD_PRINT_SPEED]),
-      tearOff: int.tryParse(map[FIELD_TEAR_OFF]),
-      mediaType: MediaTypeUtils.get().valueOf(map[FIELD_MEDIA_TYPE]),
-      printMethod: PrintMethodUtils.get().valueOf(map[FIELD_PRINT_METHOD]),
-      printWidth: int.tryParse(map[FIELD_PRINT_WIDTH]),
-      labelLength: int.tryParse(map[FIELD_LABEL_LENGTH]),
-      labelLengthMax: double.tryParse(map[FIELD_LABEL_LENGTH_MAX]),
-      zplMode: ZPLModeUtils.get().valueOf(map[FIELD_ZPL_MODE]),
-      powerUpAction: PowerUpActionUtils.get().valueOf(map[FIELD_POWER_UP_ACTION]),
-      headCloseAction: HeadCloseActionUtils.get().valueOf(map[FIELD_HEAD_CLOSE_ACTION]),
-      labelTop: int.tryParse(map[FIELD_LABEL_TOP]),
-      leftPosition: int.tryParse(map[FIELD_LEFT_POSITION]),
-      printMode: PrintModeUtils.get().valueOf(map[FIELD_PRINT_MODE]),
-      reprintMode: ReprintModeUtils.get().valueOf(map[FIELD_REPRINT_MODE]),
-      printerModelName: map[FIELD_PRINTER_MODEL_NAME],
-      deviceFriendlyName: map[FIELD_DEVICE_FRIENDLY_NAME],
-      firmware: map[FIELD_FIRMWARE],
-      linkOSVersion: map[FIELD_LINK_OS_VERSION],
-      printerDpi: map[FIELD_PRINTER_DPI],
-      devicePrintHeadResolution: map[FIELD_DEVICE_PRINT_HEAD_RESOLUTION],
-    ) : null;
+  factory PrinterSettings.fromMap(Map<dynamic, dynamic> map) => PrinterSettings(
+        darkness: double.tryParse(map[FIELD_DARKNESS]),
+        printSpeed: double.tryParse(map[FIELD_PRINT_SPEED]),
+        tearOff: int.tryParse(map[FIELD_TEAR_OFF]),
+        mediaType: MediaTypeUtils.valueOf(map[FIELD_MEDIA_TYPE]),
+        printMethod: PrintMethodUtils.valueOf(map[FIELD_PRINT_METHOD]),
+        printWidth: int.tryParse(map[FIELD_PRINT_WIDTH]),
+        labelLength: int.tryParse(map[FIELD_LABEL_LENGTH]),
+        labelLengthMax: double.tryParse(map[FIELD_LABEL_LENGTH_MAX]),
+        zplMode: ZPLModeUtils.valueOf(map[FIELD_ZPL_MODE]),
+        powerUpAction: PowerUpActionUtils.valueOf(map[FIELD_POWER_UP_ACTION]),
+        headCloseAction:
+            HeadCloseActionUtils.valueOf(map[FIELD_HEAD_CLOSE_ACTION]),
+        labelTop: int.tryParse(map[FIELD_LABEL_TOP]),
+        leftPosition: int.tryParse(map[FIELD_LEFT_POSITION]),
+        printMode: PrintModeUtils.valueOf(map[FIELD_PRINT_MODE]),
+        reprintMode: ReprintModeUtils.valueOf(map[FIELD_REPRINT_MODE]),
+        printerModelName: map[FIELD_PRINTER_MODEL_NAME],
+        deviceFriendlyName: map[FIELD_DEVICE_FRIENDLY_NAME],
+        firmware: map[FIELD_FIRMWARE],
+        linkOSVersion: map[FIELD_LINK_OS_VERSION],
+        printerDpi: map[FIELD_PRINTER_DPI],
+        devicePrintHeadResolution: map[FIELD_DEVICE_PRINT_HEAD_RESOLUTION],
+      );
 
-  factory PrinterSettings.defaultSettings() =>
-      PrinterSettings(
+  factory PrinterSettings.defaultSettings() => PrinterSettings(
         darkness: 10,
         printSpeed: 6,
         tearOff: 0,
