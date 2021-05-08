@@ -1,6 +1,9 @@
-## 2.0.0  (2021-05-07)
+## 2.0.0+11  (2021-05-08)
 ### Added
-- Support for null safety
+- Support for null safety.
+
+### Changed
+- Example updated with new features
 
 ## 1.0.6+10  (2020-10-12)
 ### Added
