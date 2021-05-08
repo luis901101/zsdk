@@ -1,22 +1,28 @@
 PODS:
+  - file_picker (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - zsdk (0.0.1):
     - Flutter
 
 DEPENDENCIES:
+  - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
   - zsdk (from `.symlinks/plugins/zsdk/ios`)
 
 EXTERNAL SOURCES:
+  file_picker:
+    :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
   zsdk:
     :path: ".symlinks/plugins/zsdk/ios"
 
 SPEC CHECKSUMS:
+  file_picker: 408623be2125b79a4539cf703be3d4b3abe5e245
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
   zsdk: 6c0c0a12487162004dd4e4990bf901207671fa33
 
-PODFILE CHECKSUM: fe0e1ee7f3d1f7d00b11b474b62dd62134535aea
+PODFILE CHECKSUM: 5b37eb38683c496767d591e2eeec4a6125de7816
 
 COCOAPODS: 1.10.1

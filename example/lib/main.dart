@@ -9,8 +9,9 @@ void main() {
   runApp(MaterialApp(home: MyApp(),));
 }
 
-const String btnPrintPdfOverTCPIP = 'btnPrintPdfOverTCPIP';
-const String btnPrintZplOverTCPIP = 'btnPrintZplOverTCPIP';
+const String btnPrintPdfFileOverTCPIP = 'btnPrintPdfFileOverTCPIP';
+const String btnPrintZplFileOverTCPIP = 'btnPrintZplFileOverTCPIP';
+const String btnPrintZplDataOverTCPIP = 'btnPrintZplDataOverTCPIP';
 const String btnCheckPrinterStatus = 'btnCheckPrinterStatus';
 const String btnGetPrinterSettings = 'btnGetPrinterSettings';
 const String btnSetPrinterSettings = 'btnSetPrinterSettings';
@@ -58,6 +59,7 @@ class _MyAppState extends State<MyApp> {
   final addressIpController = TextEditingController(text: "10.0.0.100");
   final addressPortController = TextEditingController();
   final pathController = TextEditingController();
+  final zplDataController = TextEditingController(text: '^XA^FO17,16^GB379,371,8^FS^FT65,255^A0N,135,134^FDTEST^FS^XZ');
   final widthController = TextEditingController();
   final heightController = TextEditingController();
   final dpiController = TextEditingController();
@@ -70,28 +72,28 @@ class _MyAppState extends State<MyApp> {
   final labelLengthMaxController = TextEditingController();
   final labelTopController = TextEditingController();
   final leftPositionController = TextEditingController();
-  Printer.MediaType? selectedMediaType;
-  Printer.PrintMethod? selectedPrintMethod;
-  Printer.ZPLMode? selectedZPLMode;
-  Printer.PowerUpAction? selectedPowerUpAction;
-  Printer.HeadCloseAction? selectedHeadCloseAction;
-  Printer.PrintMode? selectedPrintMode;
-  Printer.ReprintMode? selectedReprintMode;
+  Printer.MediaType selectedMediaType;
+  Printer.PrintMethod selectedPrintMethod;
+  Printer.ZPLMode selectedZPLMode;
+  Printer.PowerUpAction selectedPowerUpAction;
+  Printer.HeadCloseAction selectedHeadCloseAction;
+  Printer.PrintMode selectedPrintMode;
+  Printer.ReprintMode selectedReprintMode;
 
-  Printer.PrinterSettings? settings;
+  Printer.PrinterSettings settings;
 
-  Printer.Orientation? printerOrientation = Printer.Orientation.LANDSCAPE;
-  String? message;
-  String? statusMessage;
-  String? settingsMessage;
-  String? calibrationMessage;
+  Printer.Orientation printerOrientation = Printer.Orientation.LANDSCAPE;
+  String message;
+  String statusMessage;
+  String settingsMessage;
+  String calibrationMessage;
   PrintStatus printStatus = PrintStatus.NONE;
   CheckingStatus checkingStatus = CheckingStatus.NONE;
   SettingsStatus settingsStatus = SettingsStatus.NONE;
   CalibrationStatus calibrationStatus = CalibrationStatus.NONE;
-  String? filePath;
-  String? zplData;
-  late BuildContext context;
+  String filePath;
+  String zplData;
+  BuildContext context;
 
   @override
   void initState() {
@@ -99,7 +101,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   String getName<T>(T value) {
-    String? name;
+    String name;
     if (value is Printer.HeadCloseAction) name = value.name;
     if (value is Printer.MediaType) name = value.name;
     if (value is Printer.PowerUpAction) name = value.name;
@@ -176,16 +178,23 @@ class _MyAppState extends State<MyApp> {
                                           TextStyle(color: Colors.white))),
                                   onPressed: () async {
                                     try {
-                                      FilePickerResult? result = await FilePicker
-                                          .platform
-                                          .pickFiles(type: FileType.any);
-                                      if (result != null) {
-                                        filePath = result.files.single.path;
-                                        if (filePath != null)
-                                          setState(() {
-                                            pathController.text = filePath!;
-                                          });
-                                      }
+                                      // FilePickerResult? result = await FilePicker
+                                      //     .platform
+                                      //     .pickFiles(type: FileType.any);
+                                      // if (result != null) {
+                                      //   filePath = result.files.single.path;
+                                      //   if (filePath != null)
+                                      //     setState(() {
+                                      //       pathController.text = filePath!;
+                                      //     });
+                                      // }
+
+                                      filePath = await FilePicker.getFilePath(type: FileType.any);
+                                      if(filePath != null)
+                                        setState(() {
+                                          pathController.text = filePath;
+                                        });
+
                                     } catch (e) {
                                       showSnackBar(e.toString());
                                     }
@@ -208,16 +217,22 @@ class _MyAppState extends State<MyApp> {
                                           TextStyle(color: Colors.white))),
                                   onPressed: () async {
                                     try {
-                                      FilePickerResult? result = await FilePicker
-                                          .platform
-                                          .pickFiles(type: FileType.any);
-                                      if (result != null) {
-                                        filePath = result.files.single.path;
-                                        if (filePath != null)
-                                          setState(() {
-                                            pathController.text = filePath!;
-                                          });
-                                      }
+                                      // FilePickerResult? result = await FilePicker
+                                      //     .platform
+                                      //     .pickFiles(type: FileType.any);
+                                      // if (result != null) {
+                                      //   filePath = result.files.single.path;
+                                      //   if (filePath != null)
+                                      //     setState(() {
+                                      //       pathController.text = filePath!;
+                                      //     });
+                                      // }
+
+                                      filePath = await FilePicker.getFilePath(type: FileType.any);
+                                      if(filePath != null)
+                                        setState(() {
+                                          pathController.text = filePath;
+                                        });
                                     } catch (e) {
                                       showSnackBar(e.toString());
                                     }
@@ -226,6 +241,27 @@ class _MyAppState extends State<MyApp> {
                               ),
                             ],
                           )
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16,),
+                  Card(
+                    elevation: 4,
+                    margin: EdgeInsets.all(8),
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      child: Column(
+                        children: <Widget>[
+                          Text(
+                            'ZPL data to print',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          TextField(
+                            controller: zplDataController,
+                            decoration: InputDecoration(labelText: "ZPL data"),
+                            maxLines: 5,
+                          ),
                         ],
                       ),
                     ),
@@ -251,9 +287,7 @@ class _MyAppState extends State<MyApp> {
                             decoration: InputDecoration(
                                 labelText: "Printer port (defaults to 9100)"),
                           ),
-                          Divider(
-                            color: Colors.transparent,
-                          ),
+                          SizedBox(height: 16,),
                           Visibility(
                             child: Column(
                               children: <Widget>[
@@ -265,9 +299,7 @@ class _MyAppState extends State<MyApp> {
                                       fontWeight: FontWeight.bold,
                                       color: getCheckStatusColor(checkingStatus)),
                                 ),
-                                Divider(
-                                  color: Colors.transparent,
-                                ),
+                                SizedBox(height: 16,),
                               ],
                             ),
                             visible: checkingStatus != CheckingStatus.NONE,
@@ -312,15 +344,13 @@ class _MyAppState extends State<MyApp> {
                               style: TextStyle(fontSize: 16),
                             ),
                           ),
-                          Divider(
-                            color: Colors.transparent,
-                          ),
+                          SizedBox(height: 16,),
                           RichText(
                             text: TextSpan(
                                 style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .headline6!
+                                        .headline6
                                         .color),
                                 children: [
                                   TextSpan(
@@ -341,7 +371,7 @@ class _MyAppState extends State<MyApp> {
                                 style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .headline6!
+                                        .headline6
                                         .color),
                                 children: [
                                   TextSpan(
@@ -362,7 +392,7 @@ class _MyAppState extends State<MyApp> {
                                 style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .headline6!
+                                        .headline6
                                         .color),
                                 children: [
                                   TextSpan(
@@ -383,7 +413,7 @@ class _MyAppState extends State<MyApp> {
                                 style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .headline6!
+                                        .headline6
                                         .color),
                                 children: [
                                   TextSpan(
@@ -404,7 +434,7 @@ class _MyAppState extends State<MyApp> {
                                 style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .headline6!
+                                        .headline6
                                         .color),
                                 children: [
                                   TextSpan(
@@ -421,7 +451,7 @@ class _MyAppState extends State<MyApp> {
                                 style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .headline6!
+                                        .headline6
                                         .color),
                                 children: [
                                   TextSpan(
@@ -431,7 +461,7 @@ class _MyAppState extends State<MyApp> {
                                       TextStyle(fontWeight: FontWeight.bold)),
                                   TextSpan(
                                       text:
-                                      "${settings?.devicePrintHeadResolution != null ? "${double.tryParse(settings!.devicePrintHeadResolution!)?.truncate()}dpmm" : "Unknown"}"),
+                                      "${settings?.devicePrintHeadResolution != null ? "${double.tryParse(settings?.devicePrintHeadResolution)?.truncate()}dpmm" : "Unknown"}"),
                                 ]),
                           ),
                           TextField(
@@ -552,9 +582,7 @@ class _MyAppState extends State<MyApp> {
                             decoration:
                             InputDecoration(labelText: "Reprint mode"),
                           ),
-                          Divider(
-                            color: Colors.transparent,
-                          ),
+                          SizedBox(height: 16,),
                           Visibility(
                             child: Column(
                               children: <Widget>[
@@ -567,9 +595,7 @@ class _MyAppState extends State<MyApp> {
                                       color:
                                       getSettingsStatusColor(settingsStatus)),
                                 ),
-                                Divider(
-                                  color: Colors.transparent,
-                                ),
+                                SizedBox(height: 16,),
                               ],
                             ),
                             visible: settingsStatus != SettingsStatus.NONE,
@@ -654,9 +680,7 @@ class _MyAppState extends State<MyApp> {
                             'Printer calibration',
                             style: TextStyle(fontSize: 16),
                           ),
-                          Divider(
-                            color: Colors.transparent,
-                          ),
+                          SizedBox(height: 16,),
                           Visibility(
                             child: Column(
                               children: <Widget>[
@@ -669,9 +693,7 @@ class _MyAppState extends State<MyApp> {
                                       color: getCalibrationStatusColor(
                                           calibrationStatus)),
                                 ),
-                                Divider(
-                                  color: Colors.transparent,
-                                ),
+                                SizedBox(height: 16,),
                               ],
                             ),
                             visible: calibrationStatus != CalibrationStatus.NONE,
@@ -757,9 +779,7 @@ class _MyAppState extends State<MyApp> {
                       ),
                     ),
                   ),
-                  Divider(
-                    color: Colors.transparent,
-                  ),
+                  SizedBox(height: 16,),
                   Visibility(
                     child: Column(
                       children: <Widget>[
@@ -771,9 +791,7 @@ class _MyAppState extends State<MyApp> {
                               fontWeight: FontWeight.bold,
                               color: getPrintStatusColor(printStatus)),
                         ),
-                        Divider(
-                          color: Colors.transparent,
-                        ),
+                        SizedBox(height: 16,),
                       ],
                     ),
                     visible: printStatus != PrintStatus.NONE,
@@ -796,7 +814,7 @@ class _MyAppState extends State<MyApp> {
                       Expanded(
                         child: ElevatedButton(
                           child: Text(
-                            "Print zpl".toUpperCase(),
+                            "Print zpl from file".toUpperCase(),
                             textAlign: TextAlign.center,
                           ),
                           style: ButtonStyle(
@@ -806,7 +824,7 @@ class _MyAppState extends State<MyApp> {
                                   TextStyle(color: Colors.white))),
                           onPressed: printStatus == PrintStatus.PRINTING
                               ? null
-                              : () => onClick(btnPrintZplOverTCPIP),
+                              : () => onClick(btnPrintZplFileOverTCPIP),
                         ),
                       ),
                       VerticalDivider(
@@ -815,7 +833,7 @@ class _MyAppState extends State<MyApp> {
                       Expanded(
                         child: ElevatedButton(
                           child: Text(
-                            "Print pdf".toUpperCase(),
+                            "Print pdf from file".toUpperCase(),
                             textAlign: TextAlign.center,
                           ),
                           style: ButtonStyle(
@@ -825,15 +843,26 @@ class _MyAppState extends State<MyApp> {
                                   TextStyle(color: Colors.white))),
                           onPressed: printStatus == PrintStatus.PRINTING
                               ? null
-                              : () => onClick(btnPrintPdfOverTCPIP),
+                              : () => onClick(btnPrintPdfFileOverTCPIP),
                         ),
                       ),
                     ],
                   ),
-                  Divider(
-                    color: Colors.transparent,
-                    height: 100,
+                  ElevatedButton(
+                    child: Text(
+                      "Print zpl data".toUpperCase(),
+                      textAlign: TextAlign.center,
+                    ),
+                    style: ButtonStyle(
+                        backgroundColor:
+                        MaterialStateProperty.all(Colors.blueAccent),
+                        textStyle: MaterialStateProperty.all(
+                            TextStyle(color: Colors.white))),
+                    onPressed: printStatus == PrintStatus.PRINTING
+                        ? null
+                        : () => onClick(btnPrintZplDataOverTCPIP),
                   ),
+                  SizedBox(height: 100,),
                 ],
               ),
             )),
@@ -894,7 +923,7 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void updateSettings(Printer.PrinterSettings? newSettings) {
+  void updateSettings(Printer.PrinterSettings newSettings) {
     settings = newSettings;
 
     darknessController.text = "${settings?.darkness ?? ""}";
@@ -1140,7 +1169,7 @@ class _MyAppState extends State<MyApp> {
           ).then((value) {
             setState(() {
               checkingStatus = CheckingStatus.SUCCESS;
-              Printer.PrinterResponse? printerResponse;
+              Printer.PrinterResponse printerResponse;
               if(value != null)
                 printerResponse =
                     Printer.PrinterResponse.fromMap(value);
@@ -1207,7 +1236,7 @@ class _MyAppState extends State<MyApp> {
             });
           });
           break;
-        case btnPrintPdfOverTCPIP:
+        case btnPrintPdfFileOverTCPIP:
           if (Platform.isIOS) throw Exception("Not implemented for iOS");
           if (!pathController.text.endsWith(".pdf"))
             throw Exception(
@@ -1255,15 +1284,15 @@ class _MyAppState extends State<MyApp> {
             });
           });
           break;
-        case btnPrintZplOverTCPIP:
+        case btnPrintZplFileOverTCPIP:
           if (!pathController.text.endsWith(".zpl"))
             throw Exception(
                 "Make sure you properly write the path or selected a proper zpl file");
-          File zplFile = File(filePath!);
+          File zplFile = File(filePath);
           if (await zplFile.exists()) {
             zplData = await zplFile.readAsString();
           }
-          if (zplData == null || zplData!.isEmpty)
+          if (zplData == null || zplData.isEmpty)
             throw Exception(
                 "Make sure you properly write the path or selected a proper zpl file");
           setState(() {
@@ -1272,7 +1301,55 @@ class _MyAppState extends State<MyApp> {
           });
           widget.zsdk
               .printZplDataOverTCPIP(
-                  data: zplData!,
+                  data: zplData,
+                  address: addressIpController.text,
+                  port: int.tryParse(addressPortController.text),
+                  printerConf: Printer.PrinterConf(
+                    cmWidth: double.tryParse(widthController.text),
+                    cmHeight: double.tryParse(heightController.text),
+                    dpi: double.tryParse(dpiController.text),
+                    orientation: printerOrientation,
+                  ))
+              .then((value) {
+            setState(() {
+              printStatus = PrintStatus.SUCCESS;
+              message = "$value";
+            });
+          }, onError: (error, stacktrace) {
+            try {
+              throw error;
+            } on PlatformException catch (e) {
+              Printer.PrinterResponse printerResponse;
+              try {
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                message =
+                    "${printerResponse.message} ${printerResponse.errorCode} ${printerResponse.statusInfo.status} ${printerResponse.statusInfo.cause}";
+              } catch (e) {
+                print(e);
+                message = "${e.toString()}";
+              }
+            } on MissingPluginException catch (e) {
+              message = "${e.message}";
+            } catch (e) {
+              message = "${e.toString()}";
+            }
+            setState(() {
+              printStatus = PrintStatus.ERROR;
+            });
+          });
+          break;
+        case btnPrintZplDataOverTCPIP:
+          zplData = zplDataController.text;
+          if (zplData == null || zplData.isEmpty)
+            throw Exception(
+                "ZPL data can't be empty");
+          setState(() {
+            message = "Print job started...";
+            printStatus = PrintStatus.PRINTING;
+          });
+          widget.zsdk
+              .printZplDataOverTCPIP(
+                  data: zplData,
                   address: addressIpController.text,
                   port: int.tryParse(addressPortController.text),
                   printerConf: Printer.PrinterConf(
