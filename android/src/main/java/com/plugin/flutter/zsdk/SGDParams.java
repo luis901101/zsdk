@@ -30,6 +30,7 @@ public class SGDParams
     public static final String KEY_LINK_OS_VERSION = "appl.link_os_version";
     public static final String KEY_PRINTER_DPI = "head.resolution.in_dpi";
     public static final String KEY_DEVICE_PRINT_HEAD_RESOLUTION = "device.printhead.resolution";
+    public static final String KEY_BATTERY_LEVEL = "power.percent_full";
 
     /** Actions */
     public static final String KEY_MANUAL_CALIBRATION = "ezpl.manual_calibration";

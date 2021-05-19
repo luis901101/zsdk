@@ -1163,7 +1163,7 @@ class _MyAppState extends State<MyApp> {
             checkingStatus = CheckingStatus.CHECKING;
           });
           widget.zsdk
-              .checkPrinterStatusOverTCPIP(
+              .checkPrinterStatus(
             address: addressIpController.text,
             port: int.tryParse(addressPortController.text),
           ).then((value) {
@@ -1171,8 +1171,7 @@ class _MyAppState extends State<MyApp> {
               checkingStatus = CheckingStatus.SUCCESS;
               Printer.PrinterResponse printerResponse;
               if(value != null)
-                printerResponse =
-                    Printer.PrinterResponse.fromMap(value);
+                printerResponse = value;
               statusMessage = "${printerResponse != null ? printerResponse.toMap() : value}";
             });
           }, onError: (error, stacktrace) {
@@ -1300,7 +1299,7 @@ class _MyAppState extends State<MyApp> {
             printStatus = PrintStatus.PRINTING;
           });
           widget.zsdk
-              .printZplDataOverTCPIP(
+              .printZplData(
                   data: zplData,
                   address: addressIpController.text,
                   port: int.tryParse(addressPortController.text),
@@ -1348,7 +1347,7 @@ class _MyAppState extends State<MyApp> {
             printStatus = PrintStatus.PRINTING;
           });
           widget.zsdk
-              .printZplDataOverTCPIP(
+              .printZplData(
                   data: zplData,
                   address: addressIpController.text,
                   port: int.tryParse(addressPortController.text),

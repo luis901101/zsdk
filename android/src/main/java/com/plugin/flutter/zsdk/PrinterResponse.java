@@ -26,7 +26,7 @@ public class PrinterResponse
         this.message = message;
     }
 
-    Map toMap() {
+    Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("errorCode", errorCode.name());
         map.put("statusInfo", statusInfo.toMap());

@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.2'
+        classpath 'com.android.tools.build:gradle:4.2.1'
     }
 }
 
@@ -35,12 +35,14 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    buildToolsVersion '31.0.0 rc3'
 }
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.2.3'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.2.3'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.2.3'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.2'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.12.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.2'
     implementation 'com.joanzapata.pdfview:android-pdfview:1.0.4@aar'
+    compileOnly fileTree(include: '*.jar', dir: 'devLibs')
 }
