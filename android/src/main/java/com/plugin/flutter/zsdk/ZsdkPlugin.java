@@ -4,8 +4,9 @@ import android.content.Context;
 
 import org.jetbrains.annotations.NotNull;
 
-import androidx.annotation.NonNull;
+import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.util.GeneratedPluginRegister;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -16,14 +17,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 /**
  * ZsdkPlugin
  */
-public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler {
-
-    /**
-     * Plugin registration.
-     */
-    public static void registerWith(Registrar registrar) {
-        new ZsdkPlugin(registrar);
-    }
+public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler, FlutterPlugin {
 
     /**
      * Channel
@@ -66,14 +60,6 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
 
     private ZPrinter printer;
 
-    public ZsdkPlugin(Registrar registrar) {
-        context = registrar.context();
-        channel = new MethodChannel(registrar.messenger(), _METHOD_CHANNEL);
-        discoveryEventChannel = new EventChannel(registrar.messenger(), _EVENT_CHANNEL);
-        channel.setMethodCallHandler(this);
-        discoveryEventChannel.setStreamHandler(this);
-    }
-
     @Override
     public void onMethodCall(MethodCall call, @NotNull Result result) {
         printer = new ZPrinter(
@@ -85,9 +71,11 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
                         call.argument(_cmHeight),
                         call.argument(_dpi),
                         Orientation.getValueOfName(call.argument(_orientation))
-                )
+                ),
+                discoveryEventChannel,
+                eventSink
         );
-        printer.connectToEventChannel(discoveryEventChannel, eventSink);
+
         try {
             switch (call.method) {
                 case _SEARCH_BLUETHOOTH_DEVICES:
@@ -113,7 +101,7 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
                             call.argument(_port)
                     );
                     break;
-                    // ===
+                // ===
                 case _DO_MANUAL_CALIBRATION_OVER_TCP_IP:
                     printer.doManualCalibrationOverTCPIP(
                             call.argument(_address),
@@ -164,6 +152,22 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
     @Override
     public void onCancel(Object o) {
         this.eventSink = null;
+    }
+
+    @Override
+    public void onAttachedToEngine(@org.jetbrains.annotations.NotNull FlutterPluginBinding flutterPluginBinding) {
+        context = flutterPluginBinding.getApplicationContext();
+        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), _METHOD_CHANNEL);
+        discoveryEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), _EVENT_CHANNEL);
+        channel.setMethodCallHandler(this);
+        discoveryEventChannel.setStreamHandler(this);
+    }
+
+    @Override
+    public void onDetachedFromEngine(@org.jetbrains.annotations.NotNull FlutterPluginBinding flutterPluginBinding) {
+        channel = null;
+        discoveryEventChannel = null;
+        context = null;
     }
 
 }

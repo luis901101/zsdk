@@ -32,7 +32,7 @@ class ZSDK {
   static const int DEFAULT_ZPL_TCP_PORT = 9100;
 
   ///In seconds
-  static const int DEFAULT_CONNECTION_TIMEOUT = 10;
+  static const int DEFAULT_CONNECTION_TIMEOUT = 60;
   static const int DEFAULT_SEARCH_TIMEOUT = 60;
 
   /// Channel

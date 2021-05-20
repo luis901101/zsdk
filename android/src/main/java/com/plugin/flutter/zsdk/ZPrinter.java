@@ -2,6 +2,7 @@ package com.plugin.flutter.zsdk;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.zebra.sdk.comm.Connection;
@@ -46,21 +47,18 @@ public class ZPrinter {
     private final int MAX_TIME_OUT_FOR_READ = 5000;
     private final int TIME_TO_WAIT_FOR_MORE_DATA = 0;
 
-    public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf) {
+    public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf, EventChannel discoveryChannel, EventChannel.EventSink sink) {
         this.context = context;
         this.channel = channel;
         this.result = result;
         this.printerConf = printerConf != null ? printerConf : new PrinterConf();
+        this.discoveryEvents = discoveryChannel;
+        this.discoveryEventSink = sink;
     }
 
     private Connection newConnection(String address, Integer tcpPort) throws ConnectionException {
         final String addressString = address + (tcpPort != null ? tcpPort.toString() : "");
         return ConnectionBuilder.build(addressString);
-    }
-
-    public void connectToEventChannel(EventChannel channel, EventChannel.EventSink sink) {
-        this.discoveryEvents = channel;
-        this.discoveryEventSink = sink;
     }
 
     protected void init(Connection connection) {
@@ -79,6 +77,22 @@ public class ZPrinter {
         PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
                 getStatusInfo(printer), "Unknown exception. " + e.toString());
         handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
+    }
+
+    private Connection openConnection(final String address, Integer port) throws ConnectionException {
+        Connection connection = newConnection(address, port);
+        Looper.prepare();
+        connection.open();
+        return connection;
+    }
+
+    private void cleanUpConnection(Connection connection) throws InterruptedException, ConnectionException {
+        // Make sure the data got to the printer before closing the connection
+        Thread.sleep(500);
+        // Close the connection to release resources.
+        connection.close();
+        // Quit Android looper
+        Looper.myLooper().quit();
     }
 
     public void searchForBluetoothDevices(final String macAddress) {
@@ -125,13 +139,16 @@ public class ZPrinter {
         }).start();
     }
 
+    public void bluetoothPairing(final String address) {
+
+    }
+
     public void checkPrinterStatus(final String address, final Integer port) {
         new Thread(() -> {
-            Connection connection;
+
             ZebraPrinter printer = null;
             try {
-                connection = newConnection(address, port);
-                connection.open();
+                Connection connection = this.openConnection(address, port);
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -142,7 +159,7 @@ public class ZPrinter {
                 } catch (Exception e) {
                     throw e;
                 } finally {
-                    connection.close();
+                    this.cleanUpConnection(connection);
                 }
             } catch (ConnectionException e) {
                 onConnectionTimeOut(e);
@@ -154,11 +171,10 @@ public class ZPrinter {
 
     public void doManualCalibrationOverTCPIP(final String address, final Integer port) {
         new Thread(() -> {
-            Connection connection;
+
             ZebraPrinter printer = null;
             try {
-                connection = newConnection(address, port);
-                connection.open();
+                Connection connection = this.openConnection(address, port);
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -170,7 +186,7 @@ public class ZPrinter {
                 } catch (Exception e) {
                     throw e;
                 } finally {
-                    connection.close();
+                    this.cleanUpConnection(connection);
                 }
             } catch (ConnectionException e) {
                 onConnectionTimeOut(e);
@@ -182,11 +198,10 @@ public class ZPrinter {
 
     public void printConfigurationLabelOverTCPIP(final String address, final Integer port) {
         new Thread(() -> {
-            Connection connection;
+
             ZebraPrinter printer = null;
             try {
-                connection = newConnection(address, port);
-                connection.open();
+                Connection connection = this.openConnection(address, port);
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -197,7 +212,7 @@ public class ZPrinter {
                 } catch (Exception e) {
                     throw e;
                 } finally {
-                    connection.close();
+                    this.cleanUpConnection(connection);
                 }
             } catch (ConnectionException e) {
                 onConnectionTimeOut(e);
@@ -209,11 +224,10 @@ public class ZPrinter {
 
     public void getPrinterSettingsOverTCPIP(final String address, final Integer port) {
         new Thread(() -> {
-            Connection connection;
+
             ZebraPrinter printer = null;
             try {
-                connection = newConnection(address, port);
-                connection.open();
+                Connection connection = this.openConnection(address, port);
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -224,7 +238,7 @@ public class ZPrinter {
                 } catch (Exception e) {
                     throw e;
                 } finally {
-                    connection.close();
+                    this.cleanUpConnection(connection);
                 }
             } catch (ConnectionException e) {
                 onConnectionTimeOut(e);
@@ -236,12 +250,11 @@ public class ZPrinter {
 
     public void setPrinterSettingsOverTCPIP(final String address, final Integer port, final PrinterSettings settings) {
         new Thread(() -> {
-            Connection connection;
+
             ZebraPrinter printer = null;
             try {
                 if (settings == null) throw new NullPointerException("Settings can't be null");
-                connection = newConnection(address, port);
-                connection.open();
+                Connection connection = this.openConnection(address, port);
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -253,7 +266,7 @@ public class ZPrinter {
                 } catch (Exception e) {
                     throw e;
                 } finally {
-                    connection.close();
+                    this.cleanUpConnection(connection);
                 }
             } catch (ConnectionException e) {
                 onConnectionTimeOut(e);
@@ -265,14 +278,13 @@ public class ZPrinter {
 
     public void printPdfOverTCPIP(final String filePath, final String address, final Integer port) {
         new Thread(() -> {
-            Connection connection;
+
             ZebraPrinter printer = null;
             try {
                 if (!new File(filePath).exists())
                     throw new FileNotFoundException("The file: " + filePath + "doesn't exist");
 
-                connection = newConnection(address, port);
-                connection.open();
+                Connection connection = this.openConnection(address, port);
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -297,7 +309,7 @@ public class ZPrinter {
                 } catch (Exception e) {
                     throw e;
                 } finally {
-                    connection.close();
+                    this.cleanUpConnection(connection);
                 }
             } catch (ConnectionException e) {
                 onConnectionTimeOut(e);
@@ -328,13 +340,12 @@ public class ZPrinter {
     }
 
     private void doPrintZplData(final InputStream dataStream, final String address, final Integer port) {
-        Connection connection;
+
         ZebraPrinter printer = null;
         try {
             if (dataStream == null) throw new NullPointerException("ZPL data can not be empty");
 
-            connection = newConnection(address, port);
-            connection.open();
+            Connection connection = this.openConnection(address, port);
 
             try {
                 printer = ZebraPrinterFactory.getInstance(connection);
@@ -357,7 +368,7 @@ public class ZPrinter {
             } catch (Exception e) {
                 throw e;
             } finally {
-                connection.close();
+                this.cleanUpConnection(connection);
             }
         } catch (ConnectionException e) {
             onConnectionTimeOut(e);
