@@ -42,7 +42,7 @@ public class ZPrinter {
     protected EventChannel discoveryEvents;
     protected EventChannel.EventSink discoveryEventSink;
     protected Result result;
-    protected final Handler handler = new Handler();
+    protected final Handler handler = new Handler(Looper.getMainLooper());
     protected PrinterConf printerConf;
     private final int MAX_TIME_OUT_FOR_READ = 5000;
     private final int TIME_TO_WAIT_FOR_MORE_DATA = 0;
@@ -68,7 +68,7 @@ public class ZPrinter {
     private void onConnectionTimeOut(ConnectionException e) {
         if (e != null) e.printStackTrace();
         PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
-                new StatusInfo(Status.UNKNOWN, Cause.NO_CONNECTION), "Connection timeout. " + e.toString());
+                new StatusInfo(Status.UNKNOWN, Cause.NO_CONNECTION), "Connection error: " + e.toString());
         handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
     }
 
@@ -81,18 +81,27 @@ public class ZPrinter {
 
     private Connection openConnection(final String address, Integer port) throws ConnectionException {
         Connection connection = newConnection(address, port);
-        Looper.prepare();
+        //Looper.prepare();
         connection.open();
+        //Looper.loop();
         return connection;
     }
 
-    private void cleanUpConnection(Connection connection) throws InterruptedException, ConnectionException {
-        // Make sure the data got to the printer before closing the connection
-        Thread.sleep(500);
-        // Close the connection to release resources.
-        connection.close();
-        // Quit Android looper
-        Looper.myLooper().quit();
+    private void cleanUpConnection(Connection connection) {
+        try {
+            // Make sure the data got to the printer before closing the connection
+            Thread.sleep(500);
+            // Close the connection to release resources.
+            if (connection != null) {
+                connection.close();
+            }
+            // Quit Android looper
+            //Looper.myLooper().quitSafely();
+        } catch (ConnectionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void searchForBluetoothDevices(final String macAddress) {
@@ -104,27 +113,30 @@ public class ZPrinter {
                     if (macAddress != null && macAddress.equalsIgnoreCase(printer.address)) {
                         printers.clear();
                         printers.put(printer.address, printer.getDiscoveryDataMap().get("FRIENDLY_NAME"));
+                        if (discoveryEventSink != null) {
+                            handler.post(() -> discoveryEventSink.success(printers));
+                        }
                         this.discoveryFinished();
                         //TODO: Cancel search, cancel thread
                     } else {
                         printers.put(printer.address, printer.getDiscoveryDataMap().get("FRIENDLY_NAME"));
                         if (discoveryEventSink != null) {
-                            discoveryEventSink.success(printers);
+                            handler.post(() -> discoveryEventSink.success(printers));
                         }
                     }
                 }
 
                 public void discoveryFinished() {
                     if (discoveryEventSink != null) {
-                        discoveryEventSink.endOfStream();
+                        //discoveryEventSink.endOfStream(); // Don't call end of stream as following searches will not be able to emit any new messages
                     }
-                    result.success(printers);
+                    handler.post(() -> result.success(printers));
                     System.out.println("Discovered " + printers.size() + " printers.");
                 }
 
                 public void discoveryError(String message) {
                     if (discoveryEventSink != null) {
-                        discoveryEventSink.error("zebraSdkDiscoveryError", message, null);
+                        handler.post(() -> discoveryEventSink.error("zebraSdkDiscoveryError", message, null));
                     }
 
                     System.out.println("An error occurred during discovery : " + message);
@@ -134,21 +146,20 @@ public class ZPrinter {
                 BluetoothDiscoverer.findPrinters(this.context, discoveryHandler);
                 //TODO: Add Network- and USB-Search
             } catch (ConnectionException e) {
-                e.printStackTrace();
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                System.out.println("An error occurred during discovery : " + e.getMessage());
             }
         }).start();
-    }
-
-    public void bluetoothPairing(final String address) {
-
     }
 
     public void checkPrinterStatus(final String address, final Integer port) {
         new Thread(() -> {
 
             ZebraPrinter printer = null;
+            Connection connection = null;
             try {
-                Connection connection = this.openConnection(address, port);
+                connection = this.openConnection(address, port);
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -158,13 +169,13 @@ public class ZPrinter {
                     handler.post(() -> result.success(response.toMap()));
                 } catch (Exception e) {
                     throw e;
-                } finally {
-                    this.cleanUpConnection(connection);
                 }
             } catch (ConnectionException e) {
                 onConnectionTimeOut(e);
             } catch (Exception e) {
                 onException(e, printer);
+            } finally {
+                this.cleanUpConnection(connection);
             }
         }).start();
     }
@@ -342,10 +353,11 @@ public class ZPrinter {
     private void doPrintZplData(final InputStream dataStream, final String address, final Integer port) {
 
         ZebraPrinter printer = null;
+        Connection connection = null;
         try {
             if (dataStream == null) throw new NullPointerException("ZPL data can not be empty");
 
-            Connection connection = this.openConnection(address, port);
+            connection = this.openConnection(address, port);
 
             try {
                 printer = ZebraPrinterFactory.getInstance(connection);
@@ -367,13 +379,13 @@ public class ZPrinter {
 
             } catch (Exception e) {
                 throw e;
-            } finally {
-                this.cleanUpConnection(connection);
             }
         } catch (ConnectionException e) {
             onConnectionTimeOut(e);
         } catch (Exception e) {
             onException(e, printer);
+        } finally {
+            this.cleanUpConnection(connection);
         }
     }
 

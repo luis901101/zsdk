@@ -1,6 +1,7 @@
 package com.plugin.flutter.zsdk;
 
 import android.content.Context;
+import android.os.Looper;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -141,6 +142,8 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
         } catch (Exception e) {
             e.printStackTrace();
             result.error(ErrorCode.EXCEPTION.name(), e.getMessage(), null);
+        } finally {
+
         }
     }
 

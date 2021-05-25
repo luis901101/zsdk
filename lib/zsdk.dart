@@ -26,7 +26,9 @@ export 'package:zsdk/src/enumerators/reprint_mode.dart';
 export 'package:zsdk/src/enumerators/status.dart';
 export 'package:zsdk/src/status_info.dart';
 export 'package:zsdk/src/enumerators/zpl_mode.dart';
+
 export 'package:zsdk/src/devices/zebra_bluetooth_device.dart';
+export 'package:zsdk/src/devices/zebra_device.dart';
 
 class ZSDK {
   static const int DEFAULT_ZPL_TCP_PORT = 9100;
@@ -74,6 +76,7 @@ class ZSDK {
       _eventChannel.receiveBroadcastStream().map((event) {
         List<ZebraBluetoothDevice?> devices = [];
         event.forEach((key, value) {
+          //TODO: Check device type!
           devices.add(ZebraBluetoothDevice(key, value));
         });
         return devices;

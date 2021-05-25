@@ -1,15 +1,16 @@
-import 'package:zsdk/zsdk.dart';
+import 'package:zsdk/src/devices/zebra_device.dart';
 
-class ZebraBluetoothDevice {
+class ZebraBluetoothDevice extends ZebraDevice {
 
-  final String mac;
-  String friendlyName = "Unknown";
+  String get addressString => "$address";
+  String get statusAddressString => "$address";
 
-  ZebraBluetoothDevice(this.mac, this.friendlyName);
+  ZebraBluetoothDevice(String macAddress, String friendlyName): super(macAddress, friendlyName);
 
-  Future<Map<String, Map<String, String>>> properties() => Future.value({});
+  @override
+  Future<Map<String, Map<String, String>>> properties() {
+    // TODO: implement properties
+    throw UnimplementedError();
+  }
 
-  Future<PrinterResponse> sendZpl({required String data, PrinterConf? printerConfig}) => ZSDK().printZplData(data: data, address: mac, printerConf: printerConfig);
-
-  Future<bool> isOnline() async => (await ZSDK().checkPrinterStatus(address: this.mac)).statusInfo.status == Status.READY_TO_PRINT;
 }
