@@ -1,5 +1,7 @@
 package com.plugin.flutter.zsdk;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,7 +13,6 @@ import com.zebra.sdk.comm.ConnectionException;
 import com.zebra.sdk.graphics.internal.ZebraImageAndroid;
 import com.zebra.sdk.printer.PrinterStatus;
 import com.zebra.sdk.printer.SGD;
-import com.zebra.sdk.printer.ZebraPrinter;
 import com.zebra.sdk.printer.ZebraPrinterFactory;
 import com.zebra.sdk.printer.ZebraPrinterLinkOs;
 import com.zebra.sdk.printer.discovery.BluetoothDiscoverer;
@@ -28,6 +29,7 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
@@ -44,8 +46,8 @@ public class ZPrinter {
     protected Result result;
     protected final Handler handler = new Handler(Looper.getMainLooper());
     protected PrinterConf printerConf;
-    private final int MAX_TIME_OUT_FOR_READ = 5000;
-    private final int TIME_TO_WAIT_FOR_MORE_DATA = 0;
+    private final int MAX_TIME_OUT_FOR_READ = 10000;
+    private final int TIME_TO_WAIT_FOR_MORE_DATA = 1000;
 
     public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf, EventChannel discoveryChannel, EventChannel.EventSink sink) {
         this.context = context;
@@ -72,7 +74,7 @@ public class ZPrinter {
         handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
     }
 
-    private void onException(Exception e, ZebraPrinter printer) {
+    private void onException(Exception e, ZebraPrinterLinkOs printer) {
         if (e != null) e.printStackTrace();
         PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
                 getStatusInfo(printer), "Unknown exception. " + e.toString());
@@ -81,9 +83,9 @@ public class ZPrinter {
 
     private Connection openConnection(final String address, Integer port) throws ConnectionException {
         Connection connection = newConnection(address, port);
-        //Looper.prepare();
+        connection.setMaxTimeoutForRead(MAX_TIME_OUT_FOR_READ);
+        connection.setTimeToWaitForMoreData(TIME_TO_WAIT_FOR_MORE_DATA);
         connection.open();
-        //Looper.loop();
         return connection;
     }
 
@@ -95,8 +97,6 @@ public class ZPrinter {
             if (connection != null) {
                 connection.close();
             }
-            // Quit Android looper
-            //Looper.myLooper().quitSafely();
         } catch (ConnectionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -116,8 +116,8 @@ public class ZPrinter {
                         if (discoveryEventSink != null) {
                             handler.post(() -> discoveryEventSink.success(printers));
                         }
+                        cancelBluetoothDiscovery();
                         this.discoveryFinished();
-                        //TODO: Cancel search, cancel thread
                     } else {
                         printers.put(printer.address, printer.getDiscoveryDataMap().get("FRIENDLY_NAME"));
                         if (discoveryEventSink != null) {
@@ -128,7 +128,11 @@ public class ZPrinter {
 
                 public void discoveryFinished() {
                     if (discoveryEventSink != null) {
-                        //discoveryEventSink.endOfStream(); // Don't call end of stream as following searches will not be able to emit any new messages
+                        handler.post(() -> {
+                            discoveryEventSink.success(printers);
+                            //discoveryEventSink.endOfStream();
+                        });
+
                     }
                     handler.post(() -> result.success(printers));
                     System.out.println("Discovered " + printers.size() + " printers.");
@@ -149,20 +153,43 @@ public class ZPrinter {
                 onConnectionTimeOut(e);
             } catch (Exception e) {
                 System.out.println("An error occurred during discovery : " + e.getMessage());
+            } finally {
+                cancelBluetoothDiscovery();
             }
         }).start();
     }
 
+    public boolean isPrinterPaired(String address) {
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+
+        for (BluetoothDevice device : pairedDevices) {
+            if (device.getAddress().replaceAll("[\\p{P}\\p{S}]", "").equalsIgnoreCase(address)) {
+                handler.post(() -> result.success(true));
+                return true;
+            }
+        }
+        handler.post(() -> result.success(false));
+        return false;
+    }
+
+    public void cancelBluetoothDiscovery() {
+        final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (adapter.isDiscovering()) {
+            adapter.cancelDiscovery();
+        }
+    }
+    
     public void checkPrinterStatus(final String address, final Integer port) {
         new Thread(() -> {
 
-            ZebraPrinter printer = null;
+            ZebraPrinterLinkOs printer = null;
             Connection connection = null;
             try {
                 connection = this.openConnection(address, port);
 
                 try {
-                    printer = ZebraPrinterFactory.getInstance(connection);
+                    printer = ZebraPrinterFactory.getLinkOsPrinter(connection);
 
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Printer status");
@@ -183,12 +210,12 @@ public class ZPrinter {
     public void doManualCalibrationOverTCPIP(final String address, final Integer port) {
         new Thread(() -> {
 
-            ZebraPrinter printer = null;
+            ZebraPrinterLinkOs printer = null;
             try {
                 Connection connection = this.openConnection(address, port);
 
                 try {
-                    printer = ZebraPrinterFactory.getInstance(connection);
+                    printer = ZebraPrinterFactory.getLinkOsPrinter(connection);;
 //                    SGD.DO(SGDParams.KEY_MANUAL_CALIBRATION, null, connection);
                     printer.calibrate();
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
@@ -210,12 +237,12 @@ public class ZPrinter {
     public void printConfigurationLabelOverTCPIP(final String address, final Integer port) {
         new Thread(() -> {
 
-            ZebraPrinter printer = null;
+            ZebraPrinterLinkOs printer = null;
             try {
                 Connection connection = this.openConnection(address, port);
 
                 try {
-                    printer = ZebraPrinterFactory.getInstance(connection);
+                    printer = ZebraPrinterFactory.getLinkOsPrinter(connection);;
                     printer.printConfigurationLabel();
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Printer status");
@@ -236,12 +263,12 @@ public class ZPrinter {
     public void getPrinterSettingsOverTCPIP(final String address, final Integer port) {
         new Thread(() -> {
 
-            ZebraPrinter printer = null;
+            ZebraPrinterLinkOs printer = null;
             try {
                 Connection connection = this.openConnection(address, port);
 
                 try {
-                    printer = ZebraPrinterFactory.getInstance(connection);
+                    printer = ZebraPrinterFactory.getLinkOsPrinter(connection);;
                     PrinterSettings settings = PrinterSettings.get(connection);
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), settings, "Printer status");
@@ -262,13 +289,13 @@ public class ZPrinter {
     public void setPrinterSettingsOverTCPIP(final String address, final Integer port, final PrinterSettings settings) {
         new Thread(() -> {
 
-            ZebraPrinter printer = null;
+            ZebraPrinterLinkOs printer = null;
             try {
                 if (settings == null) throw new NullPointerException("Settings can't be null");
                 Connection connection = this.openConnection(address, port);
 
                 try {
-                    printer = ZebraPrinterFactory.getInstance(connection);
+                    printer = ZebraPrinterFactory.getLinkOsPrinter(connection);;
                     settings.apply(connection);
                     PrinterSettings currentSettings = PrinterSettings.get(connection);
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
@@ -290,7 +317,7 @@ public class ZPrinter {
     public void printPdfOverTCPIP(final String filePath, final String address, final Integer port) {
         new Thread(() -> {
 
-            ZebraPrinter printer = null;
+            ZebraPrinterLinkOs printer = null;
             try {
                 if (!new File(filePath).exists())
                     throw new FileNotFoundException("The file: " + filePath + "doesn't exist");
@@ -298,7 +325,7 @@ public class ZPrinter {
                 Connection connection = this.openConnection(address, port);
 
                 try {
-                    printer = ZebraPrinterFactory.getInstance(connection);
+                    printer = ZebraPrinterFactory.getLinkOsPrinter(connection);;
                     if (isReadyToPrint(printer)) {
                         init(connection);
 
@@ -352,7 +379,7 @@ public class ZPrinter {
 
     private void doPrintZplData(final InputStream dataStream, final String address, final Integer port) {
 
-        ZebraPrinter printer = null;
+        ZebraPrinterLinkOs printer = null;
         Connection connection = null;
         try {
             if (dataStream == null) throw new NullPointerException("ZPL data can not be empty");
@@ -360,7 +387,7 @@ public class ZPrinter {
             connection = this.openConnection(address, port);
 
             try {
-                printer = ZebraPrinterFactory.getInstance(connection);
+                printer = ZebraPrinterFactory.getLinkOsPrinter(connection);;
                 if (isReadyToPrint(printer)) {
                     init(connection);
                     changePrinterLanguage(connection, SGDParams.VALUE_ZPL_LANGUAGE);
@@ -392,7 +419,7 @@ public class ZPrinter {
     /**
      * Sees if the printer is ready to print
      */
-    public boolean isReadyToPrint(ZebraPrinter printer) {
+    public boolean isReadyToPrint(ZebraPrinterLinkOs printer) {
         try {
             return printer.getCurrentStatus().isReadyToPrint;
         } catch (Exception e) {
@@ -404,7 +431,7 @@ public class ZPrinter {
     /**
      * Get printer status and cause in order to know when printer is not ready why is not ready
      */
-    public StatusInfo getStatusInfo(ZebraPrinter printer) {
+    public StatusInfo getStatusInfo(ZebraPrinterLinkOs printer) {
         Status status = Status.UNKNOWN;
         Cause cause = Cause.UNKNOWN;
         try {

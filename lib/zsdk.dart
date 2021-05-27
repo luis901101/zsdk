@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:zsdk/src/devices/zebra_bluetooth_device.dart';
+import 'package:zsdk/src/devices/zebra_device.dart';
 import 'package:zsdk/src/enumerators/cause.dart';
 import 'package:zsdk/src/enumerators/error_code.dart';
 import 'package:zsdk/src/enumerators/orientation.dart';
@@ -11,6 +12,8 @@ import 'package:zsdk/src/printer_response.dart';
 import 'package:zsdk/src/printer_settings.dart';
 import 'package:zsdk/src/status_info.dart';
 
+export 'package:zsdk/src/devices/zebra_bluetooth_device.dart';
+export 'package:zsdk/src/devices/zebra_device.dart';
 export 'package:zsdk/src/enumerators/cause.dart';
 export 'package:zsdk/src/enumerators/error_code.dart';
 export 'package:zsdk/src/enumerators/head_close_action.dart';
@@ -19,16 +22,13 @@ export 'package:zsdk/src/enumerators/orientation.dart';
 export 'package:zsdk/src/enumerators/power_up_action.dart';
 export 'package:zsdk/src/enumerators/print_method.dart';
 export 'package:zsdk/src/enumerators/print_mode.dart';
+export 'package:zsdk/src/enumerators/reprint_mode.dart';
+export 'package:zsdk/src/enumerators/status.dart';
+export 'package:zsdk/src/enumerators/zpl_mode.dart';
 export 'package:zsdk/src/printer_conf.dart';
 export 'package:zsdk/src/printer_response.dart';
 export 'package:zsdk/src/printer_settings.dart';
-export 'package:zsdk/src/enumerators/reprint_mode.dart';
-export 'package:zsdk/src/enumerators/status.dart';
 export 'package:zsdk/src/status_info.dart';
-export 'package:zsdk/src/enumerators/zpl_mode.dart';
-
-export 'package:zsdk/src/devices/zebra_bluetooth_device.dart';
-export 'package:zsdk/src/devices/zebra_device.dart';
 
 class ZSDK {
   static const int DEFAULT_ZPL_TCP_PORT = 9100;
@@ -43,6 +43,7 @@ class ZSDK {
 
   /// Methods
   static const String _SEARCH_BLUETHOOTH_DEVICES = "searchBluetoothDevices";
+  static const String _CANCEL_BLUETOOTH_SEARCH = "cancelBluetoothSearch";
   static const String _PRINT_ZPL_FILE = "printZplFile";
   static const String _PRINT_ZPL_DATA = "printZplData";
   static const String _CHECK_PRINTER_STATUS = "checkPrinterStatus";
@@ -72,9 +73,9 @@ class ZSDK {
   late MethodChannel _channel;
   late EventChannel _eventChannel;
 
-  Stream<List<ZebraBluetoothDevice?>> get discoveryEvents =>
+  Stream<List<ZebraDevice?>> get discoveryEvents =>
       _eventChannel.receiveBroadcastStream().map((event) {
-        List<ZebraBluetoothDevice?> devices = [];
+        List<ZebraDevice?> devices = [];
         event.forEach((key, value) {
           //TODO: Check device type!
           devices.add(ZebraBluetoothDevice(key, value));
@@ -128,6 +129,10 @@ class ZSDK {
     });
 
     return devices;
+  }
+
+  Future cancelBluetoothSearch() async {
+    return _channel.invokeMethod(_CANCEL_BLUETOOTH_SEARCH);
   }
 
   Future<PrinterResponse> checkPrinterStatus(

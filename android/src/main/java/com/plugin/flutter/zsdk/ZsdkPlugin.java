@@ -1,19 +1,18 @@
 package com.plugin.flutter.zsdk;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.os.Looper;
+
+import com.zebra.sdk.printer.discovery.BluetoothDiscoverer;
 
 import org.jetbrains.annotations.NotNull;
 
-import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.embedding.engine.plugins.util.GeneratedPluginRegister;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /**
  * ZsdkPlugin
@@ -29,7 +28,8 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
     /**
      * Methods
      */
-    static final String _SEARCH_BLUETHOOTH_DEVICES = "searchBluetoothDevices";
+    static final String _SEARCH_BLUETOOTH_DEVICES = "searchBluetoothDevices";
+    static final String _CANCEL_BLUETOOTH_SEARCH = "cancelBluetoothSearch";
     static final String _CHECK_PRINTER_STATUS = "checkPrinterStatus";
     static final String _PRINT_ZPL_FILE = "printZplFile";
     static final String _PRINT_ZPL_DATA = "printZplData";
@@ -79,8 +79,11 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
 
         try {
             switch (call.method) {
-                case _SEARCH_BLUETHOOTH_DEVICES:
+                case _SEARCH_BLUETOOTH_DEVICES:
                     printer.searchForBluetoothDevices(call.argument(_macAddress));
+                    break;
+                case _CANCEL_BLUETOOTH_SEARCH:
+                    printer.cancelBluetoothDiscovery();
                     break;
                 case _CHECK_PRINTER_STATUS:
                     printer.checkPrinterStatus(
