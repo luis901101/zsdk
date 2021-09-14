@@ -1,11 +1,15 @@
-## 2.0.0+11  (2021-05-08)
+## 2.0.1+12 (2021-09-14)
+### Changed
+- Android plugin API updated to support v2 Embedding while remaining compatible with apps that don’t use the v2 Android embedding.
+
+## 2.0.0+11 (2021-05-08)
 ### Added
 - Support for null safety.
 
 ### Changed
 - Example updated with new features
 
-## 1.0.6+10  (2020-10-12)
+## 1.0.6+10 (2020-10-12)
 ### Added
 - Support for latest flutter frameworks
 

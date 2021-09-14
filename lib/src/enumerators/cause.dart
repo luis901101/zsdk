@@ -15,7 +15,9 @@ extension CauseUtils on Cause {
   String get name => toString().split('.').last;
 
   static Cause? valueOf(String name) {
-    for (Cause value in Cause.values) if (value.name == name) return value;
+    for (Cause value in Cause.values) {
+      if (value.name == name) return value;
+    }
     return Cause.UNKNOWN;
   }
 }

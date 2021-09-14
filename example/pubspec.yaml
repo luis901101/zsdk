@@ -11,13 +11,14 @@ dependencies:
     sdk: flutter
   file_picker: 1.6.3+2
 #  filesystem_picker: ^2.0.0-nullsafety.0
+  zsdk:
+    path: ../
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^1.0.4
 
-  zsdk:
-    path: ../
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

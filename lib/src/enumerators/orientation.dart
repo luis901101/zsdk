@@ -8,8 +8,9 @@ extension OrientationUtils on Orientation {
   String get name => toString().split('.').last;
 
   static Orientation? valueOf(String name) {
-    for (Orientation value in Orientation.values)
+    for (Orientation value in Orientation.values) {
       if (value.name == name) return value;
+    }
     return Orientation.LANDSCAPE;
   }
 }

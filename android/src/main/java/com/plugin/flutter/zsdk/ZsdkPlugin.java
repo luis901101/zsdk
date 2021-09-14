@@ -1,7 +1,11 @@
 package com.plugin.flutter.zsdk;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -9,10 +13,31 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** ZsdkPlugin */
-public class ZsdkPlugin implements MethodCallHandler {
+public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
 
-  /** Plugin registration. */
-  public static void registerWith(Registrar registrar) { new ZsdkPlugin(registrar);}
+  @Override
+  public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+    init(
+        flutterPluginBinding.getApplicationContext(),
+        flutterPluginBinding.getBinaryMessenger()
+    );
+  }
+
+  @Override
+  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+    if(channel != null) channel.setMethodCallHandler(null);
+  }
+
+  // This static method is only to remain compatible with apps that don’t use the v2 Android embedding.
+  @Deprecated()
+  @SuppressLint("Registrar")
+  public static void registerWith(Registrar registrar)
+  {
+    new ZsdkPlugin().init(
+        registrar.context(),
+        registrar.messenger()
+    );
+  }
 
   /** Channel */
   static final String _METHOD_CHANNEL = "zsdk";
@@ -42,15 +67,18 @@ public class ZsdkPlugin implements MethodCallHandler {
   private MethodChannel channel;
   private Context context;
 
-  public ZsdkPlugin(Registrar registrar)
+  public ZsdkPlugin() {
+  }
+
+  private void init(Context context, BinaryMessenger messenger)
   {
-    context = registrar.context();
-    channel = new MethodChannel(registrar.messenger(), _METHOD_CHANNEL);
+    this.context = context;
+    channel = new MethodChannel(messenger, _METHOD_CHANNEL);
     channel.setMethodCallHandler(this);
   }
 
   @Override
-  public void onMethodCall(MethodCall call, Result result) {
+  public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     try
     {
       ZPrinter printer = new ZPrinter(

@@ -16,9 +16,8 @@ class PrinterResponse {
       StatusInfo? statusInfo,
       this.settings,
       this.message})
-      : this.errorCode = errorCode ?? ErrorCode.UNKNOWN,
-        this.statusInfo =
-            statusInfo ?? StatusInfo(Status.UNKNOWN, Cause.UNKNOWN);
+      : errorCode = errorCode ?? ErrorCode.UNKNOWN,
+        statusInfo = statusInfo ?? StatusInfo(Status.UNKNOWN, Cause.UNKNOWN);
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         'errorCode': errorCode.name,

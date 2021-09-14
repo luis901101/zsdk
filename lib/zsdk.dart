@@ -97,7 +97,7 @@ class ZSDK {
       _channel.invokeMethod(_DO_MANUAL_CALIBRATION_OVER_TCP_IP, {
         _address: address,
         _port: port,
-      }).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+      }).timeout(timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
           onTimeout: () => _onTimeout(timeout: timeout));
 
   Future printConfigurationLabelOverTCPIP(
@@ -105,7 +105,7 @@ class ZSDK {
       _channel.invokeMethod(_PRINT_CONFIGURATION_LABEL_OVER_TCP_IP, {
         _address: address,
         _port: port,
-      }).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+      }).timeout(timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
           onTimeout: () => _onTimeout(timeout: timeout));
 
   Future checkPrinterStatusOverTCPIP(
@@ -113,7 +113,7 @@ class ZSDK {
       _channel.invokeMethod(_CHECK_PRINTER_STATUS_OVER_TCP_IP, {
         _address: address,
         _port: port,
-      }).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+      }).timeout(timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
           onTimeout: () => _onTimeout(timeout: timeout));
 
   Future getPrinterSettingsOverTCPIP(
@@ -121,7 +121,7 @@ class ZSDK {
       _channel.invokeMethod(_GET_PRINTER_SETTINGS_OVER_TCP_IP, {
         _address: address,
         _port: port,
-      }).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+      }).timeout(timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
           onTimeout: () => _onTimeout(timeout: timeout));
 
   Future setPrinterSettingsOverTCPIP(
@@ -136,7 +136,7 @@ class ZSDK {
                 _address: address,
                 _port: port,
               }..addAll(settings.toMap()))
-          .timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+          .timeout(timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
               onTimeout: () => _onTimeout(timeout: timeout));
 
   Future resetPrinterSettingsOverTCPIP(
@@ -190,7 +190,7 @@ class ZSDK {
         _cmHeight: printerConf?.cmHeight,
         _dpi: printerConf?.dpi,
         _orientation: printerConf?.orientation?.name,
-      }).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+      }).timeout(timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
           onTimeout: () => _onTimeout(timeout: timeout));
 
   Future printPdfDataOverTCPIP(
@@ -236,6 +236,6 @@ class ZSDK {
         _cmHeight: printerConf?.cmHeight,
         _dpi: printerConf?.dpi,
         _orientation: printerConf?.orientation?.name,
-      }).timeout(timeout ??= Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+      }).timeout(timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
           onTimeout: () => _onTimeout(timeout: timeout));
 }
