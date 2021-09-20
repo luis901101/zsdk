@@ -250,7 +250,7 @@ class PrinterSettings {
         labelLengthMax: 39,
         zplMode: ZPLMode.ZPL_II,
         powerUpAction: PowerUpAction.NO_MOTION,
-        headCloseAction: HeadCloseAction.NO_MOTION,
+        headCloseAction: HeadCloseAction.CALIBRATE,
         labelTop: 0,
         leftPosition: 0,
         printMode: PrintMode.TEAR_OFF,

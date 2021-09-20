@@ -952,7 +952,7 @@ class _MyAppState extends State<MyApp> {
             calibrationStatus = CalibrationStatus.CALIBRATING;
           });
           widget.zsdk
-              .doManualCalibrationOverTCPIP(
+              .doManualCalibration(
             address: addressIpController.text,
             port: int.tryParse(addressPortController.text),
           )
@@ -991,7 +991,7 @@ class _MyAppState extends State<MyApp> {
             settingsStatus = SettingsStatus.GETTING;
           });
           widget.zsdk
-              .getPrinterSettingsOverTCPIP(
+              .getPrinterSettings(
             address: addressIpController.text,
             port: int.tryParse(addressPortController.text),
           )
@@ -999,7 +999,7 @@ class _MyAppState extends State<MyApp> {
             setState(() {
               settingsStatus = SettingsStatus.SUCCESS;
               settingsMessage = "$value";
-              updateSettings((Printer.PrinterResponse.fromMap(value)).settings);
+              updateSettings(value);
             });
           }, onError: (error, stacktrace) {
             try {
@@ -1031,7 +1031,7 @@ class _MyAppState extends State<MyApp> {
             settingsStatus = SettingsStatus.SETTING;
           });
           widget.zsdk
-              .setPrinterSettingsOverTCPIP(
+              .setPrinterSettings(
                   address: addressIpController.text,
                   port: int.tryParse(addressPortController.text),
                   settings: Printer.PrinterSettings(
@@ -1123,7 +1123,7 @@ class _MyAppState extends State<MyApp> {
             settingsStatus = SettingsStatus.SETTING;
           });
           widget.zsdk
-              .setPrinterSettingsOverTCPIP(
+              .setPrinterSettings(
                   address: addressIpController.text,
                   port: int.tryParse(addressPortController.text),
                   settings: Printer.PrinterSettings.defaultSettings())

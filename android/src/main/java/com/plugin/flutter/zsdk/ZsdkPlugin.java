@@ -1,11 +1,14 @@
 package com.plugin.flutter.zsdk;
 
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.util.Log;
 
-import com.zebra.sdk.printer.discovery.BluetoothDiscoverer;
+import com.zebra.sdk.comm.Connection;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Function;
+import java.util.logging.Logger;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
@@ -33,11 +36,11 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
     static final String _CHECK_PRINTER_STATUS = "checkPrinterStatus";
     static final String _PRINT_ZPL_FILE = "printZplFile";
     static final String _PRINT_ZPL_DATA = "printZplData";
+    static final String _DO_MANUAL_CALIBRATION = "doManualCalibration";
+    static final String _GET_PRINTER_SETTINGS = "getPrinterSettings";
+    static final String _SET_PRINTER_SETTINGS = "setPrinterSettings";
     static final String _PRINT_PDF_FILE_OVER_TCP_IP = "printPdfFileOverTCPIP";
     static final String _PRINT_PDF_DATA_OVER_TCP_IP = "printPdfDataOverTCPIP";
-    static final String _GET_PRINTER_SETTINGS_OVER_TCP_IP = "getPrinterSettingsOverTCPIP";
-    static final String _SET_PRINTER_SETTINGS_OVER_TCP_IP = "setPrinterSettingsOverTCPIP";
-    static final String _DO_MANUAL_CALIBRATION_OVER_TCP_IP = "doManualCalibrationOverTCPIP";
     static final String _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP = "printConfigurationLabelOverTCPIP";
 
     /**
@@ -53,17 +56,23 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
     static final String _orientation = "orientation";
     static final String _dpi = "dpi";
 
+    private static Logger logger = Logger.getLogger(ZsdkDiscoveryHandler.class.getCanonicalName());
 
     private MethodChannel channel;
-    private EventChannel discoveryEventChannel;
-    private EventChannel.EventSink eventSink = null;
+    EventChannel discoveryEventChannel;
+    EventChannel.EventSink eventSink = null;
     private Context context;
 
-    private ZPrinter printer;
+    private Connection conn = null;
+    private Function<Connection, ?> updateConnection = connection -> {
+        this.conn = connection;
+        return connection;
+    };
 
     @Override
     public void onMethodCall(MethodCall call, @NotNull Result result) {
-        printer = new ZPrinter(
+
+        ZPrinter printer = new ZPrinter(
                 context,
                 channel,
                 result,
@@ -74,7 +83,10 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
                         Orientation.getValueOfName(call.argument(_orientation))
                 ),
                 discoveryEventChannel,
-                eventSink
+                eventSink,
+                conn,
+                updateConnection,
+                this
         );
 
         try {
@@ -105,30 +117,32 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
                             call.argument(_port)
                     );
                     break;
-                // ===
-                case _DO_MANUAL_CALIBRATION_OVER_TCP_IP:
-                    printer.doManualCalibrationOverTCPIP(
+                case _DO_MANUAL_CALIBRATION:
+                    printer.doManualCalibration(
                             call.argument(_address),
                             call.argument(_port)
                     );
                     break;
+                case _GET_PRINTER_SETTINGS:
+                    printer.getPrinterSettings(
+                            call.argument(_address),
+                            call.argument(_port)
+                    );
+                    break;
+                case _SET_PRINTER_SETTINGS:
+                    printer.setPrinterSettings(
+                            call.argument(_address),
+                            call.argument(_port),
+                            new PrinterSettings(call.arguments())
+                    );
+                    break;
+
+                // ===
+
                 case _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP:
                     printer.printConfigurationLabelOverTCPIP(
                             call.argument(_address),
                             call.argument(_port)
-                    );
-                    break;
-                case _GET_PRINTER_SETTINGS_OVER_TCP_IP:
-                    printer.getPrinterSettingsOverTCPIP(
-                            call.argument(_address),
-                            call.argument(_port)
-                    );
-                    break;
-                case _SET_PRINTER_SETTINGS_OVER_TCP_IP:
-                    printer.setPrinterSettingsOverTCPIP(
-                            call.argument(_address),
-                            call.argument(_port),
-                            new PrinterSettings(call.arguments())
                     );
                     break;
                 case _PRINT_PDF_FILE_OVER_TCP_IP:
@@ -142,17 +156,17 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
                 default:
                     result.notImplemented();
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             result.error(ErrorCode.EXCEPTION.name(), e.getMessage(), null);
-        } finally {
-
         }
     }
 
     @Override
     public void onListen(Object o, EventChannel.EventSink eventSink) {
         this.eventSink = eventSink;
+
     }
 
     @Override
@@ -161,7 +175,7 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
     }
 
     @Override
-    public void onAttachedToEngine(@org.jetbrains.annotations.NotNull FlutterPluginBinding flutterPluginBinding) {
+    public void onAttachedToEngine(FlutterPluginBinding flutterPluginBinding) {
         context = flutterPluginBinding.getApplicationContext();
         channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), _METHOD_CHANNEL);
         discoveryEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), _EVENT_CHANNEL);
@@ -170,10 +184,19 @@ public class ZsdkPlugin implements MethodCallHandler, EventChannel.StreamHandler
     }
 
     @Override
-    public void onDetachedFromEngine(@org.jetbrains.annotations.NotNull FlutterPluginBinding flutterPluginBinding) {
+    public void onDetachedFromEngine(FlutterPluginBinding flutterPluginBinding) {
         channel = null;
         discoveryEventChannel = null;
         context = null;
+
+        try {
+            if (conn != null) {
+                conn.close();
+                conn = null;
+            }
+        } catch (Exception e) {
+            Log.e("ZSDK", e.getLocalizedMessage(), e);
+        }
     }
 
 }
