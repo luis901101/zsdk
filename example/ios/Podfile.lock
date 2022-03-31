@@ -2,7 +2,7 @@ PODS:
   - file_picker (0.0.1):
     - Flutter
   - Flutter (1.0.0)
-  - zsdk (0.0.1):
+  - zsdk (0.0.2):
     - Flutter
 
 DEPENDENCIES:
@@ -20,9 +20,9 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   file_picker: 408623be2125b79a4539cf703be3d4b3abe5e245
-  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
-  zsdk: 6c0c0a12487162004dd4e4990bf901207671fa33
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  zsdk: bc7357b6397172579eb98e95dfdfd2d53f9f98ee
 
-PODFILE CHECKSUM: 5b37eb38683c496767d591e2eeec4a6125de7816
+PODFILE CHECKSUM: fe0e1ee7f3d1f7d00b11b474b62dd62134535aea
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.11.3
