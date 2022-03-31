@@ -16,18 +16,18 @@ This is a flutter plugin for the Link-OS Multiplatform SDK for [Zebra](https://w
 
 **Currently this plugin only supports TCP/IP connection to the Printer.** 
 
-### IMPORTANT NOTES FOR iOS
-- Make sure the zsdk plugin is added as a static library
-- Make sure to comment `use_frameworks!` in your Podfile project:
+### iOS Setup
 ```yaml
 target 'Runner' do
-#  use_frameworks!
+  use_frameworks!
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 ```
 
+### Android Setup
+No setup required
 
 ## How to use
 
