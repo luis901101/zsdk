@@ -1308,7 +1308,7 @@ class _MyAppState extends State<MyApp> {
           });
           break;
         case btnPrintZplFileOverTCPIP:
-          if (filePath != null && !pathController.text.endsWith(".zpl")) {
+          if (filePath == null && !pathController.text.endsWith(".zpl")) {
             throw Exception(
                 "Make sure you properly write the path or selected a proper zpl file");
           }
