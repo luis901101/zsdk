@@ -194,3 +194,5 @@ zsdk.printPdfFileOverTCPIP(
 ### Tested Zebra Devices
 - Zebra ZT411 
 - Zebra ZD500 Series
+- ZD620
+- ZQ620
