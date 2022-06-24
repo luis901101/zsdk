@@ -192,4 +192,5 @@ zsdk.printPdfFileOverTCPIP(
 *Check the example code for more details*
 
 ### Tested Zebra Devices
-Zebra ZT411 
+- Zebra ZT411 
+- Zebra ZD500 Series
