@@ -352,7 +352,7 @@ class _MyAppState extends State<MyApp> {
                             style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .headline6
+                                    .titleLarge
                                     ?.color),
                             children: [
                               const TextSpan(
@@ -373,7 +373,7 @@ class _MyAppState extends State<MyApp> {
                             style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .headline6
+                                    .titleLarge
                                     ?.color),
                             children: [
                               const TextSpan(
@@ -394,7 +394,7 @@ class _MyAppState extends State<MyApp> {
                             style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .headline6
+                                    .titleLarge
                                     ?.color),
                             children: [
                               const TextSpan(
@@ -413,7 +413,7 @@ class _MyAppState extends State<MyApp> {
                             style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .headline6
+                                    .titleLarge
                                     ?.color),
                             children: [
                               const TextSpan(
@@ -433,7 +433,7 @@ class _MyAppState extends State<MyApp> {
                             style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .headline6
+                                    .titleLarge
                                     ?.color),
                             children: [
                               const TextSpan(
@@ -448,7 +448,7 @@ class _MyAppState extends State<MyApp> {
                             style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .headline6
+                                    .titleLarge
                                     ?.color),
                             children: [
                               const TextSpan(

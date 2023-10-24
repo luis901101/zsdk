@@ -1,3 +1,21 @@
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+Types of changes
+- `Added` for new features.
+- `Changed` for changes in existing functionality.
+- `Deprecated` for soon-to-be removed features.
+- `Removed` for now removed features.
+- `Fixed` for any bug fixes.
+- `Security` in case of vulnerabilities.
+
+## 3.0.0+1 (2023-10-24)
+### Added
+- Added support of namespace property to support Android Gradle Plugin (AGP) 8. Projects with AGP < 4.2 should be compatible as well but it is highly recommended to update at least to AGP 7.0 or newer.
+
+### Changed
+- Example project updated to work with AGP 8
+
 ## 2.0.2+13 (2022-03-31)
 ## Changed
 - Static iOS ZSDK lib included as Pod. It fixes [this issue](https://github.com/luis901101/zsdk/issues/1)  
