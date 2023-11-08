@@ -15,12 +15,10 @@ import com.zebra.sdk.printer.ZebraPrinterFactory;
 import com.zebra.sdk.printer.ZebraPrinterLinkOs;
 import com.zebra.sdk.util.internal.FileUtilities;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -31,6 +29,7 @@ import io.flutter.plugin.common.MethodChannel.Result;
 
 /**
  * Created by luis901101 on 2019-12-18.
+ * @noinspection unused
  */
 public class ZPrinter
 {
@@ -61,14 +60,14 @@ public class ZPrinter
     private void onConnectionTimeOut(ConnectionException e){
         if(e != null) e.printStackTrace();
         PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
-                new StatusInfo(Status.UNKNOWN, Cause.NO_CONNECTION), "Connection timeout. "+e.toString());
+                new StatusInfo(Status.UNKNOWN, Cause.NO_CONNECTION), "Connection timeout. "+e);
         handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
     }
 
     private void onException(Exception e, ZebraPrinter printer){
         if(e != null) e.printStackTrace();
         PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
-                getStatusInfo(printer), "Unknown exception. "+e.toString());
+                getStatusInfo(printer), "Unknown exception. "+e);
         handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
     }
 
@@ -90,11 +89,7 @@ public class ZPrinter
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Printer status");
                     handler.post(() -> result.success(response.toMap()));
-                }
-                catch(Exception e) {
-                    throw e;
-                }
-                finally {
+                } finally {
                     connection.close();
                 }
             }
@@ -126,11 +121,7 @@ public class ZPrinter
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Printer status");
                     handler.post(() -> result.success(response.toMap()));
-                }
-                catch(Exception e) {
-                    throw e;
-                }
-                finally {
+                } finally {
                     connection.close();
                 }
             }
@@ -162,11 +153,7 @@ public class ZPrinter
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Printer status");
                     handler.post(() -> result.success(response.toMap()));
-                }
-                catch(Exception e) {
-                    throw e;
-                }
-                finally {
+                } finally {
                     connection.close();
                 }
             }
@@ -198,9 +185,6 @@ public class ZPrinter
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), settings, "Printer status");
                     handler.post(() -> result.success(response.toMap()));
-                }
-                catch(Exception e) {
-                    throw e;
                 } finally {
                     connection.close();
                 }
@@ -236,8 +220,6 @@ public class ZPrinter
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), currentSettings, "Printer status");
                     handler.post(() -> result.success(response.toMap()));
-                }catch(Exception e) {
-                    throw e;
                 } finally {
                     connection.close();
                 }
@@ -253,7 +235,24 @@ public class ZPrinter
         }).start();
     }
 
-    public void printPdfOverTCPIP(final String filePath, final String address, final Integer port) {
+    /** @noinspection IOStreamConstructor*/
+    public void printPdfFileOverTCPIP(final String filePath, final String address, final Integer port) {
+        new Thread(() -> {
+            try
+            {
+                if(!new File(filePath).exists()) throw new FileNotFoundException("The file: "+ filePath +"doesn't exist");
+
+                doPrintDataStreamOverTCPIP(new FileInputStream(filePath), address, port, false);
+            }
+            catch(Exception e)
+            {
+                onException(e, null);
+            }
+        }).start();
+    }
+
+    /** This function needs more tests as it relies on converting the PDF to image. */
+    public void printPdfAsImageOverTCPIP(final String filePath, final String address, final Integer port) {
         new Thread(() -> {
             Connection connection;
             ZebraPrinter printer = null;
@@ -285,8 +284,6 @@ public class ZPrinter
                                 response.message, response.toMap()));
                     }
 
-                }catch(Exception e) {
-                    throw e;
                 } finally {
                     connection.close();
                 }
@@ -302,12 +299,14 @@ public class ZPrinter
         }).start();
     }
 
+    /** @noinspection IOStreamConstructor*/
     public void printZplFileOverTCPIP(final String filePath, final String address, final Integer port) {
         new Thread(() -> {
             try
             {
                 if(!new File(filePath).exists()) throw new FileNotFoundException("The file: "+ filePath +"doesn't exist");
-                doPrintZplDataOverTCPIP(new FileInputStream(filePath), address, port);
+
+                doPrintDataStreamOverTCPIP(new FileInputStream(filePath), address, port, true);
             }
             catch(Exception e)
             {
@@ -316,19 +315,20 @@ public class ZPrinter
         }).start();
     }
 
+    /** @noinspection CharsetObjectCanBeUsed*/
     public void printZplDataOverTCPIP(final String data, final String address, final Integer port) {
         if(data == null || data.isEmpty()) throw new NullPointerException("ZPL data can not be empty");
-        new Thread(() -> doPrintZplDataOverTCPIP(
-            new ByteArrayInputStream(data.getBytes(Charset.forName("UTF-8"))), address, port))
+        new Thread(() -> doPrintDataStreamOverTCPIP(
+            new ByteArrayInputStream(data.getBytes(Charset.forName("UTF-8"))), address, port, true))
             .start();
     }
 
-    private void doPrintZplDataOverTCPIP(final InputStream dataStream, final String address, final Integer port) {
+    private void doPrintDataStreamOverTCPIP(final InputStream dataStream, final String address, final Integer port, boolean isZPL) {
         Connection connection;
         ZebraPrinter printer = null;
         try
         {
-            if(dataStream == null) throw new NullPointerException("ZPL data can not be empty");
+            if(dataStream == null) throw new NullPointerException("Data stream can not be empty");
             int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
             connection = newConnection(address, tcpPort);
@@ -338,10 +338,14 @@ public class ZPrinter
                 printer = ZebraPrinterFactory.getInstance(connection);
                 if (isReadyToPrint(printer)) {
                     init(connection);
-                    changePrinterLanguage(connection, SGDParams.VALUE_ZPL_LANGUAGE);
+                    if(isZPL) {
+                        changePrinterLanguage(connection, SGDParams.VALUE_ZPL_LANGUAGE);
+                    } else {
+                        enablePDFDirect(connection, true);
+                    }
 //                    connection.write(data.getBytes()); //This would be to send zpl as a string, this fails if the string is too big
 //                    printer.sendFileContents(filePath); //This would be to send zpl as a file path
-                    FileUtilities.sendFileContentsInChunks(connection, dataStream);
+                    FileUtilities.sendFileContentsInChunks(connection, dataStream); //This is the recommended way.
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), "Successful print");
                     handler.post(() -> result.success(response.toMap()));
@@ -352,8 +356,6 @@ public class ZPrinter
                             response.message, response.toMap()));
                 }
 
-            }catch(Exception e) {
-                throw e;
             } finally {
                 connection.close();
             }
@@ -416,6 +418,13 @@ public class ZPrinter
             SGD.SET(SGDParams.KEY_PRINTER_LANGUAGES, language, connection);
     }
 
+    public void enablePDFDirect(Connection connection, boolean enable) throws ConnectionException {
+        if(connection == null) return;
+        if(!connection.isConnected()) connection.open();
+
+        VirtualDeviceUtils.changeVirtualDevice(connection, enable ? SGDParams.VALUE_PDF : SGDParams.VALUE_NONE);
+    }
+
     public void printAllValues(Connection connection) throws Exception {
         Log.e("allSettingsValues", SGD.GET(SGDParams.VALUE_GET_ALL, connection));
     }
@@ -425,7 +434,7 @@ public class ZPrinter
         if(!connection.isConnected()) connection.open();
         ZebraPrinterLinkOs printerLinkOs = ZebraPrinterFactory.getLinkOsPrinter(connection);
         Map<String, String> allSettings = printerLinkOs.getAllSettingValues();
-        for(Object key : allSettings.keySet())
+        for(String key : allSettings.keySet())
             Log.e("paramSetting", key+"--->"+allSettings.get(key));
     }
 
@@ -439,19 +448,33 @@ public class ZPrinter
             String printerModel = SGD.GET("device.host_identification",connection).substring(0,5);
             double scaleFactor;
 
-            if (printerModel.equals("iMZ22")||printerModel.equals("QLn22")||printerModel.equals("ZD410")) {
-                scaleFactor = 2.0/fileWidth*100;
-            } else if (printerModel.equals("iMZ32")||printerModel.equals("QLn32")||printerModel.equals("ZQ510")) {
-                scaleFactor = 3.0/fileWidth*100;
-            } else if (printerModel.equals("QLn42")||printerModel.equals("ZQ520")||
-                    printerModel.equals("ZD420")||printerModel.equals("ZD500")||
-                    printerModel.equals("ZT220")||printerModel.equals("ZT230")||
-                    printerModel.equals("ZT410")) {
-                scaleFactor = 4.0/fileWidth*100;
-            } else if (printerModel.equals("ZT420")) {
-                scaleFactor = 6.5/fileWidth*100;
-            } else {
-                scaleFactor = 100;
+            switch(printerModel)
+            {
+                case "iMZ22":
+                case "QLn22":
+                case "ZD410":
+                    scaleFactor = 2.0 / fileWidth * 100;
+                    break;
+                case "iMZ32":
+                case "QLn32":
+                case "ZQ510":
+                    scaleFactor = 3.0 / fileWidth * 100;
+                    break;
+                case "QLn42":
+                case "ZQ520":
+                case "ZD420":
+                case "ZD500":
+                case "ZT220":
+                case "ZT230":
+                case "ZT410":
+                    scaleFactor = 4.0 / fileWidth * 100;
+                    break;
+                case "ZT420":
+                    scaleFactor = 6.5 / fileWidth * 100;
+                    break;
+                default:
+                    scaleFactor = 100;
+                    break;
             }
 
             scale = "dither scale=" + (int) scaleFactor + "x" + (int) scaleFactor;

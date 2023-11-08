@@ -198,6 +198,8 @@ NSString* _dpi = @"dpi";
             [printer getPrinterSettingsOverTCPIP:arguments[_address] port:arguments[_port]];
         else if ([_SET_PRINTER_SETTINGS_OVER_TCP_IP isEqualToString:call.method])
             [printer setPrinterSettingsOverTCPIP:arguments[_address] port:arguments[_port] settings:[[PrinterSettings alloc] initWithArguments:arguments]];
+        else if ([_PRINT_PDF_FILE_OVER_TCP_IP isEqualToString:call.method])
+           [printer printPdfFileOverTCPIP:arguments[_filePath] address:arguments[_address] port:arguments[_port]];
         else if ([_PRINT_ZPL_FILE_OVER_TCP_IP isEqualToString:call.method])
            [printer printZplFileOverTCPIP:arguments[_filePath] address:arguments[_address] port:arguments[_port]];
         else if ([_PRINT_ZPL_DATA_OVER_TCP_IP isEqualToString:call.method])

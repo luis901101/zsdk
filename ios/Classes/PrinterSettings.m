@@ -8,6 +8,7 @@
 #import "PrinterSettings.h"
 #import "SGDParams.h"
 #import "SGD.h"
+#import "VirtualDeviceUtils.h"
 
 @implementation PrinterSettings
 
@@ -27,6 +28,7 @@ const NSString *FIELD_LABEL_TOP = @"labelTop";
 const NSString *FIELD_LEFT_POSITION = @"leftPosition";
 const NSString *FIELD_PRINT_MODE = @"printMode";
 const NSString *FIELD_REPRINT_MODE = @"reprintMode";
+const NSString *FIELD_VIRTUAL_DEVICE = @"virtualDevice";
 const NSString *FIELD_PRINTER_MODEL_NAME = @"printerModelName";
 const NSString *FIELD_DEVICE_FRIENDLY_NAME = @"deviceFriendlyName";
 const NSString *FIELD_FIRMWARE = @"firmware";
@@ -52,6 +54,7 @@ const NSString *FIELD_DEVICE_PRINT_HEAD_RESOLUTION = @"devicePrintHeadResolution
         self.leftPosition = arguments[FIELD_LEFT_POSITION];
         self.printMode = arguments[FIELD_PRINT_MODE];
         self.reprintMode = arguments[FIELD_REPRINT_MODE];
+        self.virtualDevice = arguments[FIELD_VIRTUAL_DEVICE];
         self.printerModelName = arguments[FIELD_PRINTER_MODEL_NAME];
         self.deviceFriendlyName = arguments[FIELD_DEVICE_FRIENDLY_NAME];
         self.firmware = arguments[FIELD_FIRMWARE];
@@ -95,6 +98,9 @@ const NSString *FIELD_DEVICE_PRINT_HEAD_RESOLUTION = @"devicePrintHeadResolution
             if(![ObjectUtils isNull:_leftPosition]) [SGD SET:SGDParams.KEY_LEFT_POSITION withValue:_leftPosition andWithPrinterConnection:connection error:&error];
             if(![ObjectUtils isNull:_printMode]) [SGD SET:SGDParams.KEY_PRINT_MODE withValue:_printMode andWithPrinterConnection:connection error:&error];
             if(![ObjectUtils isNull:_reprintMode]) [SGD SET:SGDParams.KEY_REPRINT_MODE withValue:_reprintMode andWithPrinterConnection:connection error:&error];
+            if(![ObjectUtils isNull:_virtualDevice]) {
+                [VirtualDeviceUtils changeVirtualDevice:connection virtualDevice:_virtualDevice];
+            }
         }
         @catch(NSException *e) {
     //            Do nothing
@@ -120,6 +126,7 @@ const NSString *FIELD_DEVICE_PRINT_HEAD_RESOLUTION = @"devicePrintHeadResolution
         _leftPosition,
         _printMode,
         _reprintMode,
+        _virtualDevice,
         _printerModelName,
         _deviceFriendlyName,
         _firmware,
@@ -143,6 +150,7 @@ const NSString *FIELD_DEVICE_PRINT_HEAD_RESOLUTION = @"devicePrintHeadResolution
         FIELD_LEFT_POSITION,
         FIELD_PRINT_MODE,
         FIELD_REPRINT_MODE,
+        FIELD_VIRTUAL_DEVICE,
         FIELD_PRINTER_MODEL_NAME,
         FIELD_DEVICE_FRIENDLY_NAME,
         FIELD_FIRMWARE,
@@ -185,6 +193,7 @@ const NSString *FIELD_DEVICE_PRINT_HEAD_RESOLUTION = @"devicePrintHeadResolution
             settings.leftPosition = [SGD GET:SGDParams.KEY_LEFT_POSITION withPrinterConnection:connection error:&error];
             settings.printMode = [SGD GET:SGDParams.KEY_PRINT_MODE withPrinterConnection:connection error:&error];
             settings.reprintMode = [SGD GET:SGDParams.KEY_REPRINT_MODE withPrinterConnection:connection error:&error];
+            settings.virtualDevice = [SGD GET:SGDParams.KEY_VIRTUAL_DEVICE withPrinterConnection:connection error:&error];
             
             return settings;
         }

@@ -125,7 +125,7 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
           );
           break;
         case _PRINT_PDF_FILE_OVER_TCP_IP:
-          printer.printPdfOverTCPIP(
+          printer.printPdfFileOverTCPIP(
               call.argument(_filePath),
               call.argument(_address),
               call.argument(_port)

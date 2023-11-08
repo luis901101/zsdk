@@ -21,6 +21,7 @@ export 'package:zsdk/src/printer_conf.dart';
 export 'package:zsdk/src/printer_response.dart';
 export 'package:zsdk/src/printer_settings.dart';
 export 'package:zsdk/src/enumerators/reprint_mode.dart';
+export 'package:zsdk/src/enumerators/virtual_device.dart';
 export 'package:zsdk/src/enumerators/status.dart';
 export 'package:zsdk/src/status_info.dart';
 export 'package:zsdk/src/enumerators/zpl_mode.dart';

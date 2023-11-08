@@ -4,15 +4,18 @@
 This is a flutter plugin for the Link-OS Multiplatform SDK for [Zebra](https://www.zebra.com/ap/en/support-downloads/printer-software/link-os-multiplatform-sdk.html)
 
 ### Features
-- Print ZPL from String
-- Print ZPL from file
-- Print PDF from file (only Android)
-- Printer calibration
-- Get printer settings
-- Set printer settings
-- Reset printer settings to default
-- Check printer status
-- Print configuration label
+| Feature                   | iOS                     | Android                 |
+|---------------------------|-------------------------|-------------------------|
+| Print ZPL from String     | :white_check_mark:      | :white_check_mark:      |
+| Print ZPL from file       | :white_check_mark:      | :white_check_mark:      |
+| Print PDF from byte array | :ballot_box_with_check: | :ballot_box_with_check: |
+| Print PDF from file       | :white_check_mark:      | :white_check_mark:      |
+| Get printer settings      | :white_check_mark:      | :white_check_mark:      |
+| Set printer settings      | :white_check_mark:      | :white_check_mark:      |
+| Check printer status      | :white_check_mark:      | :white_check_mark:      |
+| Print configuration label | :white_check_mark:      | :white_check_mark:      |
+| Run calibration           | :white_check_mark:      | :white_check_mark:      |
+
 
 **Currently this plugin only supports TCP/IP connection to the Printer.** 
 
@@ -169,7 +172,7 @@ zsdk.printZplDataOverTCPIP(
  }
 ```
 
-### Print pdf file (only Android)
+### Print pdf file
 ```dart
 zsdk.printPdfFileOverTCPIP(
   filePath: '/path/to/file.pdf',

@@ -41,11 +41,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** Actions */
 + (NSString*)KEY_MANUAL_CALIBRATION;
++ (NSString*)KEY_VIRTUAL_DEVICE;
 
 /** Values */
 + (NSString*)VALUE_ZPL_LANGUAGE;
 + (double)VALUE_DPI_DEFAULT;
 + (NSString*)VALUE_GET_ALL;
++ (NSString*)VALUE_PDF;
++ (NSString*)VALUE_NONE;
 
 @end
 

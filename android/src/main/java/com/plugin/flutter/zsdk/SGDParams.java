@@ -33,9 +33,12 @@ public class SGDParams
 
     /** Actions */
     public static final String KEY_MANUAL_CALIBRATION = "ezpl.manual_calibration";
+    public static final String KEY_VIRTUAL_DEVICE = "apl.enable";
 
     /** Values */
     public static final String VALUE_ZPL_LANGUAGE = "hybrid_xml_zpl";
     public static final double VALUE_DPI_DEFAULT = 203;
     public static final String VALUE_GET_ALL = "allcv";
+    public static final String VALUE_PDF = "pdf";
+    public static final String VALUE_NONE = "none";
 }

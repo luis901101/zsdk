@@ -27,6 +27,7 @@ public class PrinterSettings
     public static final String FIELD_LEFT_POSITION = "leftPosition";
     public static final String FIELD_PRINT_MODE = "printMode";
     public static final String FIELD_REPRINT_MODE = "reprintMode";
+    public static final String FIELD_VIRTUAL_DEVICE = "virtualDevice";
     public static final String FIELD_PRINTER_MODEL_NAME = "printerModelName";
     public static final String FIELD_DEVICE_FRIENDLY_NAME = "deviceFriendlyName";
     public static final String FIELD_FIRMWARE = "firmware";
@@ -50,6 +51,7 @@ public class PrinterSettings
     private String leftPosition;
     private String printMode;
     private String reprintMode;
+    private String virtualDevice;
 
     /** Read only settings */
     private final String printerModelName;
@@ -89,6 +91,7 @@ public class PrinterSettings
         leftPosition = getValue(arguments.get(FIELD_LEFT_POSITION));
         printMode = getValue(arguments.get(FIELD_PRINT_MODE));
         reprintMode = getValue(arguments.get(FIELD_REPRINT_MODE));
+        virtualDevice = getValue(arguments.get(FIELD_VIRTUAL_DEVICE));
     }
 
     public PrinterSettings(String printerModelName, String deviceFriendlyName, String firmware,
@@ -121,6 +124,9 @@ public class PrinterSettings
                 if(leftPosition != null && !leftPosition.isEmpty()) SGD.SET(SGDParams.KEY_LEFT_POSITION, leftPosition, connection);
                 if(printMode != null && !printMode.isEmpty()) SGD.SET(SGDParams.KEY_PRINT_MODE, printMode, connection);
                 if(reprintMode != null && !reprintMode.isEmpty()) SGD.SET(SGDParams.KEY_REPRINT_MODE, reprintMode, connection);
+                if(virtualDevice != null && !virtualDevice.isEmpty()) {
+                    VirtualDeviceUtils.changeVirtualDevice(connection, virtualDevice);
+                }
             }
             catch(Exception e) {
                 e.printStackTrace();
@@ -145,6 +151,7 @@ public class PrinterSettings
         map.put(FIELD_LEFT_POSITION, leftPosition);
         map.put(FIELD_PRINT_MODE, printMode);
         map.put(FIELD_REPRINT_MODE, reprintMode);
+        map.put(FIELD_VIRTUAL_DEVICE, virtualDevice);
         map.put(FIELD_PRINTER_MODEL_NAME, printerModelName);
         map.put(FIELD_DEVICE_FRIENDLY_NAME, deviceFriendlyName);
         map.put(FIELD_FIRMWARE, firmware);
@@ -183,6 +190,7 @@ public class PrinterSettings
                 settings.leftPosition = SGD.GET(SGDParams.KEY_LEFT_POSITION, connection);
                 settings.printMode = SGD.GET(SGDParams.KEY_PRINT_MODE, connection);
                 settings.reprintMode = SGD.GET(SGDParams.KEY_REPRINT_MODE, connection);
+                settings.virtualDevice = SGD.GET(SGDParams.KEY_VIRTUAL_DEVICE, connection);
             }
             catch(Exception e) {
                 e.printStackTrace();

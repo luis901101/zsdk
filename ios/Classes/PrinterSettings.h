@@ -29,6 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property NSString *leftPosition;
 @property NSString *printMode;
 @property NSString *reprintMode;
+@property NSString *virtualDevice;
 
 /** Read only settings */
 @property NSString *printerModelName;

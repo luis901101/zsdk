@@ -39,10 +39,13 @@
 
 /** Actions */
 + (NSString*)KEY_MANUAL_CALIBRATION {return @"ezpl.manual_calibration";}
++ (NSString*)KEY_VIRTUAL_DEVICE {return @"apl.enable";}
 
 /** Values */
 + (NSString*)VALUE_ZPL_LANGUAGE {return @"hybrid_xml_zpl";}
 + (double)VALUE_DPI_DEFAULT {return 203;}
 + (NSString*)VALUE_GET_ALL {return @"allcv";}
++ (NSString*)VALUE_PDF {return @"pdf";}
++ (NSString*)VALUE_NONE {return @"none";}
 
 @end

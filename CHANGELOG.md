@@ -9,6 +9,12 @@ Types of changes
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+## 3.1.0+1 (2023-11-08)
+### Added
+- Added support for PDF Direct printing on printers using Link-OS v6.3 or later.
+- Added Virtual Device settings to allow the user to change the Virtual Device configuration.
+- Example project updated.
+
 ## 3.0.0+1 (2023-10-24)
 ### Added
 - Added support of namespace property to support Android Gradle Plugin (AGP) 8. Projects with AGP < 4.2 should be compatible as well but it is highly recommended to update at least to AGP 7.0 or newer.

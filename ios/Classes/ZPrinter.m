@@ -14,6 +14,8 @@
 #import "SGD.h"
 #import "ToolsUtil.h"
 #import "PrinterSettings.h"
+#import "VirtualDeviceUtils.h"
+#import "api/FileUtil.h"
 
 @implementation ZPrinter
 const int DEFAULT_ZPL_TCP_PORT = 9100;
@@ -63,8 +65,8 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             NSError *error = nil;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
-//                id<ToolsUtil,NSObject> toolsUtils = [printer getToolsUtil];
-//                [toolsUtils calibrate:&error];
+                //                id<ToolsUtil,NSObject> toolsUtils = [printer getToolsUtil];
+                //                [toolsUtils calibrate:&error];
                 [SGD DO:SGDParams.KEY_MANUAL_CALIBRATION withValue:nil andWithPrinterConnection:connection error:&error];
                 
                 if (![ObjectUtils isNull:error])
@@ -212,25 +214,23 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
     });
 }
 
+- (void)printPdfFileOverTCPIP:(NSString *)filePath address:(NSString *)address port:(NSNumber*)port {
+    [self doPrintOverTCPIP:nil filePath:filePath address:address port:port isZPL:false];
+}
+
 - (void)printZplFileOverTCPIP:(NSString *)filePath address:(NSString *)address port:(NSNumber*)port {
-    //check if file exist.
-    //Extract data from file
-    //call printZplDataOverTCPIP passing the extracted data from file
-    self.result(FlutterMethodNotImplemented);
+    [self doPrintOverTCPIP:nil filePath:filePath address:address port:port isZPL:true];
 }
 
 - (void)printZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(NSNumber*)port {
-    [self doPrintZplDataOverTCPIP:data address:address port:port];
+    [self doPrintOverTCPIP:data filePath:nil address:address port:port isZPL:true];
 }
 
-- (void) doPrintZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(NSNumber*)port; {
+- (void) doPrintOverTCPIP:(nullable NSString *)data filePath:(nullable NSString *)filePath address:(NSString *)address port:(NSNumber*)port isZPL:(Boolean)isZPL; {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         id<ZebraPrinter,NSObject> printer;
         id<ZebraPrinterConnection,NSObject> connection;
         @try {
-            if([ObjectUtils isNull:data])
-                @throw [NSException exceptionWithName:@"Printer Error" reason:@"ZPL data can not be empty" userInfo:nil];
-
             int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
             
             connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
@@ -240,9 +240,19 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
                 if ([self isReadyToPrint:printer]) {
                     [self initValues:connection];
-                    [self changePrinterLanguage:connection language:SGDParams.VALUE_ZPL_LANGUAGE];
                     
-                    [connection write:[data dataUsingEncoding:NSUTF8StringEncoding] error:&error];
+                    if(isZPL) {
+                        [self changePrinterLanguage:connection language:SGDParams.VALUE_ZPL_LANGUAGE];
+                    } else {
+                        [self enablePDFDirect:connection enabled:true];
+                    }
+                    
+                    if(![ObjectUtils isNull:data]) {
+                        [connection write:[data dataUsingEncoding:NSUTF8StringEncoding] error:&error];
+                    } else if(![ObjectUtils isNull:filePath]) {
+                        id<FileUtil,NSObject> fileUtil = [printer getFileUtil];
+                        [fileUtil sendFileContents:filePath error:&error];
+                    }
                     
                     if (![ObjectUtils isNull:error])
                         @throw [NSException exceptionWithName:@"Printer error" reason:[error description] userInfo:nil];
@@ -267,6 +277,13 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             [self onException:printer exception:e];
         }
     });
+}
+
+- (void) enablePDFDirect:(id<ZebraPrinterConnection,NSObject>)connection enabled:(Boolean)enabled; {
+    if(connection == nil) return;
+    if(![connection open]) return [self onConnectionTimeOut];
+    
+    [VirtualDeviceUtils changeVirtualDevice:connection virtualDevice: enabled ? SGDParams.VALUE_PDF : SGDParams.VALUE_NONE];
 }
 
 - (bool)isReadyToPrint:(id<ZebraPrinter,NSObject>)printer{

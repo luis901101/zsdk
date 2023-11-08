@@ -60,7 +60,7 @@ enum CalibrationStatus {
 }
 
 class _MyAppState extends State<MyApp> {
-  final addressIpController = TextEditingController(text: "10.0.0.100");
+  final addressIpController = TextEditingController(text: "10.0.0.11");
   final addressPortController = TextEditingController();
   final pathController = TextEditingController();
   final zplDataController = TextEditingController(
@@ -84,6 +84,7 @@ class _MyAppState extends State<MyApp> {
   Printer.HeadCloseAction? selectedHeadCloseAction;
   Printer.PrintMode? selectedPrintMode;
   Printer.ReprintMode? selectedReprintMode;
+  Printer.VirtualDevice? selectedVirtualDevice;
 
   Printer.PrinterSettings? settings;
 
@@ -112,6 +113,7 @@ class _MyAppState extends State<MyApp> {
     if (value is Printer.PrintMethod) name = value.name;
     if (value is Printer.PrintMode) name = value.name;
     if (value is Printer.ReprintMode) name = value.name;
+    if (value is Printer.VirtualDevice) name = value.name;
     if (value is Printer.ZPLMode) name = value.name;
     return name;
   }
@@ -587,6 +589,15 @@ class _MyAppState extends State<MyApp> {
                         decoration:
                             const InputDecoration(labelText: "Reprint mode"),
                       ),
+                      DropdownButtonFormField<Printer.VirtualDevice>(
+                        items:
+                            generateDropdownItems(Printer.VirtualDevice.values),
+                        value: selectedVirtualDevice,
+                        onChanged: (value) =>
+                            setState(() => selectedVirtualDevice = value),
+                        decoration:
+                            const InputDecoration(labelText: "Virtual device"),
+                      ),
                       const SizedBox(
                         height: 16,
                       ),
@@ -961,6 +972,7 @@ class _MyAppState extends State<MyApp> {
     selectedHeadCloseAction = settings?.headCloseAction;
     selectedPrintMode = settings?.printMode;
     selectedReprintMode = settings?.reprintMode;
+    selectedVirtualDevice = settings?.virtualDevice;
   }
 
   onClick(String id) async {
@@ -1071,6 +1083,7 @@ class _MyAppState extends State<MyApp> {
                     leftPosition: int.tryParse(leftPositionController.text),
                     printMode: selectedPrintMode,
                     reprintMode: selectedReprintMode,
+                    virtualDevice: selectedVirtualDevice,
                   )
 //            settings: Printer.PrinterSettings(
 //              darkness: 10, //10
@@ -1088,6 +1101,7 @@ class _MyAppState extends State<MyApp> {
 //              leftPosition: 0,//0
 //              printMode: Printer.PrintMode.TEAR_OFF,//TEAR_OFF
 //              reprintMode: Printer.ReprintMode.OFF,//OFF
+//              virtualDevice: selectedVirtualDevice,
 //            )
 //            settings: Printer.PrinterSettings(
 //              darkness: 30, //10
@@ -1105,6 +1119,7 @@ class _MyAppState extends State<MyApp> {
 //              leftPosition: 100,//0
 //              printMode: Printer.PrintMode.CUTTER,//TEAR_OFF
 //              reprintMode: Printer.ReprintMode.ON,//OFF
+//              virtualDevice: selectedVirtualDevice,
 //            )
                   )
               .then((value) {
@@ -1259,7 +1274,6 @@ class _MyAppState extends State<MyApp> {
           });
           break;
         case btnPrintPdfFileOverTCPIP:
-          if (Platform.isIOS) throw Exception("Not implemented for iOS");
           if (!pathController.text.endsWith(".pdf")) {
             throw Exception(
                 "Make sure you properly write the path or selected a proper pdf file");

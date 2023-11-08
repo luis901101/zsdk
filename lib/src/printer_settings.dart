@@ -6,6 +6,8 @@ import 'package:zsdk/src/enumerators/print_mode.dart';
 import 'package:zsdk/src/enumerators/reprint_mode.dart';
 import 'package:zsdk/src/enumerators/zpl_mode.dart';
 
+import 'enumerators/virtual_device.dart';
+
 /// Created by luis901101 on 2020-02-10.
 class PrinterSettings {
   /// Fields name
@@ -24,6 +26,7 @@ class PrinterSettings {
   static const String FIELD_LEFT_POSITION = "leftPosition";
   static const String FIELD_PRINT_MODE = "printMode";
   static const String FIELD_REPRINT_MODE = "reprintMode";
+  static const String FIELD_VIRTUAL_DEVICE = "virtualDevice";
   static const String FIELD_PRINTER_MODEL_NAME = "printerModelName";
   static const String FIELD_DEVICE_FRIENDLY_NAME = "deviceFriendlyName";
   static const String FIELD_FIRMWARE = "firmware";
@@ -146,6 +149,20 @@ class PrinterSettings {
   /// • "off"
   ReprintMode? reprintMode;
 
+  /// Indicates the Virtual Device in use.
+  /// Values
+  /// • "none"
+  /// • "apl-d"
+  /// • "apl-i"
+  /// • "apl-e"
+  /// • "apl-l"
+  /// • "apl-m"
+  /// • "apl-mi"
+  /// • "apl-o"
+  /// • "apl-t"
+  /// • "pdf"
+  VirtualDevice? virtualDevice;
+
   // Read only settings
   /// Shows the manufacturer and model name
   final String? printerModelName;
@@ -182,6 +199,7 @@ class PrinterSettings {
     this.leftPosition,
     this.printMode,
     this.reprintMode,
+    this.virtualDevice,
     this.printerModelName,
     this.deviceFriendlyName,
     this.firmware,
@@ -206,6 +224,7 @@ class PrinterSettings {
         FIELD_LEFT_POSITION: leftPosition,
         FIELD_PRINT_MODE: printMode?.name,
         FIELD_REPRINT_MODE: reprintMode?.name,
+        FIELD_VIRTUAL_DEVICE: virtualDevice?.name,
         FIELD_PRINTER_MODEL_NAME: printerModelName,
         FIELD_DEVICE_FRIENDLY_NAME: deviceFriendlyName,
         FIELD_FIRMWARE: firmware,
@@ -231,6 +250,7 @@ class PrinterSettings {
         leftPosition: int.tryParse(map[FIELD_LEFT_POSITION]),
         printMode: PrintModeUtils.valueOf(map[FIELD_PRINT_MODE]),
         reprintMode: ReprintModeUtils.valueOf(map[FIELD_REPRINT_MODE]),
+        virtualDevice: VirtualDevice.valueOf(map[FIELD_VIRTUAL_DEVICE]),
         printerModelName: map[FIELD_PRINTER_MODEL_NAME],
         deviceFriendlyName: map[FIELD_DEVICE_FRIENDLY_NAME],
         firmware: map[FIELD_FIRMWARE],
@@ -255,5 +275,6 @@ class PrinterSettings {
         leftPosition: 0,
         printMode: PrintMode.TEAR_OFF,
         reprintMode: ReprintMode.OFF,
+        virtualDevice: VirtualDevice.none,
       );
 }
