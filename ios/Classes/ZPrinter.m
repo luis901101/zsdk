@@ -15,6 +15,7 @@
 #import "ToolsUtil.h"
 #import "PrinterSettings.h"
 #import "VirtualDeviceUtils.h"
+#import "PrinterUtils.h"
 #import "api/FileUtil.h"
 
 @implementation ZPrinter
@@ -52,7 +53,7 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
     self.result([response toMap]);
 }
 
-- (void)onException:(id<ZebraPrinter,NSObject>)printer exception:(NSException *)exception {
+- (void)onException:(nullable id<ZebraPrinter,NSObject>)printer exception:(NSException *)exception {
     NSLog(@"%@", exception.reason);
     StatusInfo *statusInfo = [self getStatusInfo:printer];
     PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:[NSString stringWithFormat:@"%@ %@ %@", @"Unknown exception.", exception.name, exception.reason]];
@@ -203,6 +204,10 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
             @try {
                 printer = [ZebraPrinterFactory getInstance:connection error:&error];
                 [settings apply:connection];
+                if(![connection isConnected]) {
+                    [self onPrinterRebooted:@"New settings required Printer to reboot"];
+                    return;
+                }
                 PrinterSettings *settings = [PrinterSettings get:connection];
                 StatusInfo *statusInfo = [self getStatusInfo:printer];
                 PrinterResponse *response = [[PrinterResponse alloc] initWithSettings:SUCCESS statusInfo:statusInfo settings:settings message:@"Printer status"];
@@ -313,28 +318,30 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
     return false;
 }
 
-- (StatusInfo *)getStatusInfo:(id<ZebraPrinter,NSObject>)printer{
+- (StatusInfo *)getStatusInfo:(nullable id<ZebraPrinter,NSObject>)printer{
     Status status = UNKNOWN_STATUS;
     Cause cause = UNKNOWN_CAUSE;
-    @try {
-        NSError *error = nil;
-        PrinterStatus *printerStatus = [printer getCurrentStatus:&error];
-        if (![ObjectUtils isNull:error])
-            @throw [NSException exceptionWithName:@"Printer Error" reason:[error description] userInfo:nil];
-        
-        if([printerStatus isPaused]) status = PAUSED;
-        if([printerStatus isReadyToPrint]) status = READY_TO_PRINT;
+    if(printer != nil) {
+        @try {
+            NSError *error = nil;
+            PrinterStatus *printerStatus = [printer getCurrentStatus:&error];
+            if (![ObjectUtils isNull:error])
+                @throw [NSException exceptionWithName:@"Printer Error" reason:[error description] userInfo:nil];
+            
+            if([printerStatus isPaused]) status = PAUSED;
+            if([printerStatus isReadyToPrint]) status = READY_TO_PRINT;
 
-        if([printerStatus isPartialFormatInProgress]) cause = PARTIAL_FORMAT_IN_PROGRESS;
-        if([printerStatus isHeadCold]) cause = HEAD_COLD;
-        if([printerStatus isHeadOpen]) cause = HEAD_OPEN;
-        if([printerStatus isHeadTooHot]) cause = HEAD_TOO_HOT;
-        if([printerStatus isPaperOut]) cause = PAPER_OUT;
-        if([printerStatus isRibbonOut]) cause = RIBBON_OUT;
-        if([printerStatus isReceiveBufferFull]) cause = RECEIVE_BUFFER_FULL;
+            if([printerStatus isPartialFormatInProgress]) cause = PARTIAL_FORMAT_IN_PROGRESS;
+            if([printerStatus isHeadCold]) cause = HEAD_COLD;
+            if([printerStatus isHeadOpen]) cause = HEAD_OPEN;
+            if([printerStatus isHeadTooHot]) cause = HEAD_TOO_HOT;
+            if([printerStatus isPaperOut]) cause = PAPER_OUT;
+            if([printerStatus isRibbonOut]) cause = RIBBON_OUT;
+            if([printerStatus isReceiveBufferFull]) cause = RECEIVE_BUFFER_FULL;
 
-    } @catch (NSException *e) {
-        NSLog(@"%@", e.reason);
+        } @catch (NSException *e) {
+            NSLog(@"%@", e.reason);
+        }
     }
     return [[StatusInfo alloc] init:status cause:cause];
 }
@@ -354,6 +361,30 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
         if (error != nil)
             @throw [NSException exceptionWithName:@"Printer Error" reason:[error description] userInfo:nil];
     }
+}
+
+- (void) rebootPrinter:(NSString *)address port:(NSNumber*) port {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
+            
+            connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
+            if(![connection open]) return [self onConnectionTimeOut];
+            
+            if([PrinterUtils reboot:connection]) {
+                [self onPrinterRebooted:@"Printer successfully rebooted"];
+            } else {
+                StatusInfo *statusInfo = [[StatusInfo alloc] init:UNKNOWN_STATUS cause:UNKNOWN_CAUSE];
+                PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer could not be rebooted."];
+                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+            }
+        } @catch (NSException *e) {
+            [self onException:nil exception:e];
+        } @finally {
+            if(connection != nil) [connection close];
+        }
+    });
 }
 
 @end

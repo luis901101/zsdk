@@ -35,6 +35,7 @@ NSString* _GET_PRINTER_SETTINGS_OVER_TCP_IP = @"getPrinterSettingsOverTCPIP";
 NSString* _SET_PRINTER_SETTINGS_OVER_TCP_IP = @"setPrinterSettingsOverTCPIP";
 NSString* _DO_MANUAL_CALIBRATION_OVER_TCP_IP = @"doManualCalibrationOverTCPIP";
 NSString* _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP = @"printConfigurationLabelOverTCPIP";
+NSString* _REBOOT_PRINTER_OVER_TCP_IP = @"rebootPrinterOverTCPIP";
 
 /* Properties */
 NSString* _filePath = @"filePath";
@@ -204,6 +205,8 @@ NSString* _dpi = @"dpi";
            [printer printZplFileOverTCPIP:arguments[_filePath] address:arguments[_address] port:arguments[_port]];
         else if ([_PRINT_ZPL_DATA_OVER_TCP_IP isEqualToString:call.method])
             [printer printZplDataOverTCPIP:arguments[_data] address:arguments[_address] port:arguments[_port]];
+        else if ([_REBOOT_PRINTER_OVER_TCP_IP isEqualToString:call.method])
+            [printer rebootPrinter:arguments[_address] port:arguments[_port]];
         else result(FlutterMethodNotImplemented);
     } @catch (NSException *e) {
         StatusInfo *statusInfo = [[StatusInfo alloc] init:UNKNOWN_STATUS cause:UNKNOWN_CAUSE];

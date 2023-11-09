@@ -52,6 +52,7 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
   static final String _SET_PRINTER_SETTINGS_OVER_TCP_IP = "setPrinterSettingsOverTCPIP";
   static final String _DO_MANUAL_CALIBRATION_OVER_TCP_IP = "doManualCalibrationOverTCPIP";
   static final String _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP = "printConfigurationLabelOverTCPIP";
+  static final String _REBOOT_PRINTER_OVER_TCP_IP = "rebootPrinterOverTCPIP";
 
   /** Properties */
   static final String _filePath = "filePath";
@@ -141,6 +142,12 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
         case _PRINT_ZPL_DATA_OVER_TCP_IP:
           printer.printZplDataOverTCPIP(
               call.argument(_data),
+              call.argument(_address),
+              call.argument(_port)
+          );
+          break;
+        case _REBOOT_PRINTER_OVER_TCP_IP:
+          printer.rebootPrinter(
               call.argument(_address),
               call.argument(_port)
           );

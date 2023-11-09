@@ -227,6 +227,10 @@ public class ZPrinter
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
                     settings.apply(connection);
+                    if(!connection.isConnected()) {
+                        onPrinterRebooted("New settings required Printer to reboot");
+                        return;
+                    }
                     PrinterSettings currentSettings = PrinterSettings.get(connection);
                     PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
                             getStatusInfo(printer), currentSettings, "Printer status");
@@ -399,22 +403,24 @@ public class ZPrinter
     public StatusInfo getStatusInfo(ZebraPrinter printer) {
         Status status = Status.UNKNOWN;
         Cause cause = Cause.UNKNOWN;
-        try {
-            PrinterStatus printerStatus = printer.getCurrentStatus();
+        if(printer != null) {
+            try {
+                PrinterStatus printerStatus = printer.getCurrentStatus();
 
-            if(printerStatus.isPaused) status = Status.PAUSED;
-            if(printerStatus.isReadyToPrint) status = Status.READY_TO_PRINT;
+                if(printerStatus.isPaused) status = Status.PAUSED;
+                if(printerStatus.isReadyToPrint) status = Status.READY_TO_PRINT;
 
-            if(printerStatus.isPartialFormatInProgress) cause = Cause.PARTIAL_FORMAT_IN_PROGRESS;
-            if(printerStatus.isHeadCold) cause = Cause.HEAD_COLD;
-            if(printerStatus.isHeadOpen) cause = Cause.HEAD_OPEN;
-            if(printerStatus.isHeadTooHot) cause = Cause.HEAD_TOO_HOT;
-            if(printerStatus.isPaperOut) cause = Cause.PAPER_OUT;
-            if(printerStatus.isRibbonOut) cause = Cause.RIBBON_OUT;
-            if(printerStatus.isReceiveBufferFull) cause = Cause.RECEIVE_BUFFER_FULL;
+                if(printerStatus.isPartialFormatInProgress) cause = Cause.PARTIAL_FORMAT_IN_PROGRESS;
+                if(printerStatus.isHeadCold) cause = Cause.HEAD_COLD;
+                if(printerStatus.isHeadOpen) cause = Cause.HEAD_OPEN;
+                if(printerStatus.isHeadTooHot) cause = Cause.HEAD_TOO_HOT;
+                if(printerStatus.isPaperOut) cause = Cause.PAPER_OUT;
+                if(printerStatus.isRibbonOut) cause = Cause.RIBBON_OUT;
+                if(printerStatus.isReceiveBufferFull) cause = Cause.RECEIVE_BUFFER_FULL;
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return new StatusInfo(status, cause);
     }
@@ -436,7 +442,7 @@ public class ZPrinter
     /**
      * Returns true if the PDF Direct feature was not enabled and requires to be enabled which means the Printer is going to be rebooted, false otherwise.
      * */
-    public boolean enablePDFDirect(Connection connection, boolean enable) throws ConnectionException {
+    public boolean enablePDFDirect(Connection connection, boolean enable) throws Exception {
         if(connection == null) return false;
         if(!connection.isConnected()) connection.open();
 
@@ -454,6 +460,28 @@ public class ZPrinter
         Map<String, String> allSettings = printerLinkOs.getAllSettingValues();
         for(String key : allSettings.keySet())
             Log.e("paramSetting", key+"--->"+allSettings.get(key));
+    }
+
+    public void rebootPrinter(final String address, final Integer port) {
+        new Thread(() -> {
+            try {
+                int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
+                if(PrinterUtils.reboot(newConnection(address, tcpPort))) {
+                    onPrinterRebooted("Printer successfully rebooted");
+                } else {
+                    PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
+                            new StatusInfo(Status.UNKNOWN, Cause.UNKNOWN), "Printer could not be rebooted.");
+                    handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
+                }
+            }
+            catch(ConnectionException e) {
+                onConnectionTimeOut(e);
+            }
+            catch(Exception e)
+            {
+                onException(e, null);
+            }
+        }).start();
     }
 
     /** Takes the size of the pdf and the printer's maximum size and scales the file down */

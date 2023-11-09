@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (id) initWithMethodChannel:(FlutterMethodChannel *)channel result:(FlutterResult)result printerConf:(PrinterConf *)printerConf;
 - (void) initValues:(id<ZebraPrinterConnection, NSObject>)connection;
 - (void) onConnectionTimeOut;
-- (void) onException:(id<ZebraPrinter,NSObject>)printer exception:(NSException*)exception;
+- (void) onException:(nullable id<ZebraPrinter,NSObject>)printer exception:(NSException*)exception;
 - (void) doManualCalibrationOverTCPIP:(NSString *)address port:(NSNumber*)port;
 - (void) printConfigurationLabelOverTCPIP:(NSString *)address port:(NSNumber*)port;
 - (void) checkPrinterStatusOverTCPIP:(NSString *)address port:(NSNumber*)port;
@@ -35,8 +35,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void) printZplDataOverTCPIP:(NSString *)data address:(NSString *)address port:(NSNumber*)port;
 - (void) doPrintOverTCPIP:(nullable NSString *)data filePath:(nullable NSString *)filePath address:(NSString *)address port:(NSNumber*)port isZPL:(Boolean)isZPL;
 - (bool) isReadyToPrint:(id<ZebraPrinter, NSObject>)printer;
-- (StatusInfo *) getStatusInfo:(id<ZebraPrinter, NSObject>)printer;
+- (StatusInfo *) getStatusInfo:(nullable id<ZebraPrinter, NSObject>)printer;
 - (void) changePrinterLanguage:(id<ZebraPrinterConnection, NSObject>)connection language:(NSString *)language;
+- (void) rebootPrinter:(NSString *)address port:(NSNumber *)port;
 @end
 
 NS_ASSUME_NONNULL_END

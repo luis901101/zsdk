@@ -50,6 +50,7 @@ class ZSDK {
       "doManualCalibrationOverTCPIP";
   static const String _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP =
       "printConfigurationLabelOverTCPIP";
+  static const String _REBOOT_PRINTER_OVER_TCP_IP = "rebootPrinterOverTCPIP";
 
   /// Properties
   static const String _filePath = "filePath";
@@ -105,6 +106,15 @@ class ZSDK {
   Future printConfigurationLabelOverTCPIP(
           {required String address, int? port, Duration? timeout}) =>
       _channel.invokeMethod(_PRINT_CONFIGURATION_LABEL_OVER_TCP_IP, {
+        _address: address,
+        _port: port,
+      }).timeout(
+          timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+          onTimeout: () => _onTimeout(timeout: timeout));
+
+  Future rebootPrinterOverTCPIP(
+          {required String address, int? port, Duration? timeout}) =>
+      _channel.invokeMethod(_REBOOT_PRINTER_OVER_TCP_IP, {
         _address: address,
         _port: port,
       }).timeout(

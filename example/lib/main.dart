@@ -20,6 +20,7 @@ const String btnSetPrinterSettings = 'btnSetPrinterSettings';
 const String btnResetPrinterSettings = 'btnResetPrinterSettings';
 const String btnDoManualCalibration = 'btnDoManualCalibration';
 const String btnPrintConfigurationLabel = 'btnPrintConfigurationLabel';
+const String btnRebootPrinter = 'btnRebootPrinter';
 
 class MyApp extends StatefulWidget {
   final Printer.ZSDK zsdk = Printer.ZSDK();
@@ -30,30 +31,9 @@ class MyApp extends StatefulWidget {
   State createState() => _MyAppState();
 }
 
-enum PrintStatus {
-  PRINTING,
-  SUCCESS,
-  ERROR,
-  NONE,
-}
-
-enum CheckingStatus {
-  CHECKING,
-  SUCCESS,
-  ERROR,
-  NONE,
-}
-
-enum SettingsStatus {
-  GETTING,
-  SETTING,
-  SUCCESS,
-  ERROR,
-  NONE,
-}
-
-enum CalibrationStatus {
-  CALIBRATING,
+enum OperationStatus {
+  SENDING,
+  RECEIVING,
   SUCCESS,
   ERROR,
   NONE,
@@ -93,10 +73,11 @@ class _MyAppState extends State<MyApp> {
   String? statusMessage;
   String? settingsMessage;
   String? calibrationMessage;
-  PrintStatus printStatus = PrintStatus.NONE;
-  CheckingStatus checkingStatus = CheckingStatus.NONE;
-  SettingsStatus settingsStatus = SettingsStatus.NONE;
-  CalibrationStatus calibrationStatus = CalibrationStatus.NONE;
+  OperationStatus printStatus = OperationStatus.NONE;
+  OperationStatus checkingStatus = OperationStatus.NONE;
+  OperationStatus settingsStatus = OperationStatus.NONE;
+  OperationStatus calibrationStatus = OperationStatus.NONE;
+  OperationStatus rebootingStatus = OperationStatus.NONE;
   String? filePath;
   String? zplData;
 
@@ -289,7 +270,8 @@ class _MyAppState extends State<MyApp> {
                         height: 16,
                       ),
                       Visibility(
-                        visible: checkingStatus != CheckingStatus.NONE,
+                        visible: checkingStatus != OperationStatus.NONE ||
+                            rebootingStatus != OperationStatus.NONE,
                         child: Column(
                           children: <Widget>[
                             Text(
@@ -298,7 +280,10 @@ class _MyAppState extends State<MyApp> {
                               style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: getCheckStatusColor(checkingStatus)),
+                                  color: getOperationStatusColor(
+                                      checkingStatus != OperationStatus.NONE
+                                          ? checkingStatus
+                                          : rebootingStatus)),
                             ),
                             const SizedBox(
                               height: 16,
@@ -316,11 +301,29 @@ class _MyAppState extends State<MyApp> {
                                   textStyle: MaterialStateProperty.all(
                                       const TextStyle(color: Colors.white))),
                               onPressed:
-                                  checkingStatus == CheckingStatus.CHECKING
+                                  checkingStatus == OperationStatus.RECEIVING
                                       ? null
                                       : () => onClick(btnCheckPrinterStatus),
                               child: Text(
                                 "Check printer status".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all(Colors.red),
+                                  textStyle: MaterialStateProperty.all(
+                                      const TextStyle(color: Colors.white))),
+                              onPressed:
+                                  checkingStatus == OperationStatus.SENDING
+                                      ? null
+                                      : () => onClick(btnRebootPrinter),
+                              child: Text(
+                                "Reboot Printer".toUpperCase(),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -602,7 +605,7 @@ class _MyAppState extends State<MyApp> {
                         height: 16,
                       ),
                       Visibility(
-                        visible: settingsStatus != SettingsStatus.NONE,
+                        visible: settingsStatus != OperationStatus.NONE,
                         child: Column(
                           children: <Widget>[
                             Text(
@@ -612,7 +615,7 @@ class _MyAppState extends State<MyApp> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color:
-                                      getSettingsStatusColor(settingsStatus)),
+                                      getOperationStatusColor(settingsStatus)),
                             ),
                             const SizedBox(
                               height: 16,
@@ -629,11 +632,12 @@ class _MyAppState extends State<MyApp> {
                                       Colors.deepPurple),
                                   textStyle: MaterialStateProperty.all(
                                       const TextStyle(color: Colors.white))),
-                              onPressed: settingsStatus ==
-                                          SettingsStatus.SETTING ||
-                                      settingsStatus == SettingsStatus.GETTING
-                                  ? null
-                                  : () => onClick(btnSetPrinterSettings),
+                              onPressed:
+                                  settingsStatus == OperationStatus.SENDING ||
+                                          settingsStatus ==
+                                              OperationStatus.RECEIVING
+                                      ? null
+                                      : () => onClick(btnSetPrinterSettings),
                               child: Text(
                                 "Set settings".toUpperCase(),
                                 textAlign: TextAlign.center,
@@ -650,11 +654,12 @@ class _MyAppState extends State<MyApp> {
                                       MaterialStateProperty.all(Colors.purple),
                                   textStyle: MaterialStateProperty.all(
                                       const TextStyle(color: Colors.white))),
-                              onPressed: settingsStatus ==
-                                          SettingsStatus.SETTING ||
-                                      settingsStatus == SettingsStatus.GETTING
-                                  ? null
-                                  : () => onClick(btnGetPrinterSettings),
+                              onPressed:
+                                  settingsStatus == OperationStatus.SENDING ||
+                                          settingsStatus ==
+                                              OperationStatus.RECEIVING
+                                      ? null
+                                      : () => onClick(btnGetPrinterSettings),
                               child: Text(
                                 "Get settings".toUpperCase(),
                                 textAlign: TextAlign.center,
@@ -672,11 +677,12 @@ class _MyAppState extends State<MyApp> {
                                       MaterialStateProperty.all(Colors.pink),
                                   textStyle: MaterialStateProperty.all(
                                       const TextStyle(color: Colors.white))),
-                              onPressed: settingsStatus ==
-                                          SettingsStatus.SETTING ||
-                                      settingsStatus == SettingsStatus.GETTING
-                                  ? null
-                                  : () => onClick(btnResetPrinterSettings),
+                              onPressed:
+                                  settingsStatus == OperationStatus.SENDING ||
+                                          settingsStatus ==
+                                              OperationStatus.RECEIVING
+                                      ? null
+                                      : () => onClick(btnResetPrinterSettings),
                               child: Text(
                                 "Reset settings".toUpperCase(),
                                 textAlign: TextAlign.center,
@@ -704,7 +710,7 @@ class _MyAppState extends State<MyApp> {
                         height: 16,
                       ),
                       Visibility(
-                        visible: calibrationStatus != CalibrationStatus.NONE,
+                        visible: calibrationStatus != OperationStatus.NONE,
                         child: Column(
                           children: <Widget>[
                             Text(
@@ -713,7 +719,7 @@ class _MyAppState extends State<MyApp> {
                               style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: getCalibrationStatusColor(
+                                  color: getOperationStatusColor(
                                       calibrationStatus)),
                             ),
                             const SizedBox(
@@ -731,10 +737,10 @@ class _MyAppState extends State<MyApp> {
                                       Colors.blueGrey),
                                   textStyle: MaterialStateProperty.all(
                                       const TextStyle(color: Colors.white))),
-                              onPressed: calibrationStatus ==
-                                      CalibrationStatus.CALIBRATING
-                                  ? null
-                                  : () => onClick(btnDoManualCalibration),
+                              onPressed:
+                                  calibrationStatus == OperationStatus.SENDING
+                                      ? null
+                                      : () => onClick(btnDoManualCalibration),
                               child: Text(
                                 "DO MANUAL CALIBRATION".toUpperCase(),
                                 textAlign: TextAlign.center,
@@ -808,7 +814,7 @@ class _MyAppState extends State<MyApp> {
                 height: 16,
               ),
               Visibility(
-                visible: printStatus != PrintStatus.NONE,
+                visible: printStatus != OperationStatus.NONE,
                 child: Column(
                   children: <Widget>[
                     Text(
@@ -817,7 +823,7 @@ class _MyAppState extends State<MyApp> {
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: getPrintStatusColor(printStatus)),
+                          color: getOperationStatusColor(printStatus)),
                     ),
                     const SizedBox(
                       height: 16,
@@ -830,7 +836,7 @@ class _MyAppState extends State<MyApp> {
                     backgroundColor: MaterialStateProperty.all(Colors.cyan),
                     textStyle: MaterialStateProperty.all(
                         const TextStyle(color: Colors.white))),
-                onPressed: printStatus == PrintStatus.PRINTING
+                onPressed: printStatus == OperationStatus.SENDING
                     ? null
                     : () => onClick(btnPrintConfigurationLabel),
                 child: Text(
@@ -847,7 +853,7 @@ class _MyAppState extends State<MyApp> {
                               MaterialStateProperty.all(Colors.blueAccent),
                           textStyle: MaterialStateProperty.all(
                               const TextStyle(color: Colors.white))),
-                      onPressed: printStatus == PrintStatus.PRINTING
+                      onPressed: printStatus == OperationStatus.SENDING
                           ? null
                           : () => onClick(btnPrintZplFileOverTCPIP),
                       child: Text(
@@ -866,7 +872,7 @@ class _MyAppState extends State<MyApp> {
                               MaterialStateProperty.all(Colors.lightBlue),
                           textStyle: MaterialStateProperty.all(
                               const TextStyle(color: Colors.white))),
-                      onPressed: printStatus == PrintStatus.PRINTING
+                      onPressed: printStatus == OperationStatus.SENDING
                           ? null
                           : () => onClick(btnPrintPdfFileOverTCPIP),
                       child: Text(
@@ -883,7 +889,7 @@ class _MyAppState extends State<MyApp> {
                         MaterialStateProperty.all(Colors.blueAccent),
                     textStyle: MaterialStateProperty.all(
                         const TextStyle(color: Colors.white))),
-                onPressed: printStatus == PrintStatus.PRINTING
+                onPressed: printStatus == OperationStatus.SENDING
                     ? null
                     : () => onClick(btnPrintZplDataOverTCPIP),
                 child: Text(
@@ -901,53 +907,14 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Color getPrintStatusColor(PrintStatus status) {
+  Color getOperationStatusColor(OperationStatus status) {
     switch (status) {
-      case PrintStatus.PRINTING:
+      case OperationStatus.RECEIVING:
+      case OperationStatus.SENDING:
         return Colors.blue;
-      case PrintStatus.SUCCESS:
+      case OperationStatus.SUCCESS:
         return Colors.green;
-      case PrintStatus.ERROR:
-        return Colors.red;
-      default:
-        return Colors.black;
-    }
-  }
-
-  Color getCheckStatusColor(CheckingStatus status) {
-    switch (status) {
-      case CheckingStatus.CHECKING:
-        return Colors.blue;
-      case CheckingStatus.SUCCESS:
-        return Colors.green;
-      case CheckingStatus.ERROR:
-        return Colors.red;
-      default:
-        return Colors.black;
-    }
-  }
-
-  Color getSettingsStatusColor(SettingsStatus status) {
-    switch (status) {
-      case SettingsStatus.GETTING:
-      case SettingsStatus.SETTING:
-        return Colors.blue;
-      case SettingsStatus.SUCCESS:
-        return Colors.green;
-      case SettingsStatus.ERROR:
-        return Colors.red;
-      default:
-        return Colors.black;
-    }
-  }
-
-  Color getCalibrationStatusColor(CalibrationStatus status) {
-    switch (status) {
-      case CalibrationStatus.CALIBRATING:
-        return Colors.blue;
-      case CalibrationStatus.SUCCESS:
-        return Colors.green;
-      case CalibrationStatus.ERROR:
+      case OperationStatus.ERROR:
         return Colors.red;
       default:
         return Colors.black;
@@ -981,7 +948,7 @@ class _MyAppState extends State<MyApp> {
         case btnDoManualCalibration:
           setState(() {
             calibrationMessage = "Starting manual callibration...";
-            calibrationStatus = CalibrationStatus.CALIBRATING;
+            calibrationStatus = OperationStatus.SENDING;
           });
           widget.zsdk
               .doManualCalibrationOverTCPIP(
@@ -990,7 +957,7 @@ class _MyAppState extends State<MyApp> {
           )
               .then((value) {
             setState(() {
-              calibrationStatus = CalibrationStatus.SUCCESS;
+              calibrationStatus = OperationStatus.SUCCESS;
               calibrationMessage = "$value";
             });
           }, onError: (error, stacktrace) {
@@ -1013,14 +980,14 @@ class _MyAppState extends State<MyApp> {
               calibrationMessage = e.toString();
             }
             setState(() {
-              calibrationStatus = CalibrationStatus.ERROR;
+              calibrationStatus = OperationStatus.ERROR;
             });
           });
           break;
         case btnGetPrinterSettings:
           setState(() {
             settingsMessage = "Getting printer settings...";
-            settingsStatus = SettingsStatus.GETTING;
+            settingsStatus = OperationStatus.RECEIVING;
           });
           widget.zsdk
               .getPrinterSettingsOverTCPIP(
@@ -1029,7 +996,7 @@ class _MyAppState extends State<MyApp> {
           )
               .then((value) {
             setState(() {
-              settingsStatus = SettingsStatus.SUCCESS;
+              settingsStatus = OperationStatus.SUCCESS;
               settingsMessage = "$value";
               updateSettings((Printer.PrinterResponse.fromMap(value)).settings);
             });
@@ -1053,14 +1020,14 @@ class _MyAppState extends State<MyApp> {
               settingsMessage = e.toString();
             }
             setState(() {
-              settingsStatus = SettingsStatus.ERROR;
+              settingsStatus = OperationStatus.ERROR;
             });
           });
           break;
         case btnSetPrinterSettings:
           setState(() {
             settingsMessage = "Setting printer settings...";
-            settingsStatus = SettingsStatus.SETTING;
+            settingsStatus = OperationStatus.SENDING;
           });
           widget.zsdk
               .setPrinterSettingsOverTCPIP(
@@ -1124,7 +1091,7 @@ class _MyAppState extends State<MyApp> {
                   )
               .then((value) {
             setState(() {
-              settingsStatus = SettingsStatus.SUCCESS;
+              settingsStatus = OperationStatus.SUCCESS;
               settingsMessage = "$value";
               updateSettings((Printer.PrinterResponse.fromMap(value)).settings);
             });
@@ -1148,14 +1115,14 @@ class _MyAppState extends State<MyApp> {
               settingsMessage = e.toString();
             }
             setState(() {
-              settingsStatus = SettingsStatus.ERROR;
+              settingsStatus = OperationStatus.ERROR;
             });
           });
           break;
         case btnResetPrinterSettings:
           setState(() {
             settingsMessage = "Setting default settings...";
-            settingsStatus = SettingsStatus.SETTING;
+            settingsStatus = OperationStatus.SENDING;
           });
           widget.zsdk
               .setPrinterSettingsOverTCPIP(
@@ -1164,7 +1131,7 @@ class _MyAppState extends State<MyApp> {
                   settings: Printer.PrinterSettings.defaultSettings())
               .then((value) {
             setState(() {
-              settingsStatus = SettingsStatus.SUCCESS;
+              settingsStatus = OperationStatus.SUCCESS;
               settingsMessage = "$value";
               updateSettings((Printer.PrinterResponse.fromMap(value)).settings);
             });
@@ -1188,14 +1155,14 @@ class _MyAppState extends State<MyApp> {
               settingsMessage = e.toString();
             }
             setState(() {
-              settingsStatus = SettingsStatus.ERROR;
+              settingsStatus = OperationStatus.ERROR;
             });
           });
           break;
         case btnCheckPrinterStatus:
           setState(() {
             statusMessage = "Checking printer status...";
-            checkingStatus = CheckingStatus.CHECKING;
+            checkingStatus = OperationStatus.RECEIVING;
           });
           widget.zsdk
               .checkPrinterStatusOverTCPIP(
@@ -1204,7 +1171,7 @@ class _MyAppState extends State<MyApp> {
           )
               .then((value) {
             setState(() {
-              checkingStatus = CheckingStatus.SUCCESS;
+              checkingStatus = OperationStatus.SUCCESS;
               Printer.PrinterResponse? printerResponse;
               if (value != null) {
                 printerResponse = Printer.PrinterResponse.fromMap(value);
@@ -1231,14 +1198,57 @@ class _MyAppState extends State<MyApp> {
               statusMessage = e.toString();
             }
             setState(() {
-              checkingStatus = CheckingStatus.ERROR;
+              checkingStatus = OperationStatus.ERROR;
+            });
+          });
+          break;
+        case btnRebootPrinter:
+          setState(() {
+            statusMessage = "Rebooting printer...";
+            rebootingStatus = OperationStatus.SENDING;
+          });
+          widget.zsdk
+              .rebootPrinterOverTCPIP(
+            address: addressIpController.text,
+            port: int.tryParse(addressPortController.text),
+          )
+              .then((value) {
+            setState(() {
+              rebootingStatus = OperationStatus.SUCCESS;
+              Printer.PrinterResponse? printerResponse;
+              if (value != null) {
+                printerResponse = Printer.PrinterResponse.fromMap(value);
+              }
+              statusMessage =
+                  "${printerResponse != null ? printerResponse.toMap() : value}";
+            });
+          }, onError: (error, stacktrace) {
+            try {
+              throw error;
+            } on PlatformException catch (e) {
+              Printer.PrinterResponse printerResponse;
+              try {
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                statusMessage =
+                    "${printerResponse.message} ${printerResponse.errorCode} ${printerResponse.statusInfo.status} ${printerResponse.statusInfo.cause}";
+              } catch (e) {
+                print(e);
+                statusMessage = e.toString();
+              }
+            } on MissingPluginException catch (e) {
+              statusMessage = "${e.message}";
+            } catch (e) {
+              statusMessage = e.toString();
+            }
+            setState(() {
+              rebootingStatus = OperationStatus.ERROR;
             });
           });
           break;
         case btnPrintConfigurationLabel:
           setState(() {
             message = "Print job started...";
-            printStatus = PrintStatus.PRINTING;
+            printStatus = OperationStatus.SENDING;
           });
           widget.zsdk
               .printConfigurationLabelOverTCPIP(
@@ -1247,7 +1257,7 @@ class _MyAppState extends State<MyApp> {
           )
               .then((value) {
             setState(() {
-              printStatus = PrintStatus.SUCCESS;
+              printStatus = OperationStatus.SUCCESS;
               message = "$value";
             });
           }, onError: (error, stacktrace) {
@@ -1269,7 +1279,7 @@ class _MyAppState extends State<MyApp> {
               message = e.toString();
             }
             setState(() {
-              printStatus = PrintStatus.ERROR;
+              printStatus = OperationStatus.ERROR;
             });
           });
           break;
@@ -1280,7 +1290,7 @@ class _MyAppState extends State<MyApp> {
           }
           setState(() {
             message = "Print job started...";
-            printStatus = PrintStatus.PRINTING;
+            printStatus = OperationStatus.SENDING;
           });
           widget.zsdk
               .printPdfFileOverTCPIP(
@@ -1295,7 +1305,7 @@ class _MyAppState extends State<MyApp> {
                   ))
               .then((value) {
             setState(() {
-              printStatus = PrintStatus.SUCCESS;
+              printStatus = OperationStatus.SUCCESS;
               message = "$value";
             });
           }, onError: (error, stacktrace) {
@@ -1317,7 +1327,7 @@ class _MyAppState extends State<MyApp> {
               message = e.toString();
             }
             setState(() {
-              printStatus = PrintStatus.ERROR;
+              printStatus = OperationStatus.ERROR;
             });
           });
           break;
@@ -1336,7 +1346,7 @@ class _MyAppState extends State<MyApp> {
           }
           setState(() {
             message = "Print job started...";
-            printStatus = PrintStatus.PRINTING;
+            printStatus = OperationStatus.SENDING;
           });
           widget.zsdk
               .printZplDataOverTCPIP(
@@ -1351,7 +1361,7 @@ class _MyAppState extends State<MyApp> {
                   ))
               .then((value) {
             setState(() {
-              printStatus = PrintStatus.SUCCESS;
+              printStatus = OperationStatus.SUCCESS;
               message = "$value";
             });
           }, onError: (error, stacktrace) {
@@ -1373,7 +1383,7 @@ class _MyAppState extends State<MyApp> {
               message = e.toString();
             }
             setState(() {
-              printStatus = PrintStatus.ERROR;
+              printStatus = OperationStatus.ERROR;
             });
           });
           break;
@@ -1384,7 +1394,7 @@ class _MyAppState extends State<MyApp> {
           }
           setState(() {
             message = "Print job started...";
-            printStatus = PrintStatus.PRINTING;
+            printStatus = OperationStatus.SENDING;
           });
           widget.zsdk
               .printZplDataOverTCPIP(
@@ -1399,7 +1409,7 @@ class _MyAppState extends State<MyApp> {
                   ))
               .then((value) {
             setState(() {
-              printStatus = PrintStatus.SUCCESS;
+              printStatus = OperationStatus.SUCCESS;
               message = "$value";
             });
           }, onError: (error, stacktrace) {
@@ -1421,7 +1431,7 @@ class _MyAppState extends State<MyApp> {
               message = e.toString();
             }
             setState(() {
-              printStatus = PrintStatus.ERROR;
+              printStatus = OperationStatus.ERROR;
             });
           });
           break;

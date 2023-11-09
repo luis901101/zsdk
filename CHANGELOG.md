@@ -12,6 +12,7 @@ Types of changes
 ## 3.2.0+1 (2023-11-09)
 ### Added
 - New `PRINTER_REBOOTED` value added to enum `ErrorCode`.
+- New `rebootPrinterOverTCPIP` function added.
 
 ### Changed
 - `printPdfFileOverTCPIP` function updated to abort printing and return `PRINTER_REBOOTED` error code when printer needs to be reboot to change the Virtual Device to PDF.
