@@ -17,7 +17,7 @@ enum VirtualDevice {
 
   static VirtualDevice? valueOf(String? name) {
     for (final item in values) {
-      if(item.name == name) return item;
+      if (item.name == name) return item;
     }
     return null;
   }

@@ -38,8 +38,6 @@ public class ZPrinter
     protected Result result;
     protected final Handler handler = new Handler();
     protected PrinterConf printerConf;
-    private final int MAX_TIME_OUT_FOR_READ = 5000;
-    private final int TIME_TO_WAIT_FOR_MORE_DATA = 0;
 
     public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf)
     {
@@ -50,6 +48,8 @@ public class ZPrinter
     }
 
     private TcpConnection newConnection(String address, int tcpPort){
+        int MAX_TIME_OUT_FOR_READ = 5000;
+        int TIME_TO_WAIT_FOR_MORE_DATA = 0;
         return new TcpConnection(address, tcpPort, MAX_TIME_OUT_FOR_READ, TIME_TO_WAIT_FOR_MORE_DATA);
     }
 
@@ -62,6 +62,17 @@ public class ZPrinter
         PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
                 new StatusInfo(Status.UNKNOWN, Cause.NO_CONNECTION), "Connection timeout. "+e);
         handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
+    }
+
+    /** @noinspection SameParameterValue*/
+    private void onPrinterRebooted(String message){
+        handler.post(() -> result.success(
+                new PrinterResponse(
+                        ErrorCode.PRINTER_REBOOTED,
+                        new StatusInfo(Status.UNKNOWN, Cause.NO_CONNECTION),
+                        message
+                ).toMap()
+        ));
     }
 
     private void onException(Exception e, ZebraPrinter printer){
@@ -341,7 +352,11 @@ public class ZPrinter
                     if(isZPL) {
                         changePrinterLanguage(connection, SGDParams.VALUE_ZPL_LANGUAGE);
                     } else {
-                        enablePDFDirect(connection, true);
+                        // If enablePDFDirect was required, then abort printing as the Printer will be rebooted and the connection will be closed.
+                        if(enablePDFDirect(connection, true)) {
+                            onPrinterRebooted("Printer was rebooted to be able to use PDF Direct feature.");
+                            return;
+                        }
                     }
 //                    connection.write(data.getBytes()); //This would be to send zpl as a string, this fails if the string is too big
 //                    printer.sendFileContents(filePath); //This would be to send zpl as a file path
@@ -418,11 +433,14 @@ public class ZPrinter
             SGD.SET(SGDParams.KEY_PRINTER_LANGUAGES, language, connection);
     }
 
-    public void enablePDFDirect(Connection connection, boolean enable) throws ConnectionException {
-        if(connection == null) return;
+    /**
+     * Returns true if the PDF Direct feature was not enabled and requires to be enabled which means the Printer is going to be rebooted, false otherwise.
+     * */
+    public boolean enablePDFDirect(Connection connection, boolean enable) throws ConnectionException {
+        if(connection == null) return false;
         if(!connection.isConnected()) connection.open();
 
-        VirtualDeviceUtils.changeVirtualDevice(connection, enable ? SGDParams.VALUE_PDF : SGDParams.VALUE_NONE);
+        return VirtualDeviceUtils.changeVirtualDevice(connection, enable ? SGDParams.VALUE_PDF : SGDParams.VALUE_NONE);
     }
 
     public void printAllValues(Connection connection) throws Exception {

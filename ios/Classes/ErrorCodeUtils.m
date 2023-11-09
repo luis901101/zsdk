@@ -14,6 +14,7 @@
         case SUCCESS: return @"SUCCESS";
         case EXCEPTION: return @"EXCEPTION";
         case PRINTER_ERROR: return @"PRINTER_ERROR";
+        case PRINTER_REBOOTED: return @"PRINTER_REBOOTED";
         case UNKNOWN_ERROR:
         default: return @"UNKNOWN";
     }
@@ -24,6 +25,7 @@
     if([name  isEqual: @"SUCCESS"]) return SUCCESS;
     if([name  isEqual: @"EXCEPTION"]) return EXCEPTION;
     if([name  isEqual: @"PRINTER_ERROR"]) return PRINTER_ERROR;
+    if([name  isEqual: @"PRINTER_REBOOTED"]) return PRINTER_REBOOTED;
     if([name  isEqual: @"UNKNOWN"]) return UNKNOWN_ERROR;
     return UNKNOWN_ERROR;
 }

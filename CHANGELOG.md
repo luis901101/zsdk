@@ -9,6 +9,13 @@ Types of changes
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+## 3.2.0+1 (2023-11-09)
+### Added
+- New `PRINTER_REBOOTED` value added to enum `ErrorCode`.
+
+### Changed
+- `printPdfFileOverTCPIP` function updated to abort printing and return `PRINTER_REBOOTED` error code when printer needs to be reboot to change the Virtual Device to PDF.
+
 ## 3.1.0+1 (2023-11-08)
 ### Added
 - Added support for PDF Direct printing on printers using Link-OS v6.3 or later.

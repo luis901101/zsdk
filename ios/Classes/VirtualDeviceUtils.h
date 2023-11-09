@@ -11,13 +11,18 @@
 #import "SGD.h"
 #import "SGDParams.h"
 #import "ToolsUtil.h"
+#import "PrinterUtils.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface VirtualDeviceUtils : NSObject
 
-+ (void) changeVirtualDevice:(id<ZebraPrinterConnection,NSObject>)connection virtualDevice:(NSString *)virtualDevice;
-+ (void) reboot:(id<ZebraPrinterConnection,NSObject>)connection;
+//
+//  This changes the printer Virtual Device only if the current Virtual Device on the printer is different that the one to be changed to and reboots the printer for the changes to take effect.
+//  Returns true if the change was necessary and applied, false otherwise.
+//
+
++ (bool) changeVirtualDevice:(id<ZebraPrinterConnection,NSObject>)connection virtualDevice:(NSString *)virtualDevice;
 
 @end
 

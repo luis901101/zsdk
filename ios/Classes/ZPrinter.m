@@ -46,6 +46,12 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
     self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
 }
 
+- (void)onPrinterRebooted:(NSString*) message {
+    StatusInfo *statusInfo = [[StatusInfo alloc] init:UNKNOWN_STATUS cause:NO_CONNECTION];
+    PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_REBOOTED statusInfo:statusInfo message:message];
+    self.result([response toMap]);
+}
+
 - (void)onException:(id<ZebraPrinter,NSObject>)printer exception:(NSException *)exception {
     NSLog(@"%@", exception.reason);
     StatusInfo *statusInfo = [self getStatusInfo:printer];
@@ -244,7 +250,11 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
                     if(isZPL) {
                         [self changePrinterLanguage:connection language:SGDParams.VALUE_ZPL_LANGUAGE];
                     } else {
-                        [self enablePDFDirect:connection enabled:true];
+                        // If enablePDFDirect was required, then abort printing as the Printer will be rebooted and the connection will be closed.
+                        if ([self enablePDFDirect:connection enabled:true]) {
+                            [self onPrinterRebooted:@"Printer was rebooted to be able to use PDF Direct feature."];
+                            return;
+                        }
                     }
                     
                     if(![ObjectUtils isNull:data]) {
@@ -279,11 +289,15 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
     });
 }
 
-- (void) enablePDFDirect:(id<ZebraPrinterConnection,NSObject>)connection enabled:(Boolean)enabled; {
-    if(connection == nil) return;
-    if(![connection open]) return [self onConnectionTimeOut];
+
+//
+// Returns true if the PDF Direct feature was not enabled and requires to be enabled which means the Printer is going to be rebooted, false otherwise.
+//
+- (bool) enablePDFDirect:(id<ZebraPrinterConnection,NSObject>)connection enabled:(Boolean)enabled; {
+    if(connection == nil) return false;
+    if(![connection isConnected]) [connection open];
     
-    [VirtualDeviceUtils changeVirtualDevice:connection virtualDevice: enabled ? SGDParams.VALUE_PDF : SGDParams.VALUE_NONE];
+    return [VirtualDeviceUtils changeVirtualDevice:connection virtualDevice: enabled ? SGDParams.VALUE_PDF : SGDParams.VALUE_NONE];
 }
 
 - (bool)isReadyToPrint:(id<ZebraPrinter,NSObject>)printer{

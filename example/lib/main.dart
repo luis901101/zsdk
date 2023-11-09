@@ -24,10 +24,10 @@ const String btnPrintConfigurationLabel = 'btnPrintConfigurationLabel';
 class MyApp extends StatefulWidget {
   final Printer.ZSDK zsdk = Printer.ZSDK();
 
-  MyApp({Key? key}) : super(key: key);
+  MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State createState() => _MyAppState();
 }
 
 enum PrintStatus {
@@ -122,8 +122,8 @@ class _MyAppState extends State<MyApp> {
     List<DropdownMenuItem<T>> items = [];
     for (var value in values) {
       items.add(DropdownMenuItem<T>(
-        child: Text(getName(value)),
         value: value,
+        child: Text(getName(value)),
       ));
     }
     return items;
@@ -173,10 +173,6 @@ class _MyAppState extends State<MyApp> {
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              child: Text(
-                                "Pick .zpl file".toUpperCase(),
-                                textAlign: TextAlign.center,
-                              ),
                               style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all(Colors.green),
@@ -199,6 +195,10 @@ class _MyAppState extends State<MyApp> {
                                   showSnackBar(e.toString());
                                 }
                               },
+                              child: Text(
+                                "Pick .zpl file".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                           const VerticalDivider(
@@ -206,10 +206,6 @@ class _MyAppState extends State<MyApp> {
                           ),
                           Expanded(
                             child: ElevatedButton(
-                              child: Text(
-                                "Pick .pdf file".toUpperCase(),
-                                textAlign: TextAlign.center,
-                              ),
                               style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all(
                                       Colors.lightGreen),
@@ -232,6 +228,10 @@ class _MyAppState extends State<MyApp> {
                                   showSnackBar(e.toString());
                                 }
                               },
+                              child: Text(
+                                "Pick .pdf file".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ],
@@ -289,6 +289,7 @@ class _MyAppState extends State<MyApp> {
                         height: 16,
                       ),
                       Visibility(
+                        visible: checkingStatus != CheckingStatus.NONE,
                         child: Column(
                           children: <Widget>[
                             Text(
@@ -304,16 +305,11 @@ class _MyAppState extends State<MyApp> {
                             ),
                           ],
                         ),
-                        visible: checkingStatus != CheckingStatus.NONE,
                       ),
                       Row(
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              child: Text(
-                                "Check printer status".toUpperCase(),
-                                textAlign: TextAlign.center,
-                              ),
                               style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all(Colors.orange),
@@ -323,6 +319,10 @@ class _MyAppState extends State<MyApp> {
                                   checkingStatus == CheckingStatus.CHECKING
                                       ? null
                                       : () => onClick(btnCheckPrinterStatus),
+                              child: Text(
+                                "Check printer status".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ],
@@ -602,6 +602,7 @@ class _MyAppState extends State<MyApp> {
                         height: 16,
                       ),
                       Visibility(
+                        visible: settingsStatus != SettingsStatus.NONE,
                         child: Column(
                           children: <Widget>[
                             Text(
@@ -618,16 +619,11 @@ class _MyAppState extends State<MyApp> {
                             ),
                           ],
                         ),
-                        visible: settingsStatus != SettingsStatus.NONE,
                       ),
                       Row(
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              child: Text(
-                                "Set settings".toUpperCase(),
-                                textAlign: TextAlign.center,
-                              ),
                               style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all(
                                       Colors.deepPurple),
@@ -638,6 +634,10 @@ class _MyAppState extends State<MyApp> {
                                       settingsStatus == SettingsStatus.GETTING
                                   ? null
                                   : () => onClick(btnSetPrinterSettings),
+                              child: Text(
+                                "Set settings".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                           const VerticalDivider(
@@ -645,10 +645,6 @@ class _MyAppState extends State<MyApp> {
                           ),
                           Expanded(
                             child: ElevatedButton(
-                              child: Text(
-                                "Get settings".toUpperCase(),
-                                textAlign: TextAlign.center,
-                              ),
                               style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all(Colors.purple),
@@ -659,6 +655,10 @@ class _MyAppState extends State<MyApp> {
                                       settingsStatus == SettingsStatus.GETTING
                                   ? null
                                   : () => onClick(btnGetPrinterSettings),
+                              child: Text(
+                                "Get settings".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ],
@@ -667,10 +667,6 @@ class _MyAppState extends State<MyApp> {
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              child: Text(
-                                "Reset settings".toUpperCase(),
-                                textAlign: TextAlign.center,
-                              ),
                               style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all(Colors.pink),
@@ -681,6 +677,10 @@ class _MyAppState extends State<MyApp> {
                                       settingsStatus == SettingsStatus.GETTING
                                   ? null
                                   : () => onClick(btnResetPrinterSettings),
+                              child: Text(
+                                "Reset settings".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ],
@@ -704,6 +704,7 @@ class _MyAppState extends State<MyApp> {
                         height: 16,
                       ),
                       Visibility(
+                        visible: calibrationStatus != CalibrationStatus.NONE,
                         child: Column(
                           children: <Widget>[
                             Text(
@@ -720,16 +721,11 @@ class _MyAppState extends State<MyApp> {
                             ),
                           ],
                         ),
-                        visible: calibrationStatus != CalibrationStatus.NONE,
                       ),
                       Row(
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              child: Text(
-                                "DO MANUAL CALIBRATION".toUpperCase(),
-                                textAlign: TextAlign.center,
-                              ),
                               style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all(
                                       Colors.blueGrey),
@@ -739,6 +735,10 @@ class _MyAppState extends State<MyApp> {
                                       CalibrationStatus.CALIBRATING
                                   ? null
                                   : () => onClick(btnDoManualCalibration),
+                              child: Text(
+                                "DO MANUAL CALIBRATION".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ],
@@ -785,12 +785,12 @@ class _MyAppState extends State<MyApp> {
                       DropdownButtonFormField<Printer.Orientation>(
                         items: const [
                           DropdownMenuItem(
-                            child: Text("Portrait"),
                             value: Printer.Orientation.PORTRAIT,
+                            child: Text("Portrait"),
                           ),
                           DropdownMenuItem(
-                            child: Text("Landscape"),
                             value: Printer.Orientation.LANDSCAPE,
+                            child: Text("Landscape"),
                           )
                         ],
                         value: printerOrientation,
@@ -808,6 +808,7 @@ class _MyAppState extends State<MyApp> {
                 height: 16,
               ),
               Visibility(
+                visible: printStatus != PrintStatus.NONE,
                 child: Column(
                   children: <Widget>[
                     Text(
@@ -823,13 +824,8 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ],
                 ),
-                visible: printStatus != PrintStatus.NONE,
               ),
               ElevatedButton(
-                child: Text(
-                  "Test Print".toUpperCase(),
-                  textAlign: TextAlign.center,
-                ),
                 style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.cyan),
                     textStyle: MaterialStateProperty.all(
@@ -837,15 +833,15 @@ class _MyAppState extends State<MyApp> {
                 onPressed: printStatus == PrintStatus.PRINTING
                     ? null
                     : () => onClick(btnPrintConfigurationLabel),
+                child: Text(
+                  "Test Print".toUpperCase(),
+                  textAlign: TextAlign.center,
+                ),
               ),
               Row(
                 children: <Widget>[
                   Expanded(
                     child: ElevatedButton(
-                      child: Text(
-                        "Print zpl from file".toUpperCase(),
-                        textAlign: TextAlign.center,
-                      ),
                       style: ButtonStyle(
                           backgroundColor:
                               MaterialStateProperty.all(Colors.blueAccent),
@@ -854,6 +850,10 @@ class _MyAppState extends State<MyApp> {
                       onPressed: printStatus == PrintStatus.PRINTING
                           ? null
                           : () => onClick(btnPrintZplFileOverTCPIP),
+                      child: Text(
+                        "Print zpl from file".toUpperCase(),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                   const VerticalDivider(
@@ -861,10 +861,6 @@ class _MyAppState extends State<MyApp> {
                   ),
                   Expanded(
                     child: ElevatedButton(
-                      child: Text(
-                        "Print pdf from file".toUpperCase(),
-                        textAlign: TextAlign.center,
-                      ),
                       style: ButtonStyle(
                           backgroundColor:
                               MaterialStateProperty.all(Colors.lightBlue),
@@ -873,15 +869,15 @@ class _MyAppState extends State<MyApp> {
                       onPressed: printStatus == PrintStatus.PRINTING
                           ? null
                           : () => onClick(btnPrintPdfFileOverTCPIP),
+                      child: Text(
+                        "Print pdf from file".toUpperCase(),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ],
               ),
               ElevatedButton(
-                child: Text(
-                  "Print zpl data".toUpperCase(),
-                  textAlign: TextAlign.center,
-                ),
                 style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.all(Colors.blueAccent),
@@ -890,6 +886,10 @@ class _MyAppState extends State<MyApp> {
                 onPressed: printStatus == PrintStatus.PRINTING
                     ? null
                     : () => onClick(btnPrintZplDataOverTCPIP),
+                child: Text(
+                  "Print zpl data".toUpperCase(),
+                  textAlign: TextAlign.center,
+                ),
               ),
               const SizedBox(
                 height: 100,

@@ -3,6 +3,7 @@ enum ErrorCode {
   SUCCESS,
   EXCEPTION,
   PRINTER_ERROR,
+  PRINTER_REBOOTED,
   UNKNOWN,
 }
 

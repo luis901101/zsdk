@@ -14,34 +14,19 @@ import com.zebra.sdk.printer.ZebraPrinterLanguageUnknownException;
  */
 class VirtualDeviceUtils {
    /**
-    * This printMethod implements best practices to check the language of the printer and set the language of the printer to ZPL.
+    * This changes the printer Virtual Device only if the current Virtual Device on the printer is different that the one to be changed to and reboots the printer for the changes to take effect.
+    * Returns true if the change was necessary and applied, false otherwise.
     */
-   public static void changeVirtualDevice(Connection connection, String virtualDevice) throws ConnectionException {
-      if(TextUtils.isEmpty(virtualDevice)) return;
-      if(connection == null) return;
+   public static boolean changeVirtualDevice(Connection connection, String virtualDevice) throws ConnectionException {
+      if(TextUtils.isEmpty(virtualDevice)) return false;
+      if(connection == null) return false;
       if(!connection.isConnected()) connection.open();
 
       final String currentVirtualDevice = SGD.GET(SGDParams.KEY_VIRTUAL_DEVICE, connection);
       if(TextUtils.isEmpty(currentVirtualDevice) || !virtualDevice.equals(currentVirtualDevice)) {
          SGD.SET(SGDParams.KEY_VIRTUAL_DEVICE, virtualDevice, connection);
-         reboot(connection);
+         return PrinterUtils.reboot(connection);
       }
-   }
-
-   private static void reboot(Connection connection) {
-      try {
-         if(!connection.isConnected()) connection.open();
-         // Another way would be using the following ZPL command:
-         // connection.write("^XA^JUS^XZ".getBytes());
-         ZebraPrinter printer = ZebraPrinterFactory.getInstance(connection);
-         printer.reset();
-         connection.close();
-      } catch (ConnectionException e) {
-         e.printStackTrace();
-      } catch (ZebraPrinterLanguageUnknownException e1) {
-         e1.printStackTrace();
-      } catch(Exception e) {
-         e.printStackTrace();
-      }
+      return false;
    }
 }

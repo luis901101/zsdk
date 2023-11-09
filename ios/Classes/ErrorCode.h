@@ -9,5 +9,6 @@ typedef NS_ENUM(NSUInteger, ErrorCode) {
     SUCCESS = 0,
     EXCEPTION = 1,
     PRINTER_ERROR = 2,
-    UNKNOWN_ERROR = 3,
+    PRINTER_REBOOTED = 3,
+    UNKNOWN_ERROR = 4,
 };
