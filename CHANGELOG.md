@@ -9,6 +9,10 @@ Types of changes
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+## 3.2.0+2 (2023-11-09)
+### Changed
+- README updated
+
 ## 3.2.0+1 (2023-11-09)
 ### Added
 - New `PRINTER_REBOOTED` value added to enum `ErrorCode`.

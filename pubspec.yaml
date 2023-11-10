@@ -1,6 +1,6 @@
 name: zsdk
 description: A Flutter plugin for Zebra Link OS SDK
-version: 3.2.0+1
+version: 3.2.0+2
 homepage: https://github.com/luis901101/zsdk
 issue_tracker: https://github.com/luis901101/zsdk/issues
 topics:

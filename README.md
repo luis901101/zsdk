@@ -15,6 +15,7 @@ This is a flutter plugin for the Link-OS Multiplatform SDK for [Zebra](https://w
 | Check printer status      | :white_check_mark:      | :white_check_mark:      |
 | Print configuration label | :white_check_mark:      | :white_check_mark:      |
 | Run calibration           | :white_check_mark:      | :white_check_mark:      |
+| Reboot printer            | :white_check_mark:      | :white_check_mark:      |
 
 
 **Currently this plugin only supports TCP/IP connection to the Printer.** 
@@ -119,6 +120,24 @@ zsdk.setPrinterSettingsOverTCPIP(
 ### Check printer status
 ```dart
 zsdk.checkPrinterStatusOverTCPIP(
+  address: '10.0.0.100', 
+  port: 9100, //optional
+).then(value) {
+   final printerResponse = PrinterResponse.fromMap(value);
+   Status status = printerResponse.statusInfo.status;
+   print(status);
+   if(printerResponse.errorCode == ErrorCode.SUCCESS) {
+     //Do something 
+   } else {
+     Cause cause = printerResponse.statusInfo.cause;
+     print(cause);
+   }
+ }
+```
+
+### Reboot printer
+```dart
+zsdk.rebootPrinter(
   address: '10.0.0.100', 
   port: 9100, //optional
 ).then(value) {
