@@ -9,6 +9,10 @@ Types of changes
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+## 3.2.0+3 (2024-01-23)
+### Changed
+- README updated with info for printer PDF Virtual Device activation
+
 ## 3.2.0+2 (2023-11-09)
 ### Changed
 - README updated

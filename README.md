@@ -20,6 +20,16 @@ This is a flutter plugin for the Link-OS Multiplatform SDK for [Zebra](https://w
 
 **Currently this plugin only supports TCP/IP connection to the Printer.** 
 
+### Note:
+Since v3.1.0+1 the plugin supports PDF direct printing on both iOS and Android, before this version, the PDF printing was only available on Android, and it was by using some kind of workaround converting the PDF to image and printing it as image, which was not reliable and caused some issues depending on the document dimensions, etc.
+Now the [PDF Direct printing](https://supportcommunity.zebra.com/s/article/Printing-PDF-files-using-the-PDF-direct-virtual-device?language=en_US) is the right way and according to the manufacturer, you just need to be sure your printing OS is >= **Link-OS v6.3** and you have installed the **Virtual Device for PDF Direct**.
+
+Steps:
+1. [Upgrade Zebra Printer Firmware](https://supportcommunity.zebra.com/s/article/Zebra-Printer-Firmware-Upgrade-Information?language=en_US)
+2. [Install and Enable Virtual Device for PDF Direct](https://supportcommunity.zebra.com/s/article/PDF-Direct-Activation?language=en_US)
+
+------------------------
+
 ### iOS Setup
 ```yaml
 target 'Runner' do
