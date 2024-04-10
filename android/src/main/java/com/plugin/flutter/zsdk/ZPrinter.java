@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.zebra.sdk.comm.Connection;
 import com.zebra.sdk.comm.ConnectionException;
 import com.zebra.sdk.comm.TcpConnection;
@@ -13,6 +14,10 @@ import com.zebra.sdk.printer.SGD;
 import com.zebra.sdk.printer.ZebraPrinter;
 import com.zebra.sdk.printer.ZebraPrinterFactory;
 import com.zebra.sdk.printer.ZebraPrinterLinkOs;
+import com.zebra.sdk.printer.discovery.BluetoothDiscoverer;
+import com.zebra.sdk.printer.discovery.DiscoveredPrinter;
+import com.zebra.sdk.printer.discovery.DiscoveryHandler;
+import com.zebra.sdk.printer.discovery.NetworkDiscoverer;
 import com.zebra.sdk.util.internal.FileUtilities;
 
 import java.io.ByteArrayInputStream;
@@ -21,6 +26,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +45,7 @@ public class ZPrinter
     protected Result result;
     protected final Handler handler = new Handler();
     protected PrinterConf printerConf;
+    private static ArrayList<DiscoveredPrinter> discoveredPrinters = new ArrayList<>();
 
     public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf)
     {
@@ -482,6 +490,72 @@ public class ZPrinter
                 onException(e, null);
             }
         }).start();
+    }
+
+    public void discoverPrinters() {
+        try {
+            Log.e("Starting bluetooth printer discovery");
+            BluetoothDiscoverer.findPrinters(context, new DiscoveryHandler() {
+                @Override
+                public void foundPrinter(final DiscoveredPrinter discoveredPrinter) {
+                    discoveredPrinters.add(discoveredPrinter);
+                    ((Activity) context).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            HashMap<String, Object> arguments = new HashMap<>();
+                            arguments.put("address", discoveredPrinter.address);
+                            Log.e("Found bluetooth printer", discoveredPrinter.address);
+                            arguments.put("name", discoveredPrinter.getDiscoveryDataMap().get("FRIENDLY_NAME"));
+                            arguments.put("type", 1);
+                            channel.invokeMethod("printerFound", new Gson().toJson(arguments));
+                        }
+                    });
+                }
+
+                @Override
+                public void discoveryFinished() {
+                    result.success("DiscoveryDone");
+                }
+
+                @Override
+                public void discoveryError(String s) {
+                    HashMap<String, Object> arguments = new HashMap<>();
+                    arguments.put("error", s);
+                    channel.invokeMethod("discoveryError", arguments);
+                }
+            });
+            Log.e("Starting network printer discovery");
+            NetworkDiscoverer.findPrinters(new DiscoveryHandler() {
+                @Override
+                public void foundPrinter(DiscoveredPrinter discoveredPrinter) {
+                    ((Activity) context).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            HashMap<String, Object> arguments = new HashMap<>();
+                            arguments.put("address", discoveredPrinter.address);
+                            Log.e("Found network printer", discoveredPrinter.address);
+                            arguments.put("name", discoveredPrinter.getDiscoveryDataMap().get("SYSTEM_NAME"));
+                            arguments.put("type", 0);
+                            channel.invokeMethod("printerFound", new Gson().toJson(arguments));
+                        }
+                    });
+                }
+
+                @Override
+                public void discoveryFinished() {
+                    result.success("DiscoveryDone");
+                }
+
+                @Override
+                public void discoveryError(String s) {
+                    HashMap<String, Object> arguments = new HashMap<>();
+                    arguments.put("error", s);
+                    channel.invokeMethod("discoveryError", arguments);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /** Takes the size of the pdf and the printer's maximum size and scales the file down */

@@ -49,4 +49,5 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-core:2.2.3'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.2.3'
     implementation 'com.joanzapata.pdfview:android-pdfview:1.0.4@aar'
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
