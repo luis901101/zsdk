@@ -46,6 +46,7 @@ public class ZPrinter
     protected final Handler handler = new Handler();
     protected PrinterConf printerConf;
     private static ArrayList<DiscoveredPrinter> discoveredPrinters = new ArrayList<>();
+    private static List<String> discoveredPrinterAddresses = new ArrayList<>();
 
     public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf)
     {
@@ -505,6 +506,7 @@ public class ZPrinter
                             HashMap<String, Object> arguments = new HashMap<>();
                             arguments.put("address", discoveredPrinter.address);
                             Log.e("Found bluetooth printer", discoveredPrinter.address);
+                            discoveredPrinterAddresses.add("BT: " + discoveredPrinter.address);
                             arguments.put("name", discoveredPrinter.getDiscoveryDataMap().get("FRIENDLY_NAME"));
                             arguments.put("type", 1);
                             channel.invokeMethod("printerFound", new Gson().toJson(arguments));
@@ -534,6 +536,7 @@ public class ZPrinter
                             HashMap<String, Object> arguments = new HashMap<>();
                             arguments.put("address", discoveredPrinter.address);
                             Log.e("Found network printer", discoveredPrinter.address);
+                            discoveredPrinterAddresses.add("WiFi: " + discoveredPrinter.address);
                             arguments.put("name", discoveredPrinter.getDiscoveryDataMap().get("SYSTEM_NAME"));
                             arguments.put("type", 0);
                             channel.invokeMethod("printerFound", new Gson().toJson(arguments));
@@ -556,6 +559,10 @@ public class ZPrinter
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static List<String> getDiscoveredPrinterAddresses() {
+        return discoveredPrinterAddresses;
     }
 
     /** Takes the size of the pdf and the printer's maximum size and scales the file down */
