@@ -509,7 +509,7 @@ public class ZPrinter
                             discoveredPrinterAddresses.add("BT: " + discoveredPrinter.address);
                             arguments.put("name", discoveredPrinter.getDiscoveryDataMap().get("FRIENDLY_NAME"));
                             arguments.put("type", 1);
-                            channel.invokeMethod("printerFound", new Gson().toJson(arguments));
+                            handler.post(() -> result.success(new Gson().toJson(arguments)));
                         }
                     });
                 }
@@ -523,7 +523,7 @@ public class ZPrinter
                 public void discoveryError(String s) {
                     HashMap<String, Object> arguments = new HashMap<>();
                     arguments.put("error", s);
-                    channel.invokeMethod("discoveryError", arguments);
+                    handler.post(() -> result.error(s));
                 }
             });
             Log.e("Starting network printer discovery");
@@ -539,7 +539,7 @@ public class ZPrinter
                             discoveredPrinterAddresses.add("WiFi: " + discoveredPrinter.address);
                             arguments.put("name", discoveredPrinter.getDiscoveryDataMap().get("SYSTEM_NAME"));
                             arguments.put("type", 0);
-                            channel.invokeMethod("printerFound", new Gson().toJson(arguments));
+                            handler.post(() -> result.success(new Gson().toJson(arguments)));
                         }
                     });
                 }
@@ -553,7 +553,7 @@ public class ZPrinter
                 public void discoveryError(String s) {
                     HashMap<String, Object> arguments = new HashMap<>();
                     arguments.put("error", s);
-                    channel.invokeMethod("discoveryError", arguments);
+                    handler.post(() -> result.error(s));
                 }
             });
         } catch (Exception e) {
@@ -562,6 +562,7 @@ public class ZPrinter
     }
 
     public static List<String> getDiscoveredPrinterAddresses() {
+        handler.post(() -> result.success(discoveredPrinterAddresses));
         return discoveredPrinterAddresses;
     }
 
