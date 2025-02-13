@@ -154,11 +154,10 @@ class _MyAppState extends State<MyApp> {
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all(Colors.green),
-                                  textStyle: MaterialStateProperty.all(
-                                      const TextStyle(color: Colors.white))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed: () async {
                                 try {
                                   FilePickerResult? result = await FilePicker
@@ -187,11 +186,10 @@ class _MyAppState extends State<MyApp> {
                           ),
                           Expanded(
                             child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                      Colors.lightGreen),
-                                  textStyle: MaterialStateProperty.all(
-                                      const TextStyle(color: Colors.white))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.lightGreen,
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed: () async {
                                 try {
                                   FilePickerResult? result = await FilePicker
@@ -295,11 +293,10 @@ class _MyAppState extends State<MyApp> {
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all(Colors.orange),
-                                  textStyle: MaterialStateProperty.all(
-                                      const TextStyle(color: Colors.white))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed:
                                   checkingStatus == OperationStatus.RECEIVING
                                       ? null
@@ -313,11 +310,10 @@ class _MyAppState extends State<MyApp> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all(Colors.red),
-                                  textStyle: MaterialStateProperty.all(
-                                      const TextStyle(color: Colors.white))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed:
                                   checkingStatus == OperationStatus.SENDING
                                       ? null
@@ -627,11 +623,10 @@ class _MyAppState extends State<MyApp> {
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                      Colors.deepPurple),
-                                  textStyle: MaterialStateProperty.all(
-                                      const TextStyle(color: Colors.white))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple,
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed:
                                   settingsStatus == OperationStatus.SENDING ||
                                           settingsStatus ==
@@ -649,11 +644,10 @@ class _MyAppState extends State<MyApp> {
                           ),
                           Expanded(
                             child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all(Colors.purple),
-                                  textStyle: MaterialStateProperty.all(
-                                      const TextStyle(color: Colors.white))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.purple,
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed:
                                   settingsStatus == OperationStatus.SENDING ||
                                           settingsStatus ==
@@ -672,11 +666,10 @@ class _MyAppState extends State<MyApp> {
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all(Colors.pink),
-                                  textStyle: MaterialStateProperty.all(
-                                      const TextStyle(color: Colors.white))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.pink,
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed:
                                   settingsStatus == OperationStatus.SENDING ||
                                           settingsStatus ==
@@ -732,11 +725,10 @@ class _MyAppState extends State<MyApp> {
                         children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                      Colors.blueGrey),
-                                  textStyle: MaterialStateProperty.all(
-                                      const TextStyle(color: Colors.white))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blueGrey,
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed:
                                   calibrationStatus == OperationStatus.SENDING
                                       ? null
@@ -832,10 +824,10 @@ class _MyAppState extends State<MyApp> {
                 ),
               ),
               ElevatedButton(
-                style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.cyan),
-                    textStyle: MaterialStateProperty.all(
-                        const TextStyle(color: Colors.white))),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyan,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: printStatus == OperationStatus.SENDING
                     ? null
                     : () => onClick(btnPrintConfigurationLabel),
@@ -848,11 +840,10 @@ class _MyAppState extends State<MyApp> {
                 children: <Widget>[
                   Expanded(
                     child: ElevatedButton(
-                      style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all(Colors.blueAccent),
-                          textStyle: MaterialStateProperty.all(
-                              const TextStyle(color: Colors.white))),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.white,
+                      ),
                       onPressed: printStatus == OperationStatus.SENDING
                           ? null
                           : () => onClick(btnPrintZplFileOverTCPIP),
@@ -867,11 +858,10 @@ class _MyAppState extends State<MyApp> {
                   ),
                   Expanded(
                     child: ElevatedButton(
-                      style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all(Colors.lightBlue),
-                          textStyle: MaterialStateProperty.all(
-                              const TextStyle(color: Colors.white))),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.lightBlue,
+                        foregroundColor: Colors.white,
+                      ),
                       onPressed: printStatus == OperationStatus.SENDING
                           ? null
                           : () => onClick(btnPrintPdfFileOverTCPIP),
@@ -884,11 +874,10 @@ class _MyAppState extends State<MyApp> {
                 ],
               ),
               ElevatedButton(
-                style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all(Colors.blueAccent),
-                    textStyle: MaterialStateProperty.all(
-                        const TextStyle(color: Colors.white))),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: printStatus == OperationStatus.SENDING
                     ? null
                     : () => onClick(btnPrintZplDataOverTCPIP),

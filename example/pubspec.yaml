@@ -10,14 +10,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  file_picker: ^6.1.1
+  file_picker: ^8.3.5
   zsdk:
     path: ../
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
+  flutter_lints: ^5.0.0
 
 
 # For information on the generic Dart part of this file, see the
