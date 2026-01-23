@@ -8,6 +8,7 @@
 #import "ZPrinter.h"
 #import "ZebraPrinterFactory.h"
 #import "TcpPrinterConnection.h"
+#import "MfiBtPrinterConnection.h"
 #import "ErrorCodeUtils.h"
 #import "PrinterResponse.h"
 #import "SGDParams.h"
@@ -368,10 +369,258 @@ const int TIME_TO_WAIT_FOR_MORE_DATA = 0;
         id<ZebraPrinterConnection,NSObject> connection;
         @try {
             int tcpPort = ![ObjectUtils isNull:port] ? [port intValue] : DEFAULT_ZPL_TCP_PORT;
-            
+
             connection = [ZPrinter initWithAddress:address andWithPort:tcpPort];
             if(![connection open]) return [self onConnectionTimeOut];
-            
+
+            if([PrinterUtils reboot:connection]) {
+                [self onPrinterRebooted:@"Printer successfully rebooted"];
+            } else {
+                StatusInfo *statusInfo = [[StatusInfo alloc] init:UNKNOWN_STATUS cause:UNKNOWN_CAUSE];
+                PrinterResponse *response = [[PrinterResponse alloc] init:EXCEPTION statusInfo:statusInfo message:@"Printer could not be rebooted."];
+                self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+            }
+        } @catch (NSException *e) {
+            [self onException:nil exception:e];
+        } @finally {
+            if(connection != nil) [connection close];
+        }
+    });
+}
+
+- (void)doManualCalibrationOverBluetooth:(NSString *)macAddress {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            connection = [[MfiBtPrinterConnection alloc] initWithSerialNumber:macAddress];
+            if(![connection open]) return [self onConnectionTimeOut];
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                [SGD DO:SGDParams.KEY_MANUAL_CALIBRATION withValue:nil andWithPrinterConnection:connection error:&error];
+
+                if (![ObjectUtils isNull:error])
+                    @throw [NSException exceptionWithName:@"Printer error" reason:[error description] userInfo:nil];
+                else {
+                    StatusInfo *statusInfo = [self getStatusInfo:printer];
+                    PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Printer status"];
+                    self.result([response toMap]);
+                }
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            [self onException:printer exception:e];
+        }
+    });
+}
+
+- (void)printConfigurationLabelOverBluetooth:(NSString *)macAddress {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            connection = [[MfiBtPrinterConnection alloc] initWithSerialNumber:macAddress];
+            if(![connection open]) return [self onConnectionTimeOut];
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                id<ToolsUtil,NSObject> toolsUtils = [printer getToolsUtil];
+                [toolsUtils printConfigurationLabel:&error];
+
+                if (![ObjectUtils isNull:error])
+                    @throw [NSException exceptionWithName:@"Printer error" reason:[error description] userInfo:nil];
+                else {
+                    StatusInfo *statusInfo = [self getStatusInfo:printer];
+                    PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Printer status"];
+                    self.result([response toMap]);
+                }
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            [self onException:printer exception:e];
+        }
+    });
+}
+
+- (void)checkPrinterStatusOverBluetooth:(NSString *)macAddress {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            connection = [[MfiBtPrinterConnection alloc] initWithSerialNumber:macAddress];
+            if(![connection open]) return [self onConnectionTimeOut];
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Printer status"];
+                self.result([response toMap]);
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            [self onException:printer exception:e];
+        }
+    });
+}
+
+- (void)getPrinterSettingsOverBluetooth:(NSString *)macAddress {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            connection = [[MfiBtPrinterConnection alloc] initWithSerialNumber:macAddress];
+            if(![connection open]) return [self onConnectionTimeOut];
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                PrinterSettings *settings = [PrinterSettings get:connection];
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                PrinterResponse *response = [[PrinterResponse alloc] initWithSettings:SUCCESS statusInfo:statusInfo settings:settings message:@"Printer status"];
+                self.result([response toMap]);
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            [self onException:printer exception:e];
+        }
+    });
+}
+
+- (void)setPrinterSettingsOverBluetooth:(NSString *)macAddress settings:(PrinterSettings *)settings {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinter,NSObject> printer;
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            if([ObjectUtils isNull:settings])
+                @throw [NSException exceptionWithName:@"Printer Error" reason:@"Settings can't be null" userInfo:nil];
+
+            connection = [[MfiBtPrinterConnection alloc] initWithSerialNumber:macAddress];
+            if(![connection open]) return [self onConnectionTimeOut];
+            NSError *error = nil;
+            @try {
+                printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                [settings apply:connection];
+                if(![connection isConnected]) {
+                    [self onPrinterRebooted:@"New settings required Printer to reboot"];
+                    return;
+                }
+                PrinterSettings *currentSettings = [PrinterSettings get:connection];
+                StatusInfo *statusInfo = [self getStatusInfo:printer];
+                PrinterResponse *response = [[PrinterResponse alloc] initWithSettings:SUCCESS statusInfo:statusInfo settings:currentSettings message:@"Printer status"];
+                self.result([response toMap]);
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            [self onException:printer exception:e];
+        }
+    });
+}
+
+- (void)printPdfFileOverBluetooth:(NSString *)filePath macAddress:(NSString *)macAddress {
+    [self doPrintOverBluetooth:nil filePath:filePath macAddress:macAddress isZPL:false];
+}
+
+- (void)printZplFileOverBluetooth:(NSString *)filePath macAddress:(NSString *)macAddress {
+    [self doPrintOverBluetooth:nil filePath:filePath macAddress:macAddress isZPL:true];
+}
+
+- (void)printZplDataOverBluetooth:(NSString *)data macAddress:(NSString *)macAddress {
+    [self doPrintOverBluetooth:data filePath:nil macAddress:macAddress isZPL:true];
+}
+
+- (void)doPrintOverBluetooth:(nullable NSString *)data filePath:(nullable NSString *)filePath macAddress:(NSString *)macAddress isZPL:(Boolean)isZPL {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            connection = [[MfiBtPrinterConnection alloc] initWithSerialNumber:macAddress];
+            if(![connection open]) return [self onConnectionTimeOut];
+            NSError *error = nil;
+            @try {
+                if (![ObjectUtils isNull:data]) {
+                    [connection write:[data dataUsingEncoding:NSUTF8StringEncoding] error:&error];
+
+                    if (![ObjectUtils isNull:error])
+                        @throw [NSException exceptionWithName:@"Printer error" reason:[error description] userInfo:nil];
+                    else {
+                        StatusInfo *statusInfo = [[StatusInfo alloc] init:READY_TO_PRINT cause:UNKNOWN_CAUSE];
+                        PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Successful print"];
+                        self.result([response toMap]);
+                    }
+                } else if (![ObjectUtils isNull:filePath]) {
+                    id<ZebraPrinter,NSObject> printer = [ZebraPrinterFactory getInstance:connection error:&error];
+                    if ([self isReadyToPrint:printer]) {
+                        [self initValues:connection];
+
+                        if(isZPL) {
+                            [self changePrinterLanguage:connection language:SGDParams.VALUE_ZPL_LANGUAGE];
+                        } else {
+                            if ([self enablePDFDirect:connection enabled:true]) {
+                                [self onPrinterRebooted:@"Printer was rebooted to be able to use PDF Direct feature."];
+                                return;
+                            }
+                        }
+
+                        id<FileUtil,NSObject> fileUtil = [printer getFileUtil];
+                        [fileUtil sendFileContents:filePath error:&error];
+
+                        if (![ObjectUtils isNull:error])
+                            @throw [NSException exceptionWithName:@"Printer error" reason:[error description] userInfo:nil];
+                        else {
+                            StatusInfo *statusInfo = [self getStatusInfo:printer];
+                            PrinterResponse *response = [[PrinterResponse alloc] init:SUCCESS statusInfo:statusInfo message:@"Successful print"];
+                            self.result([response toMap]);
+                        }
+                    } else {
+                        StatusInfo *statusInfo = [self getStatusInfo:printer];
+                        PrinterResponse *response = [[PrinterResponse alloc] init:PRINTER_ERROR statusInfo:statusInfo message:@"Printer is not ready"];
+                        self.result([FlutterError errorWithCode:[response getErrorCode] message: response.message details:[response toMap]]);
+                    }
+                }
+            }
+            @catch (NSException *e) {
+                @throw e;
+            } @finally {
+                [connection close];
+            }
+        }
+        @catch (NSException *e) {
+            [self onException:nil exception:e];
+        }
+    });
+}
+
+- (void)rebootPrinterOverBluetooth:(NSString *)macAddress {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        id<ZebraPrinterConnection,NSObject> connection;
+        @try {
+            connection = [[MfiBtPrinterConnection alloc] initWithSerialNumber:macAddress];
+            if(![connection open]) return [self onConnectionTimeOut];
+
             if([PrinterUtils reboot:connection]) {
                 [self onPrinterRebooted:@"Printer successfully rebooted"];
             } else {

@@ -38,6 +38,16 @@ NS_ASSUME_NONNULL_BEGIN
 - (StatusInfo *) getStatusInfo:(nullable id<ZebraPrinter, NSObject>)printer;
 - (void) changePrinterLanguage:(id<ZebraPrinterConnection, NSObject>)connection language:(NSString *)language;
 - (void) rebootPrinter:(NSString *)address port:(NSNumber *)port;
+- (void) doManualCalibrationOverBluetooth:(NSString *)macAddress;
+- (void) printConfigurationLabelOverBluetooth:(NSString *)macAddress;
+- (void) checkPrinterStatusOverBluetooth:(NSString *)macAddress;
+- (void) getPrinterSettingsOverBluetooth:(NSString *)macAddress;
+- (void) setPrinterSettingsOverBluetooth:(NSString *)macAddress settings:(PrinterSettings *)settings;
+- (void) printPdfFileOverBluetooth:(NSString *)filePath macAddress:(NSString *)macAddress;
+- (void) printZplFileOverBluetooth:(NSString *)filePath macAddress:(NSString *)macAddress;
+- (void) printZplDataOverBluetooth:(NSString *)data macAddress:(NSString *)macAddress;
+- (void) doPrintOverBluetooth:(nullable NSString *)data filePath:(nullable NSString *)filePath macAddress:(NSString *)macAddress isZPL:(Boolean)isZPL;
+- (void) rebootPrinterOverBluetooth:(NSString *)macAddress;
 @end
 
 NS_ASSUME_NONNULL_END
