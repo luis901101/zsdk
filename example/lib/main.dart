@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:zsdk/zsdk.dart' as Printer;
 import 'dart:io';
 
@@ -22,6 +23,10 @@ const String btnDoManualCalibration = 'btnDoManualCalibration';
 const String btnPrintConfigurationLabel = 'btnPrintConfigurationLabel';
 const String btnRebootPrinter = 'btnRebootPrinter';
 
+const String btnGetBondedDevices = 'btnGetBondedDevices';
+const String btnDiscoverPrinters = 'btnDiscoverPrinters';
+const String btnPrintZplDataOverBluetooth = 'btnPrintZplDataOverBluetooth';
+
 class MyApp extends StatefulWidget {
   final Printer.ZSDK zsdk = Printer.ZSDK();
 
@@ -42,6 +47,8 @@ enum OperationStatus {
 class _MyAppState extends State<MyApp> {
   final addressIpController = TextEditingController(text: "10.0.0.11");
   final addressPortController = TextEditingController();
+  final btMacAddressController = TextEditingController();
+  List<Map<String, String>> bondedDevices = [];
   final pathController = TextEditingController();
   final zplDataController = TextEditingController(
       text: '^XA^FO17,16^GB379,371,8^FS^FT65,255^A0N,135,134^FDTEST^FS^XZ');
@@ -78,8 +85,16 @@ class _MyAppState extends State<MyApp> {
   OperationStatus settingsStatus = OperationStatus.NONE;
   OperationStatus calibrationStatus = OperationStatus.NONE;
   OperationStatus rebootingStatus = OperationStatus.NONE;
+  OperationStatus btStatus = OperationStatus.NONE;
+  String? btMessage;
   String? filePath;
   String? zplData;
+
+  Future<bool> _requestBluetoothPermissions() async {
+    var btConnect = await Permission.bluetoothConnect.request();
+    var btScan = await Permission.bluetoothScan.request();
+    return btConnect.isGranted && btScan.isGranted;
+  }
 
   @override
   void initState() {
@@ -886,6 +901,118 @@ class _MyAppState extends State<MyApp> {
                   textAlign: TextAlign.center,
                 ),
               ),
+              const SizedBox(height: 32),
+              const Text(
+                'Bluetooth',
+                style: TextStyle(fontSize: 18),
+              ),
+              const Divider(color: Colors.transparent),
+              Card(
+                elevation: 4,
+                margin: const EdgeInsets.all(8),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: <Widget>[
+                      TextField(
+                        controller: btMacAddressController,
+                        decoration: const InputDecoration(
+                            labelText: "Printer MAC address"),
+                      ),
+                      const SizedBox(height: 8),
+                      if (bondedDevices.isNotEmpty)
+                        DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                              labelText: "Select bonded device"),
+                          items: bondedDevices
+                              .map((d) => DropdownMenuItem(
+                                    value: d['address'],
+                                    child: Text(
+                                        "${d['name']} (${d['address']})"),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                btMacAddressController.text = value;
+                              });
+                            }
+                          },
+                        ),
+                      const SizedBox(height: 16),
+                      Visibility(
+                        visible: btStatus != OperationStatus.NONE,
+                        child: Column(
+                          children: <Widget>[
+                            Text(
+                              "$btMessage",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: getOperationStatusColor(btStatus)),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.indigo,
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed: () => onClick(btnGetBondedDevices),
+                              child: Text(
+                                "Bonded".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepOrange,
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed: btStatus == OperationStatus.RECEIVING
+                                  ? null
+                                  : () => onClick(btnDiscoverPrinters),
+                              child: Text(
+                                "Scan".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal,
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed: btStatus == OperationStatus.SENDING
+                                  ? null
+                                  : () => onClick(btnPrintZplDataOverBluetooth),
+                              child: Text(
+                                "Print ZPL over Bluetooth".toUpperCase(),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(
                 height: 100,
               ),
@@ -1421,6 +1548,106 @@ class _MyAppState extends State<MyApp> {
             }
             setState(() {
               printStatus = OperationStatus.ERROR;
+            });
+          });
+          break;
+        case btnGetBondedDevices:
+          setState(() {
+            btMessage = "Requesting permissions...";
+            btStatus = OperationStatus.RECEIVING;
+          });
+          if (!await _requestBluetoothPermissions()) {
+            setState(() {
+              btStatus = OperationStatus.ERROR;
+              btMessage = "Bluetooth permissions denied";
+            });
+            break;
+          }
+          setState(() {
+            btMessage = "Getting bonded devices...";
+          });
+          widget.zsdk.getBondedDevices().then((devices) {
+            setState(() {
+              bondedDevices = devices;
+              btStatus = OperationStatus.SUCCESS;
+              btMessage = "Found ${devices.length} bonded device(s)";
+            });
+          }, onError: (error, stacktrace) {
+            setState(() {
+              btStatus = OperationStatus.ERROR;
+              btMessage = error.toString();
+            });
+          });
+          break;
+        case btnDiscoverPrinters:
+          setState(() {
+            btMessage = "Requesting permissions...";
+            btStatus = OperationStatus.RECEIVING;
+          });
+          if (!await _requestBluetoothPermissions()) {
+            setState(() {
+              btStatus = OperationStatus.ERROR;
+              btMessage = "Bluetooth permissions denied";
+            });
+            break;
+          }
+          setState(() {
+            btMessage = "Scanning for Zebra printers...";
+          });
+          widget.zsdk.discoverBluetoothPrinters().then((devices) {
+            setState(() {
+              bondedDevices = devices;
+              btStatus = OperationStatus.SUCCESS;
+              btMessage = "Found ${devices.length} printer(s)";
+            });
+          }, onError: (error, stacktrace) {
+            setState(() {
+              btStatus = OperationStatus.ERROR;
+              btMessage = error.toString();
+            });
+          });
+          break;
+        case btnPrintZplDataOverBluetooth:
+          zplData = zplDataController.text;
+          if (zplData == null || zplData!.isEmpty) {
+            throw Exception("ZPL data can't be empty");
+          }
+          if (btMacAddressController.text.isEmpty) {
+            throw Exception("MAC address can't be empty");
+          }
+          setState(() {
+            btMessage = "Print job started...";
+            btStatus = OperationStatus.SENDING;
+          });
+          widget.zsdk
+              .printZplDataOverBluetooth(
+                  data: zplData!,
+                  macAddress: btMacAddressController.text)
+              .then((value) {
+            setState(() {
+              btStatus = OperationStatus.SUCCESS;
+              btMessage = "$value";
+            });
+          }, onError: (error, stacktrace) {
+            try {
+              throw error;
+            } on PlatformException catch (e) {
+              Printer.PrinterResponse printerResponse;
+              try {
+                printerResponse = Printer.PrinterResponse.fromMap(e.details);
+                btMessage =
+                    "${printerResponse.message} ${printerResponse.errorCode} ${printerResponse.statusInfo.status} ${printerResponse.statusInfo.cause}";
+              } catch (e) {
+                print(e);
+                btMessage = e.toString();
+              }
+            } on MissingPluginException catch (e) {
+              btMessage = "${e.message}";
+            } catch (e) {
+              btMessage = e.toString();
+            }
+            setState(() {
+              btStatus = OperationStatus.ERROR;
             });
           });
           break;
