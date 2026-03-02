@@ -11,29 +11,29 @@ import 'enumerators/virtual_device.dart';
 /// Created by luis901101 on 2020-02-10.
 class PrinterSettings {
   /// Fields name
-  static const String FIELD_DARKNESS = "darkness";
-  static const String FIELD_PRINT_SPEED = "printSpeed";
-  static const String FIELD_TEAR_OFF = "tearOff";
-  static const String FIELD_MEDIA_TYPE = "mediaType";
-  static const String FIELD_PRINT_METHOD = "printMethod";
-  static const String FIELD_PRINT_WIDTH = "printWidth";
-  static const String FIELD_LABEL_LENGTH = "labelLength";
-  static const String FIELD_LABEL_LENGTH_MAX = "labelLengthMax";
-  static const String FIELD_ZPL_MODE = "zplMode";
-  static const String FIELD_POWER_UP_ACTION = "powerUpAction";
-  static const String FIELD_HEAD_CLOSE_ACTION = "headCloseAction";
-  static const String FIELD_LABEL_TOP = "labelTop";
-  static const String FIELD_LEFT_POSITION = "leftPosition";
-  static const String FIELD_PRINT_MODE = "printMode";
-  static const String FIELD_REPRINT_MODE = "reprintMode";
-  static const String FIELD_VIRTUAL_DEVICE = "virtualDevice";
-  static const String FIELD_PRINTER_MODEL_NAME = "printerModelName";
-  static const String FIELD_DEVICE_FRIENDLY_NAME = "deviceFriendlyName";
-  static const String FIELD_FIRMWARE = "firmware";
-  static const String FIELD_LINK_OS_VERSION = "linkOSVersion";
-  static const String FIELD_PRINTER_DPI = "printerDpi";
+  static const String FIELD_DARKNESS = 'darkness';
+  static const String FIELD_PRINT_SPEED = 'printSpeed';
+  static const String FIELD_TEAR_OFF = 'tearOff';
+  static const String FIELD_MEDIA_TYPE = 'mediaType';
+  static const String FIELD_PRINT_METHOD = 'printMethod';
+  static const String FIELD_PRINT_WIDTH = 'printWidth';
+  static const String FIELD_LABEL_LENGTH = 'labelLength';
+  static const String FIELD_LABEL_LENGTH_MAX = 'labelLengthMax';
+  static const String FIELD_ZPL_MODE = 'zplMode';
+  static const String FIELD_POWER_UP_ACTION = 'powerUpAction';
+  static const String FIELD_HEAD_CLOSE_ACTION = 'headCloseAction';
+  static const String FIELD_LABEL_TOP = 'labelTop';
+  static const String FIELD_LEFT_POSITION = 'leftPosition';
+  static const String FIELD_PRINT_MODE = 'printMode';
+  static const String FIELD_REPRINT_MODE = 'reprintMode';
+  static const String FIELD_VIRTUAL_DEVICE = 'virtualDevice';
+  static const String FIELD_PRINTER_MODEL_NAME = 'printerModelName';
+  static const String FIELD_DEVICE_FRIENDLY_NAME = 'deviceFriendlyName';
+  static const String FIELD_FIRMWARE = 'firmware';
+  static const String FIELD_LINK_OS_VERSION = 'linkOSVersion';
+  static const String FIELD_PRINTER_DPI = 'printerDpi';
   static const String FIELD_DEVICE_PRINT_HEAD_RESOLUTION =
-      "devicePrintHeadResolution";
+      'devicePrintHeadResolution';
 
   // Writable settings
   /// To set the darkness and relative darkness

@@ -33,62 +33,63 @@ class ZSDK {
   static const int DEFAULT_CONNECTION_TIMEOUT = 10;
 
   /// Channel
-  static const String _METHOD_CHANNEL = "zsdk";
+  static const String _METHOD_CHANNEL = 'zsdk';
 
   /// Methods
-  static const String _PRINT_PDF_FILE_OVER_TCP_IP = "printPdfFileOverTCPIP";
-  static const String _PRINT_PDF_DATA_OVER_TCP_IP = "printPdfDataOverTCPIP";
-  static const String _PRINT_ZPL_FILE_OVER_TCP_IP = "printZplFileOverTCPIP";
-  static const String _PRINT_ZPL_DATA_OVER_TCP_IP = "printZplDataOverTCPIP";
+  static const String _PRINT_PDF_FILE_OVER_TCP_IP = 'printPdfFileOverTCPIP';
+  static const String _PRINT_PDF_DATA_OVER_TCP_IP = 'printPdfDataOverTCPIP';
+  static const String _PRINT_ZPL_FILE_OVER_TCP_IP = 'printZplFileOverTCPIP';
+  static const String _PRINT_ZPL_DATA_OVER_TCP_IP = 'printZplDataOverTCPIP';
   static const String _CHECK_PRINTER_STATUS_OVER_TCP_IP =
-      "checkPrinterStatusOverTCPIP";
+      'checkPrinterStatusOverTCPIP';
   static const String _GET_PRINTER_SETTINGS_OVER_TCP_IP =
-      "getPrinterSettingsOverTCPIP";
+      'getPrinterSettingsOverTCPIP';
   static const String _SET_PRINTER_SETTINGS_OVER_TCP_IP =
-      "setPrinterSettingsOverTCPIP";
+      'setPrinterSettingsOverTCPIP';
   static const String _DO_MANUAL_CALIBRATION_OVER_TCP_IP =
-      "doManualCalibrationOverTCPIP";
+      'doManualCalibrationOverTCPIP';
   static const String _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP =
-      "printConfigurationLabelOverTCPIP";
-  static const String _REBOOT_PRINTER_OVER_TCP_IP = "rebootPrinterOverTCPIP";
+      'printConfigurationLabelOverTCPIP';
+  static const String _REBOOT_PRINTER_OVER_TCP_IP = 'rebootPrinterOverTCPIP';
 
   /// Methods - Bluetooth
   static const String _PRINT_PDF_FILE_OVER_BLUETOOTH =
-      "printPdfFileOverBluetooth";
+      'printPdfFileOverBluetooth';
   static const String _PRINT_ZPL_FILE_OVER_BLUETOOTH =
-      "printZplFileOverBluetooth";
+      'printZplFileOverBluetooth';
   static const String _PRINT_ZPL_DATA_OVER_BLUETOOTH =
-      "printZplDataOverBluetooth";
+      'printZplDataOverBluetooth';
   static const String _CHECK_PRINTER_STATUS_OVER_BLUETOOTH =
-      "checkPrinterStatusOverBluetooth";
+      'checkPrinterStatusOverBluetooth';
   static const String _GET_PRINTER_SETTINGS_OVER_BLUETOOTH =
-      "getPrinterSettingsOverBluetooth";
+      'getPrinterSettingsOverBluetooth';
   static const String _SET_PRINTER_SETTINGS_OVER_BLUETOOTH =
-      "setPrinterSettingsOverBluetooth";
+      'setPrinterSettingsOverBluetooth';
   static const String _DO_MANUAL_CALIBRATION_OVER_BLUETOOTH =
-      "doManualCalibrationOverBluetooth";
+      'doManualCalibrationOverBluetooth';
   static const String _PRINT_CONFIGURATION_LABEL_OVER_BLUETOOTH =
-      "printConfigurationLabelOverBluetooth";
+      'printConfigurationLabelOverBluetooth';
   static const String _REBOOT_PRINTER_OVER_BLUETOOTH =
-      "rebootPrinterOverBluetooth";
+      'rebootPrinterOverBluetooth';
 
   /// Methods - Bluetooth Connection Management
-  static const String _CONNECT_BLUETOOTH = "connectBluetooth";
-  static const String _DISCONNECT_BLUETOOTH = "disconnectBluetooth";
-  static const String _IS_BLUETOOTH_CONNECTED = "isBluetoothConnected";
-  static const String _GET_BONDED_DEVICES = "getBondedDevices";
-  static const String _DISCOVER_BLUETOOTH_PRINTERS = "discoverBluetoothPrinters";
+  static const String _CONNECT_BLUETOOTH = 'connectBluetooth';
+  static const String _DISCONNECT_BLUETOOTH = 'disconnectBluetooth';
+  static const String _IS_BLUETOOTH_CONNECTED = 'isBluetoothConnected';
+  static const String _GET_BONDED_DEVICES = 'getBondedDevices';
+  static const String _DISCOVER_BLUETOOTH_PRINTERS =
+      'discoverBluetoothPrinters';
 
   /// Properties
-  static const String _filePath = "filePath";
-  static const String _data = "data";
-  static const String _address = "address";
-  static const String _port = "port";
-  static const String _macAddress = "macAddress";
-  static const String _cmWidth = "cmWidth";
-  static const String _cmHeight = "cmHeight";
-  static const String _orientation = "orientation";
-  static const String _dpi = "dpi";
+  static const String _filePath = 'filePath';
+  static const String _data = 'data';
+  static const String _address = 'address';
+  static const String _port = 'port';
+  static const String _macAddress = 'macAddress';
+  static const String _cmWidth = 'cmWidth';
+  static const String _cmHeight = 'cmHeight';
+  static const String _orientation = 'orientation';
+  static const String _dpi = 'dpi';
 
   late MethodChannel _channel;
 
@@ -371,7 +372,7 @@ class ZSDK {
           timeout: timeout);
 
   Future _printFileOverBluetooth(
-          {required method,
+          {required String method,
           required String filePath,
           required String macAddress,
           PrinterConf? printerConf,
@@ -400,7 +401,7 @@ class ZSDK {
           timeout: timeout);
 
   Future _printDataOverBluetooth(
-          {required method,
+          {required String method,
           required dynamic data,
           required String macAddress,
           PrinterConf? printerConf,
@@ -457,9 +458,10 @@ class ZSDK {
   Future<List<Map<String, String>>> discoverBluetoothPrinters({
     Duration? timeout,
   }) async {
-    final result = await _channel.invokeMethod(_DISCOVER_BLUETOOTH_PRINTERS).timeout(
-        timeout ??= const Duration(seconds: 30),
-        onTimeout: () => <Map<String, String>>[]);
+    final result = await _channel
+        .invokeMethod(_DISCOVER_BLUETOOTH_PRINTERS)
+        .timeout(timeout ??= const Duration(seconds: 30),
+            onTimeout: () => <Map<String, String>>[]);
     if (result == null) return [];
     return (result as List).map((device) {
       final map = device as Map;
