@@ -9,6 +9,16 @@ Types of changes
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+## 5.0.0 (2025-03-02)
+### Fixed
+- Fixed `arm64` support for iOS _([ISSUE-27](https://github.com/luis901101/zsdk/issues/27))_.
+
+### Changed
+- Updated Android `compileSdkVersion` and `targetSdkVersion` to 36.
+- Upgraded Gradle to 9.1.0 and Kotlin to 2.3.10 in the example project.
+- Updated iOS deployment target to 12.0 and adjusted `pod_target_xcconfig`.
+- Updated example project.
+
 ## 4.0.0 (2025-02-13)
 ### Changed
 - Example project updated to use latest version of dependencies and adjust to latest flutter version.

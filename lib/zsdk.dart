@@ -192,7 +192,7 @@ class ZSDK {
           timeout: timeout);
 
   Future _printFileOverTCPIP(
-          {required method,
+          {required String method,
           required String filePath,
           required String address,
           int? port,
@@ -239,7 +239,7 @@ class ZSDK {
           timeout: timeout);
 
   Future _printDataOverTCPIP(
-          {required method,
+          {required String method,
           required dynamic data,
           required String address,
           int? port,
