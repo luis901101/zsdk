@@ -34,6 +34,8 @@ PODS:
     - DKImagePickerController/PhotoGallery
     - Flutter
   - Flutter (1.0.0)
+  - permission_handler_apple (9.3.0):
+    - Flutter
   - SDWebImage (5.21.6):
     - SDWebImage/Core (= 5.21.6)
   - SDWebImage/Core (5.21.6)
@@ -44,6 +46,7 @@ PODS:
 DEPENDENCIES:
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - zsdk (from `.symlinks/plugins/zsdk/ios`)
 
 SPEC REPOS:
@@ -58,6 +61,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
   zsdk:
     :path: ".symlinks/plugins/zsdk/ios"
 
@@ -66,10 +71,11 @@ SPEC CHECKSUMS:
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   SDWebImage: 1bb6a1b84b6fe87b972a102bdc77dd589df33477
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   zsdk: 92b0401227379ac6c3e9fb6bebfb2a02391a5cb5
 
-PODFILE CHECKSUM: cc1f88378b4bfcf93a6ce00d2c587857c6008d3b
+PODFILE CHECKSUM: d051652e1c4dbeb26da8a99fb62c668f9bf26581
 
 COCOAPODS: 1.16.2

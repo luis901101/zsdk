@@ -44,19 +44,58 @@ end
 ```
 
 #### Bluetooth Support (iOS)
-If you want to use Bluetooth connectivity on iOS, you need to configure your app for MFi (Made for iPhone) accessories:
+If you want to use Bluetooth connectivity on iOS, you need to configure your app for MFi (Made for iPhone) accessories and configure the required permissions:
 
-1. Add the following to your `Info.plist`:
+1. Add the following keys to your `Info.plist`:
 ```xml
 <key>UISupportedExternalAccessoryProtocols</key>
 <array>
     <string>com.zebra.rawport</string>
 </array>
+
+<!-- Required for Bluetooth permission requests on iOS 13+ -->
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>This app uses Bluetooth to connect to Zebra printers</string>
+
+<key>NSBluetoothCentralUsageDescription</key>
+<string>This app needs Bluetooth access to discover and connect to Zebra printers</string>
+
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>This app uses Bluetooth to communicate with Zebra printers in the background</string>
 ```
 
-2. Add the `ExternalAccessory` framework to your Xcode project.
+2. If using `permission_handler`plugin, update your `Podfile` to enable Bluetooth permissions. Ensure the following line is present in the `post_install` block:
+```ruby
+    'PERMISSION_BLUETOOTH=1',
+```
 
-**Important:** On iOS, Bluetooth uses the printer's **serial number** instead of MAC address. Use `getBondedDevices()` to discover connected Zebra printers - the `address` field will contain the serial number to use with Bluetooth methods.
+3. Add the `ExternalAccessory` framework to your Xcode project (usually automatic via CocoaPods).
+
+4. Request Bluetooth permissions at runtime before using any Bluetooth features:
+```dart
+import 'package:permission_handler/permission_handler.dart';
+
+Future<bool> requestBluetoothPermissions() async {
+  final btConnect = await Permission.bluetoothConnect.request();
+  final btScan = await Permission.bluetoothScan.request();
+  
+  if (btConnect.isPermanentlyDenied || btScan.isPermanentlyDenied) {
+    // Permissions are permanently denied, open app settings
+    openAppSettings();
+    return false;
+  }
+  
+  return btConnect.isGranted && btScan.isGranted;
+}
+```
+
+**Important Notes:**
+- iOS uses MFi (Made for iPhone) Bluetooth, which requires the ExternalAccessory framework
+- On iOS, Bluetooth uses the printer's **serial number** instead of MAC address
+- Use `getBondedDevices()` to discover connected Zebra printers - the `address` field contains the serial number
+- If permissions show as `permanentlyDenied`, the user must enable them in Settings > [App Name] > Bluetooth
+- Always test permissions on a real iOS device; simulators don't support Bluetooth
+
 
 ### Android Setup
 

@@ -91,9 +91,56 @@ class _MyAppState extends State<MyApp> {
   String? zplData;
 
   Future<bool> _requestBluetoothPermissions() async {
+    // On iOS, Bluetooth access is governed by CoreBluetooth — it is NOT a
+    // runtime permission that can be requested via permission_handler.
+    // The system dialog is shown automatically by the OS the first time the
+    // native SDK opens a CBCentralManager session (i.e. when a Bluetooth
+    // operation is actually attempted). Calling Permission.bluetoothConnect
+    // / bluetoothScan.request() on iOS always returns permanentlyDenied
+    // because those Android-style runtime permissions simply don't exist on
+    // iOS. We therefore skip the check on iOS and let the native layer
+    // handle the prompt.
+    if (Platform.isIOS) {
+      return true;
+    }
+
+    // Android — request the runtime Bluetooth permissions introduced in API 31.
     var btConnect = await Permission.bluetoothConnect.request();
     var btScan = await Permission.bluetoothScan.request();
-    return btConnect.isGranted && btScan.isGranted;
+
+    if (btConnect.isGranted && btScan.isGranted) {
+      return true;
+    }
+
+    if (btConnect.isPermanentlyDenied || btScan.isPermanentlyDenied) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text('Bluetooth Permissions Required'),
+            content: const Text(
+              'Bluetooth permissions are required to connect to Zebra printers. '
+              'Please enable them in your app settings.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  openAppSettings();
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Open Settings'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+
+    return false;
   }
 
   @override
@@ -982,7 +1029,7 @@ class _MyAppState extends State<MyApp> {
                                   ? null
                                   : () => onClick(btnDiscoverPrinters),
                               child: Text(
-                                "Scan".toUpperCase(),
+                                "${"Scan".toUpperCase()}\nOnly on Android",
                                 textAlign: TextAlign.center,
                               ),
                             ),

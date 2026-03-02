@@ -10,6 +10,9 @@ Types of changes
 - `Security` in case of vulnerabilities.
 
 ## 5.0.0 (2025-03-02)
+### Added
+- Added support for Blueetooh printing _(Thanks to [eirikb](https://github.com/eirikb) for [PR-26](https://github.com/luis901101/zsdk/pull/26))_.
+
 ### Fixed
 - Fixed `arm64` support for iOS _([ISSUE-27](https://github.com/luis901101/zsdk/issues/27))_.
 
