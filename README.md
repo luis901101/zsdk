@@ -4,18 +4,18 @@
 This is a flutter plugin for the Link-OS Multiplatform SDK for [Zebra](https://www.zebra.com/ap/en/support-downloads/printer-software/link-os-multiplatform-sdk.html)
 
 ### Features
-| Feature                   | iOS (TCP/IP)            | iOS (Bluetooth)         | Android (TCP/IP)        | Android (Bluetooth)     |
-|---------------------------|-------------------------|-------------------------|-------------------------|-------------------------|
-| Print ZPL from String     | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
-| Print ZPL from file       | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
-| Print PDF from byte array | :ballot_box_with_check: | :x:                     | :ballot_box_with_check: | :x:                     |
-| Print PDF from file       | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
-| Get printer settings      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
-| Set printer settings      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
-| Check printer status      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
-| Print configuration label | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
-| Run calibration           | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
-| Reboot printer            | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Feature                   | iOS (TCP/IP)       | iOS (Bluetooth)         | Android (TCP/IP)        | Android (Bluetooth)     |
+|---------------------------|--------------------|-------------------------|-------------------------|-------------------------|
+| Print ZPL from String     | :white_check_mark: | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Print ZPL from file       | :white_check_mark: | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Print PDF from byte array | :x:                | :x:                     | :ballot_box_with_check: | :x:                     |
+| Print PDF from file       | :white_check_mark: | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Get printer settings      | :white_check_mark: | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Set printer settings      | :white_check_mark: | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Check printer status      | :white_check_mark: | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Print configuration label | :white_check_mark: | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Run calibration           | :white_check_mark: | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Reboot printer            | :white_check_mark: | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
 
 ### Connection Types
 - **TCP/IP**: Supported on both iOS and Android
