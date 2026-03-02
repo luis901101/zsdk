@@ -4,21 +4,22 @@
 This is a flutter plugin for the Link-OS Multiplatform SDK for [Zebra](https://www.zebra.com/ap/en/support-downloads/printer-software/link-os-multiplatform-sdk.html)
 
 ### Features
-| Feature                   | iOS                     | Android                 |
-|---------------------------|-------------------------|-------------------------|
-| Print ZPL from String     | :white_check_mark:      | :white_check_mark:      |
-| Print ZPL from file       | :white_check_mark:      | :white_check_mark:      |
-| Print PDF from byte array | :ballot_box_with_check: | :ballot_box_with_check: |
-| Print PDF from file       | :white_check_mark:      | :white_check_mark:      |
-| Get printer settings      | :white_check_mark:      | :white_check_mark:      |
-| Set printer settings      | :white_check_mark:      | :white_check_mark:      |
-| Check printer status      | :white_check_mark:      | :white_check_mark:      |
-| Print configuration label | :white_check_mark:      | :white_check_mark:      |
-| Run calibration           | :white_check_mark:      | :white_check_mark:      |
-| Reboot printer            | :white_check_mark:      | :white_check_mark:      |
+| Feature                   | iOS (TCP/IP)            | iOS (Bluetooth)         | Android (TCP/IP)        | Android (Bluetooth)     |
+|---------------------------|-------------------------|-------------------------|-------------------------|-------------------------|
+| Print ZPL from String     | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Print ZPL from file       | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Print PDF from byte array | :ballot_box_with_check: | :x:                     | :ballot_box_with_check: | :x:                     |
+| Print PDF from file       | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Get printer settings      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Set printer settings      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Check printer status      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Print configuration label | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Run calibration           | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
+| Reboot printer            | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      |
 
-
-**Currently this plugin only supports TCP/IP connection to the Printer.** 
+### Connection Types
+- **TCP/IP**: Supported on both iOS and Android
+- **Bluetooth**: Supported on both iOS and Android (requires additional setup) 
 
 ### Note:
 Since v3.1.0+1 the plugin supports PDF direct printing on both iOS and Android, before this version, the PDF printing was only available on Android, and it was by using some kind of workaround converting the PDF to image and printing it as image, which was not reliable and caused some issues depending on the document dimensions, etc.
@@ -31,6 +32,8 @@ Steps:
 ------------------------
 
 ### iOS Setup
+
+#### Podfile
 ```yaml
 target 'Runner' do
   use_frameworks!
@@ -40,8 +43,48 @@ target 'Runner' do
 end
 ```
 
+#### Bluetooth Support (iOS)
+If you want to use Bluetooth connectivity on iOS, you need to configure your app for MFi (Made for iPhone) accessories:
+
+1. Add the following to your `Info.plist`:
+```xml
+<key>UISupportedExternalAccessoryProtocols</key>
+<array>
+    <string>com.zebra.rawport</string>
+</array>
+```
+
+2. Add the `ExternalAccessory` framework to your Xcode project.
+
+**Important:** On iOS, Bluetooth uses the printer's **serial number** instead of MAC address. Use `getBondedDevices()` to discover connected Zebra printers - the `address` field will contain the serial number to use with Bluetooth methods.
+
 ### Android Setup
-No setup required
+
+#### TCP/IP Only
+No setup required.
+
+#### Bluetooth Support
+If you want to use Bluetooth connectivity, you need to add the following permissions to your app's `AndroidManifest.xml`:
+
+```xml
+<!-- Bluetooth permissions for Android 11 and below -->
+<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+
+<!-- Bluetooth permissions for Android 12+ -->
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+<!-- Optional: Only needed if you want to discover/scan for printers -->
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+```
+
+**Note:** You also need to request these permissions at runtime before using Bluetooth features. Consider using a package like `permission_handler` to handle runtime permission requests.
+
+### Bluetooth Device Identifier
+The Bluetooth methods use the `macAddress` parameter:
+- **Android**: Use the printer's MAC address (e.g., `"AC:3F:A4:12:34:56"`)
+- **iOS**: Use the printer's serial number (obtained from `getBondedDevices()`)
 
 ## How to use
 
@@ -220,8 +263,27 @@ zsdk.printPdfFileOverTCPIP(
  }
 ```
 
+## Bluetooth Examples (Android only)
 
-*Check the example code for more details*
+All Bluetooth methods mirror their TCP/IP counterparts, but use `macAddress` instead of `address` and `port`.
+
+### Example: Print ZPL over Bluetooth
+```dart
+zsdk.printZplDataOverBluetooth(
+  data: '^XA^FO17,16^GB379,371,8^FS^FT65,255^A0N,135,134^FDTEST^FS^XZ',
+  macAddress: 'AC:3F:A4:12:34:56',
+).then(value) {
+   final printerResponse = PrinterResponse.fromMap(value);
+   if(printerResponse.errorCode == ErrorCode.SUCCESS) {
+     //Do something
+   } else {
+     Cause cause = printerResponse.statusInfo.cause;
+     print(cause);
+   }
+ }
+```
+
+All Bluetooth methods mirror their TCP/IP counterparts (e.g., `printZplFileOverBluetooth`, `checkPrinterStatusOverBluetooth`, etc.).
 
 ### Tested Zebra Devices
 - Zebra ZT411 

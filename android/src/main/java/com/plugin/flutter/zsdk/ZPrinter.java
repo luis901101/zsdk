@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
+import com.zebra.sdk.comm.BluetoothConnection;
 import com.zebra.sdk.comm.Connection;
 import com.zebra.sdk.comm.ConnectionException;
 import com.zebra.sdk.comm.TcpConnection;
@@ -39,18 +40,33 @@ public class ZPrinter
     protected final Handler handler = new Handler();
     protected PrinterConf printerConf;
 
+    protected Connection activeBluetoothConnection;
+    protected boolean shouldManageConnection;
+
     public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf)
+    {
+        this(context, channel, result, printerConf, null, true);
+    }
+
+    public ZPrinter(Context context, MethodChannel channel, Result result, PrinterConf printerConf,
+                   Connection activeConnection, boolean shouldManageConnection)
     {
         this.context = context;
         this.channel = channel;
         this.result = result;
         this.printerConf = printerConf != null ? printerConf : new PrinterConf();
+        this.activeBluetoothConnection = activeConnection;
+        this.shouldManageConnection = shouldManageConnection;
     }
 
     private TcpConnection newConnection(String address, int tcpPort){
         int MAX_TIME_OUT_FOR_READ = 5000;
         int TIME_TO_WAIT_FOR_MORE_DATA = 0;
         return new TcpConnection(address, tcpPort, MAX_TIME_OUT_FOR_READ, TIME_TO_WAIT_FOR_MORE_DATA);
+    }
+
+    private BluetoothConnection newBluetoothConnection(String macAddress){
+        return new BluetoothConnection(macAddress);
     }
 
     protected void init(Connection connection){
@@ -527,5 +543,325 @@ public class ZPrinter
         }
 
         return scale;
+    }
+
+    public void doManualCalibrationOverBluetooth(final String macAddress) {
+        new Thread(() -> {
+            Connection connection;
+            ZebraPrinter printer = null;
+            try {
+                connection = newBluetoothConnection(macAddress);
+                connection.open();
+
+                try {
+                    printer = ZebraPrinterFactory.getInstance(connection);
+                    printer.calibrate();
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), "Printer status");
+                    handler.post(() -> result.success(response.toMap()));
+                } finally {
+                    connection.close();
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, printer);
+            }
+        }).start();
+    }
+
+    public void printConfigurationLabelOverBluetooth(final String macAddress) {
+        new Thread(() -> {
+            Connection connection;
+            ZebraPrinter printer = null;
+            try {
+                connection = newBluetoothConnection(macAddress);
+                connection.open();
+
+                try {
+                    printer = ZebraPrinterFactory.getInstance(connection);
+                    printer.printConfigurationLabel();
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), "Printer status");
+                    handler.post(() -> result.success(response.toMap()));
+                } finally {
+                    connection.close();
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, printer);
+            }
+        }).start();
+    }
+
+    public void checkPrinterStatusOverBluetooth(final String macAddress) {
+        new Thread(() -> {
+            Connection connection = null;
+            ZebraPrinter printer = null;
+            boolean shouldCloseConnection = shouldManageConnection;
+            try {
+                if (activeBluetoothConnection != null && !shouldManageConnection) {
+                    try {
+                        if (activeBluetoothConnection.isConnected()) {
+                            connection = activeBluetoothConnection;
+                            shouldCloseConnection = false;
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+
+                if (connection == null) {
+                    connection = newBluetoothConnection(macAddress);
+                    connection.open();
+                    shouldCloseConnection = true;
+                }
+
+                try {
+                    printer = ZebraPrinterFactory.getInstance(connection);
+
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), "Printer status");
+                    handler.post(() -> result.success(response.toMap()));
+                } finally {
+                    if (shouldCloseConnection && connection != null) {
+                        connection.close();
+                    }
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, printer);
+            }
+        }).start();
+    }
+
+    public void getPrinterSettingsOverBluetooth(final String macAddress) {
+        new Thread(() -> {
+            Connection connection = null;
+            ZebraPrinter printer = null;
+            boolean shouldCloseConnection = shouldManageConnection;
+            try {
+                if (activeBluetoothConnection != null && !shouldManageConnection) {
+                    try {
+                        if (activeBluetoothConnection.isConnected()) {
+                            connection = activeBluetoothConnection;
+                            shouldCloseConnection = false;
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+
+                if (connection == null) {
+                    connection = newBluetoothConnection(macAddress);
+                    connection.open();
+                    shouldCloseConnection = true;
+                }
+
+                try {
+                    printer = ZebraPrinterFactory.getInstance(connection);
+                    PrinterSettings settings = PrinterSettings.get(connection);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), settings, "Printer status");
+                    handler.post(() -> result.success(response.toMap()));
+                } finally {
+                    if (shouldCloseConnection && connection != null) {
+                        connection.close();
+                    }
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, printer);
+            }
+        }).start();
+    }
+
+    public void setPrinterSettingsOverBluetooth(final String macAddress, final PrinterSettings settings) {
+        new Thread(() -> {
+            Connection connection;
+            ZebraPrinter printer = null;
+            try {
+                if (settings == null) throw new NullPointerException("Settings can't be null");
+
+                connection = newBluetoothConnection(macAddress);
+                connection.open();
+
+                try {
+                    printer = ZebraPrinterFactory.getInstance(connection);
+                    settings.apply(connection);
+                    if (!connection.isConnected()) {
+                        onPrinterRebooted("New settings required Printer to reboot");
+                        return;
+                    }
+                    PrinterSettings currentSettings = PrinterSettings.get(connection);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), currentSettings, "Printer status");
+                    handler.post(() -> result.success(response.toMap()));
+                } finally {
+                    connection.close();
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, printer);
+            }
+        }).start();
+    }
+
+    /**
+     * @noinspection IOStreamConstructor
+     */
+    public void printPdfFileOverBluetooth(final String filePath, final String macAddress) {
+        new Thread(() -> {
+            try {
+                if (!new File(filePath).exists())
+                    throw new FileNotFoundException("The file: " + filePath + "doesn't exist");
+
+                doPrintDataStreamOverBluetooth(new FileInputStream(filePath), macAddress, false);
+            } catch (Exception e) {
+                onException(e, null);
+            }
+        }).start();
+    }
+
+    /** @noinspection IOStreamConstructor*/
+    public void printZplFileOverBluetooth(final String filePath, final String macAddress) {
+        new Thread(() -> {
+            try {
+                if (!new File(filePath).exists())
+                    throw new FileNotFoundException("The file: " + filePath + "doesn't exist");
+
+                doPrintDataStreamOverBluetooth(new FileInputStream(filePath), macAddress, true);
+            } catch (Exception e) {
+                onException(e, null);
+            }
+        }).start();
+    }
+
+    public void printZplDataOverBluetooth(final String data, final String macAddress) {
+        if (data == null || data.isEmpty()) throw new NullPointerException("ZPL data can not be empty");
+        new Thread(() -> doSimplePrintZplOverBluetooth(data, macAddress)).start();
+    }
+
+    private void doSimplePrintZplOverBluetooth(final String zplData, final String macAddress) {
+        Connection connection = null;
+        boolean shouldCloseConnection = shouldManageConnection;
+        try {
+            if (activeBluetoothConnection != null && !shouldManageConnection) {
+                try {
+                    if (activeBluetoothConnection.isConnected()) {
+                        connection = activeBluetoothConnection;
+                        shouldCloseConnection = false;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (connection == null) {
+                connection = newBluetoothConnection(macAddress);
+                connection.open();
+                shouldCloseConnection = true;
+            }
+
+            try {
+                connection.write(zplData.getBytes(Charset.forName("UTF-8")));
+
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+
+                PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                        new StatusInfo(Status.READY_TO_PRINT, Cause.UNKNOWN), "Successful print");
+                handler.post(() -> result.success(response.toMap()));
+
+            } finally {
+                if (shouldCloseConnection && connection != null) {
+                    connection.close();
+                }
+            }
+        } catch (ConnectionException e) {
+            onConnectionTimeOut(e);
+        } catch (Exception e) {
+            onException(e, null);
+        }
+    }
+
+    private void doPrintDataStreamOverBluetooth(final InputStream dataStream, final String macAddress, boolean isZPL) {
+        Connection connection = null;
+        ZebraPrinter printer = null;
+        boolean shouldCloseConnection = shouldManageConnection;
+        try {
+            if (dataStream == null) throw new NullPointerException("Data stream can not be empty");
+
+            if (activeBluetoothConnection != null && !shouldManageConnection) {
+                try {
+                    if (activeBluetoothConnection.isConnected()) {
+                        connection = activeBluetoothConnection;
+                        shouldCloseConnection = false;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (connection == null) {
+                connection = newBluetoothConnection(macAddress);
+                connection.open();
+                shouldCloseConnection = true;
+            }
+
+            try {
+                printer = ZebraPrinterFactory.getInstance(connection);
+                if (isReadyToPrint(printer)) {
+                    init(connection);
+                    if (isZPL) {
+                        changePrinterLanguage(connection, SGDParams.VALUE_ZPL_LANGUAGE);
+                    } else {
+                        if (enablePDFDirect(connection, true)) {
+                            onPrinterRebooted("Printer was rebooted to be able to use PDF Direct feature.");
+                            return;
+                        }
+                    }
+                    FileUtilities.sendFileContentsInChunks(connection, dataStream);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            getStatusInfo(printer), "Successful print");
+                    handler.post(() -> result.success(response.toMap()));
+                } else {
+                    PrinterResponse response = new PrinterResponse(ErrorCode.PRINTER_ERROR,
+                            getStatusInfo(printer), "Printer is not ready");
+                    handler.post(() -> result.error(ErrorCode.PRINTER_ERROR.name(),
+                            response.message, response.toMap()));
+                }
+
+            } finally {
+                if (shouldCloseConnection && connection != null) {
+                    connection.close();
+                }
+            }
+        } catch (ConnectionException e) {
+            onConnectionTimeOut(e);
+        } catch (Exception e) {
+            onException(e, printer);
+        }
+    }
+
+    public void rebootPrinterOverBluetooth(final String macAddress) {
+        new Thread(() -> {
+            try {
+                if (PrinterUtils.reboot(newBluetoothConnection(macAddress))) {
+                    onPrinterRebooted("Printer successfully rebooted");
+                } else {
+                    PrinterResponse response = new PrinterResponse(ErrorCode.EXCEPTION,
+                            new StatusInfo(Status.UNKNOWN, Cause.UNKNOWN), "Printer could not be rebooted.");
+                    handler.post(() -> result.error(response.errorCode.name(), response.message, response.toMap()));
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, null);
+            }
+        }).start();
     }
 }
