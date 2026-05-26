@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.zebra.sdk.comm.BluetoothConnection;
 import com.zebra.sdk.comm.Connection;
+import com.zebra.sdk.btleComm.BluetoothLeConnection;
 import com.zebra.sdk.comm.ConnectionException;
 import com.zebra.sdk.comm.TcpConnection;
 import com.zebra.sdk.graphics.internal.ZebraImageAndroid;
@@ -65,8 +66,25 @@ public class ZPrinter
         return new TcpConnection(address, tcpPort, MAX_TIME_OUT_FOR_READ, TIME_TO_WAIT_FOR_MORE_DATA);
     }
 
-    private BluetoothConnection newBluetoothConnection(String macAddress){
+    // private BluetoothConnection newBluetoothConnection(String macAddress){
+    //     return new BluetoothConnection(macAddress);
+    // }
+    private Connection newBluetoothConnection(String macAddress) {
+    try {
+        Connection bleConnection =
+                new BluetoothLeConnection(
+                        macAddress,
+                        context
+                );
+        bleConnection.open();
+        return bleConnection;
+
+    } catch (Exception e) {
+
+        e.printStackTrace();
+
         return new BluetoothConnection(macAddress);
+    }
     }
 
     protected void init(Connection connection){
@@ -107,7 +125,7 @@ public class ZPrinter
                 int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
 
                 connection = newConnection(address, tcpPort);
-                connection.open();
+                // connection.open();
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -576,7 +594,7 @@ public class ZPrinter
             ZebraPrinter printer = null;
             try {
                 connection = newBluetoothConnection(macAddress);
-                connection.open();
+                // connection.open();
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -613,7 +631,7 @@ public class ZPrinter
 
                 if (connection == null) {
                     connection = newBluetoothConnection(macAddress);
-                    connection.open();
+                    // connection.open();
                     shouldCloseConnection = true;
                 }
 
@@ -654,7 +672,7 @@ public class ZPrinter
 
                 if (connection == null) {
                     connection = newBluetoothConnection(macAddress);
-                    connection.open();
+                    // connection.open();
                     shouldCloseConnection = true;
                 }
 
@@ -685,7 +703,7 @@ public class ZPrinter
                 if (settings == null) throw new NullPointerException("Settings can't be null");
 
                 connection = newBluetoothConnection(macAddress);
-                connection.open();
+                // connection.open();
 
                 try {
                     printer = ZebraPrinterFactory.getInstance(connection);
@@ -760,7 +778,7 @@ public class ZPrinter
 
             if (connection == null) {
                 connection = newBluetoothConnection(macAddress);
-                connection.open();
+                // connection.open();
                 shouldCloseConnection = true;
             }
 
@@ -808,7 +826,7 @@ public class ZPrinter
 
             if (connection == null) {
                 connection = newBluetoothConnection(macAddress);
-                connection.open();
+                // connection.open();
                 shouldCloseConnection = true;
             }
 

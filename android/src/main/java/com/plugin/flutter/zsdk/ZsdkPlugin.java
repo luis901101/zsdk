@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 
 import com.zebra.sdk.comm.BluetoothConnection;
 import com.zebra.sdk.comm.Connection;
+import com.zebra.sdk.btleComm.BluetoothLeConnection;
 import com.zebra.sdk.printer.PrinterLanguage;
 import com.zebra.sdk.printer.ZebraPrinter;
 import com.zebra.sdk.printer.ZebraPrinterFactory;
@@ -119,6 +120,30 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
   private MethodChannel channel;
   private Context context;
 
+  private Connection createBestConnection(String macAddress) throws Exception {
+    try {
+        Connection bleConnection =
+                new BluetoothLeConnection(
+                        macAddress,
+                        context
+                );
+
+        bleConnection.open();
+
+        return bleConnection;
+
+    } catch (Exception bleError) {
+
+        bleError.printStackTrace();
+
+        Connection classicConnection =
+                new BluetoothConnection(macAddress);
+
+        classicConnection.open();
+
+        return classicConnection;
+    }
+  }
   public ZsdkPlugin() {
   }
 
@@ -320,8 +345,8 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
 
     new Thread(() -> {
       try {
-        BluetoothConnection connection = new BluetoothConnection(macAddress);
-        connection.open();
+        // BluetoothConnection connection = new BluetoothConnection(macAddress);
+        // connection.open();
 
         ZebraPrinter printer = ZebraPrinterFactory.getInstance(connection);
         PrinterLanguage language = printer.getPrinterControlLanguage();
