@@ -80,6 +80,16 @@ class ZSDK {
   static const String _DISCOVER_BLUETOOTH_PRINTERS =
       'discoverBluetoothPrinters';
 
+  /// Methods - Printer Language
+  static const String _CHANGE_PRINTER_LANGUAGE_OVER_TCP_IP =
+      'changePrinterLanguageOverTCPIP';
+  static const String _GET_PRINTER_LANGUAGE_OVER_TCP_IP =
+      'getPrinterLanguageOverTCPIP';
+  static const String _CHANGE_PRINTER_LANGUAGE_OVER_BLUETOOTH =
+      'changePrinterLanguageOverBluetooth';
+  static const String _GET_PRINTER_LANGUAGE_OVER_BLUETOOTH =
+      'getPrinterLanguageOverBluetooth';
+
   /// Properties
   static const String _filePath = 'filePath';
   static const String _data = 'data';
@@ -90,6 +100,7 @@ class ZSDK {
   static const String _cmHeight = 'cmHeight';
   static const String _orientation = 'orientation';
   static const String _dpi = 'dpi';
+  static const String _language = 'language';
 
   late MethodChannel _channel;
 
@@ -470,5 +481,69 @@ class ZSDK {
         'address': map['address']?.toString() ?? '',
       };
     }).toList();
+  }
+
+  /// Changes the printer language over TCP/IP.
+  /// [language] can be null to use the default ZPL language (hybrid_xml_zpl).
+  /// Common values: "hybrid_xml_zpl", "zpl", "cpcl", "dpl".
+  Future<Map<dynamic, dynamic>> changePrinterLanguageOverTCPIP({
+    required String address,
+    int? port,
+    String? language,
+    Duration? timeout,
+  }) async {
+    final result = await _channel.invokeMethod(_CHANGE_PRINTER_LANGUAGE_OVER_TCP_IP, {
+      _address: address,
+      _port: port,
+      _language: language,
+    }).timeout(
+        timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+        onTimeout: () => _onTimeout(timeout: timeout));
+    return result as Map<dynamic, dynamic>;
+  }
+
+  /// Gets the current printer language over TCP/IP.
+  Future<Map<dynamic, dynamic>> getPrinterLanguageOverTCPIP({
+    required String address,
+    int? port,
+    Duration? timeout,
+  }) async {
+    final result = await _channel.invokeMethod(_GET_PRINTER_LANGUAGE_OVER_TCP_IP, {
+      _address: address,
+      _port: port,
+    }).timeout(
+        timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+        onTimeout: () => _onTimeout(timeout: timeout));
+    return result as Map<dynamic, dynamic>;
+  }
+
+  /// Changes the printer language over Bluetooth.
+  /// [language] can be null to use the default ZPL language (hybrid_xml_zpl).
+  /// Common values: "hybrid_xml_zpl", "zpl", "cpcl", "dpl".
+  Future<Map<dynamic, dynamic>> changePrinterLanguageOverBluetooth({
+    required String macAddress,
+    String? language,
+    Duration? timeout,
+  }) async {
+    final result = await _channel.invokeMethod(_CHANGE_PRINTER_LANGUAGE_OVER_BLUETOOTH, {
+      _macAddress: macAddress,
+      _language: language,
+    }).timeout(
+        timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+        onTimeout: () => _onTimeout(timeout: timeout));
+    return result as Map<dynamic, dynamic>;
+  }
+
+  /// Gets the current printer language over Bluetooth.
+  Future<Map<dynamic, dynamic>> getPrinterLanguageOverBluetooth({
+    required String macAddress,
+    Duration? timeout,
+  }) async {
+    final result = await _channel.invokeMethod(_GET_PRINTER_LANGUAGE_OVER_BLUETOOTH, {
+      _macAddress: macAddress,
+    }).timeout(
+        timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+        onTimeout: () => _onTimeout(timeout: timeout));
+    return result as Map<dynamic, dynamic>;
   }
 }
