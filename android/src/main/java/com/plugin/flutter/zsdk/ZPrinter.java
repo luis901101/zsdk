@@ -864,4 +864,144 @@ public class ZPrinter
             }
         }).start();
     }
+
+    public void changePrinterLanguageOverTCPIP(final String address, final Integer port, final String language) {
+        new Thread(() -> {
+            Connection connection;
+            try {
+                int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
+                connection = newConnection(address, tcpPort);
+                connection.open();
+
+                try {
+                    changePrinterLanguage(connection, language);
+                    String actualLanguage = SGD.GET(SGDParams.KEY_PRINTER_LANGUAGES, connection);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            new StatusInfo(Status.READY_TO_PRINT, Cause.UNKNOWN),
+                            "Printer language changed to " + actualLanguage);
+                    Map<String, Object> resultMap = response.toMap();
+                    resultMap.put("language", actualLanguage);
+                    handler.post(() -> result.success(resultMap));
+                } finally {
+                    connection.close();
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, null);
+            }
+        }).start();
+    }
+
+    public void getPrinterLanguageOverTCPIP(final String address, final Integer port) {
+        new Thread(() -> {
+            Connection connection;
+            try {
+                int tcpPort = port != null ? port : TcpConnection.DEFAULT_ZPL_TCP_PORT;
+                connection = newConnection(address, tcpPort);
+                connection.open();
+
+                try {
+                    String printerLanguage = SGD.GET(SGDParams.KEY_PRINTER_LANGUAGES, connection);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            new StatusInfo(Status.READY_TO_PRINT, Cause.UNKNOWN),
+                            "Current printer language: " + printerLanguage);
+                    Map<String, Object> resultMap = response.toMap();
+                    resultMap.put("language", printerLanguage);
+                    handler.post(() -> result.success(resultMap));
+                } finally {
+                    connection.close();
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, null);
+            }
+        }).start();
+    }
+
+    public void changePrinterLanguageOverBluetooth(final String macAddress, final String language) {
+        new Thread(() -> {
+            Connection connection = null;
+            boolean shouldCloseConnection = shouldManageConnection;
+            try {
+                if (activeBluetoothConnection != null && !shouldManageConnection) {
+                    try {
+                        if (activeBluetoothConnection.isConnected()) {
+                            connection = activeBluetoothConnection;
+                            shouldCloseConnection = false;
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+
+                if (connection == null) {
+                    connection = newBluetoothConnection(macAddress);
+                    connection.open();
+                    shouldCloseConnection = true;
+                }
+
+                try {
+                    changePrinterLanguage(connection, language);
+                    String actualLanguage = SGD.GET(SGDParams.KEY_PRINTER_LANGUAGES, connection);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            new StatusInfo(Status.READY_TO_PRINT, Cause.UNKNOWN),
+                            "Printer language changed to " + actualLanguage);
+                    Map<String, Object> resultMap = response.toMap();
+                    resultMap.put("language", actualLanguage);
+                    handler.post(() -> result.success(resultMap));
+                } finally {
+                    if (shouldCloseConnection && connection != null) {
+                        connection.close();
+                    }
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, null);
+            }
+        }).start();
+    }
+
+    public void getPrinterLanguageOverBluetooth(final String macAddress) {
+        new Thread(() -> {
+            Connection connection = null;
+            boolean shouldCloseConnection = shouldManageConnection;
+            try {
+                if (activeBluetoothConnection != null && !shouldManageConnection) {
+                    try {
+                        if (activeBluetoothConnection.isConnected()) {
+                            connection = activeBluetoothConnection;
+                            shouldCloseConnection = false;
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+
+                if (connection == null) {
+                    connection = newBluetoothConnection(macAddress);
+                    connection.open();
+                    shouldCloseConnection = true;
+                }
+
+                try {
+                    String printerLanguage = SGD.GET(SGDParams.KEY_PRINTER_LANGUAGES, connection);
+                    PrinterResponse response = new PrinterResponse(ErrorCode.SUCCESS,
+                            new StatusInfo(Status.READY_TO_PRINT, Cause.UNKNOWN),
+                            "Current printer language: " + printerLanguage);
+                    Map<String, Object> resultMap = response.toMap();
+                    resultMap.put("language", printerLanguage);
+                    handler.post(() -> result.success(resultMap));
+                } finally {
+                    if (shouldCloseConnection && connection != null) {
+                        connection.close();
+                    }
+                }
+            } catch (ConnectionException e) {
+                onConnectionTimeOut(e);
+            } catch (Exception e) {
+                onException(e, null);
+            }
+        }).start();
+    }
 }

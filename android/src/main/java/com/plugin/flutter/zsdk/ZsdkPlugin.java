@@ -104,6 +104,15 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
   static final String _GET_BONDED_DEVICES = "getBondedDevices";
   static final String _DISCOVER_BLUETOOTH_PRINTERS = "discoverBluetoothPrinters";
 
+  /** Methods - Printer Language */
+  static final String _CHANGE_PRINTER_LANGUAGE_OVER_TCP_IP = "changePrinterLanguageOverTCPIP";
+  static final String _GET_PRINTER_LANGUAGE_OVER_TCP_IP = "getPrinterLanguageOverTCPIP";
+  static final String _CHANGE_PRINTER_LANGUAGE_OVER_BLUETOOTH = "changePrinterLanguageOverBluetooth";
+  static final String _GET_PRINTER_LANGUAGE_OVER_BLUETOOTH = "getPrinterLanguageOverBluetooth";
+
+  /** Properties */
+  static final String _language = "language";
+
   /** Properties */
   static final String _filePath = "filePath";
   static final String _data = "data";
@@ -287,6 +296,30 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
           break;
         case _REBOOT_PRINTER_OVER_BLUETOOTH:
           printer.rebootPrinterOverBluetooth(
+              call.argument(_macAddress)
+          );
+          break;
+        case _CHANGE_PRINTER_LANGUAGE_OVER_TCP_IP:
+          printer.changePrinterLanguageOverTCPIP(
+              call.argument(_address),
+              call.argument(_port),
+              call.argument(_language)
+          );
+          break;
+        case _GET_PRINTER_LANGUAGE_OVER_TCP_IP:
+          printer.getPrinterLanguageOverTCPIP(
+              call.argument(_address),
+              call.argument(_port)
+          );
+          break;
+        case _CHANGE_PRINTER_LANGUAGE_OVER_BLUETOOTH:
+          printer.changePrinterLanguageOverBluetooth(
+              call.argument(_macAddress),
+              call.argument(_language)
+          );
+          break;
+        case _GET_PRINTER_LANGUAGE_OVER_BLUETOOTH:
+          printer.getPrinterLanguageOverBluetooth(
               call.argument(_macAddress)
           );
           break;
