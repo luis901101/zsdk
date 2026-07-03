@@ -20,10 +20,16 @@ const String btnResetPrinterSettings = 'btnResetPrinterSettings';
 const String btnDoManualCalibration = 'btnDoManualCalibration';
 const String btnPrintConfigurationLabel = 'btnPrintConfigurationLabel';
 const String btnRebootPrinter = 'btnRebootPrinter';
+const String btnGetPrinterLanguage = 'btnGetPrinterLanguage';
+const String btnChangePrinterLanguage = 'btnChangePrinterLanguage';
 
 const String btnGetBondedDevices = 'btnGetBondedDevices';
 const String btnDiscoverPrinters = 'btnDiscoverPrinters';
 const String btnPrintZplDataOverBluetooth = 'btnPrintZplDataOverBluetooth';
+const String btnGetPrinterLanguageOverBluetooth =
+    'btnGetPrinterLanguageOverBluetooth';
+const String btnChangePrinterLanguageOverBluetooth =
+    'btnChangePrinterLanguageOverBluetooth';
 
 class MyApp extends StatefulWidget {
   final Printer.ZSDK zsdk = Printer.ZSDK();
@@ -57,6 +63,7 @@ class _MyAppState extends State<MyApp> {
   final labelLengthMaxController = TextEditingController();
   final labelTopController = TextEditingController();
   final leftPositionController = TextEditingController();
+  final languageController = TextEditingController(text: 'hybrid_xml_zpl');
   Printer.MediaType? selectedMediaType;
   Printer.PrintMethod? selectedPrintMethod;
   Printer.ZPLMode? selectedZPLMode;
@@ -78,6 +85,8 @@ class _MyAppState extends State<MyApp> {
   OperationStatus settingsStatus = OperationStatus.NONE;
   OperationStatus calibrationStatus = OperationStatus.NONE;
   OperationStatus rebootingStatus = OperationStatus.NONE;
+  OperationStatus languageStatus = OperationStatus.NONE;
+  String? languageMessage;
   OperationStatus btStatus = OperationStatus.NONE;
   String? btMessage;
   String? filePath;
@@ -365,6 +374,85 @@ class _MyAppState extends State<MyApp> {
                                     : () => onClick(btnRebootPrinter),
                                 child: Text(
                                   'Reboot Printer'.toUpperCase(),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.all(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      children: <Widget>[
+                        const Text(
+                          'Printer language',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        TextField(
+                          controller: languageController,
+                          decoration: const InputDecoration(
+                            labelText:
+                                'Language (e.g. hybrid_xml_zpl, zpl, cpcl, dpl, line_print)',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Visibility(
+                          visible: languageStatus != OperationStatus.NONE,
+                          child: Column(
+                            children: <Widget>[
+                              Text(
+                                '$languageMessage',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: getOperationStatusColor(
+                                    languageStatus,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.brown,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed:
+                                    languageStatus == OperationStatus.RECEIVING
+                                    ? null
+                                    : () => onClick(btnGetPrinterLanguage),
+                                child: Text(
+                                  'Get language'.toUpperCase(),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                            const VerticalDivider(color: Colors.transparent),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepOrange,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed:
+                                    languageStatus == OperationStatus.SENDING
+                                    ? null
+                                    : () => onClick(btnChangePrinterLanguage),
+                                child: Text(
+                                  'Change language'.toUpperCase(),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
@@ -1075,6 +1163,47 @@ class _MyAppState extends State<MyApp> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.brown,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed:
+                                    btStatus == OperationStatus.RECEIVING
+                                    ? null
+                                    : () => onClick(
+                                        btnGetPrinterLanguageOverBluetooth,
+                                      ),
+                                child: Text(
+                                  'Get language'.toUpperCase(),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepOrange,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: btStatus == OperationStatus.SENDING
+                                    ? null
+                                    : () => onClick(
+                                        btnChangePrinterLanguageOverBluetooth,
+                                      ),
+                                child: Text(
+                                  'Change language'.toUpperCase(),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -1464,6 +1593,96 @@ class _MyAppState extends State<MyApp> {
                 },
               );
           break;
+        case btnGetPrinterLanguage:
+          setState(() {
+            languageMessage = 'Getting printer language...';
+            languageStatus = OperationStatus.RECEIVING;
+          });
+          widget.zsdk
+              .getPrinterLanguageOverTCPIP(
+                address: addressIpController.text,
+                port: int.tryParse(addressPortController.text),
+              )
+              .then(
+                (value) {
+                  setState(() {
+                    languageStatus = OperationStatus.SUCCESS;
+                    languageMessage = '$value';
+                  });
+                },
+                onError: (error, stacktrace) {
+                  try {
+                    throw error;
+                  } on PlatformException catch (e) {
+                    Printer.PrinterResponse printerResponse;
+                    try {
+                      printerResponse = Printer.PrinterResponse.fromMap(
+                        e.details,
+                      );
+                      languageMessage =
+                          '${printerResponse.message} ${printerResponse.errorCode} ${printerResponse.statusInfo.status} ${printerResponse.statusInfo.cause}';
+                    } catch (e) {
+                      print(e);
+                      languageMessage = e.toString();
+                    }
+                  } on MissingPluginException catch (e) {
+                    languageMessage = '${e.message}';
+                  } catch (e) {
+                    languageMessage = e.toString();
+                  }
+                  setState(() {
+                    languageStatus = OperationStatus.ERROR;
+                  });
+                },
+              );
+          break;
+        case btnChangePrinterLanguage:
+          if (languageController.text.isEmpty) {
+            throw Exception("Language can't be empty");
+          }
+          setState(() {
+            languageMessage = 'Changing printer language...';
+            languageStatus = OperationStatus.SENDING;
+          });
+          widget.zsdk
+              .changePrinterLanguageOverTCPIP(
+                address: addressIpController.text,
+                port: int.tryParse(addressPortController.text),
+                language: languageController.text,
+              )
+              .then(
+                (value) {
+                  setState(() {
+                    languageStatus = OperationStatus.SUCCESS;
+                    languageMessage = '$value';
+                  });
+                },
+                onError: (error, stacktrace) {
+                  try {
+                    throw error;
+                  } on PlatformException catch (e) {
+                    Printer.PrinterResponse printerResponse;
+                    try {
+                      printerResponse = Printer.PrinterResponse.fromMap(
+                        e.details,
+                      );
+                      languageMessage =
+                          '${printerResponse.message} ${printerResponse.errorCode} ${printerResponse.statusInfo.status} ${printerResponse.statusInfo.cause}';
+                    } catch (e) {
+                      print(e);
+                      languageMessage = e.toString();
+                    }
+                  } on MissingPluginException catch (e) {
+                    languageMessage = '${e.message}';
+                  } catch (e) {
+                    languageMessage = e.toString();
+                  }
+                  setState(() {
+                    languageStatus = OperationStatus.ERROR;
+                  });
+                },
+              );
+          break;
         case btnPrintConfigurationLabel:
           setState(() {
             message = 'Print job started...';
@@ -1758,6 +1977,100 @@ class _MyAppState extends State<MyApp> {
               .printZplDataOverBluetooth(
                 data: zplData!,
                 macAddress: btMacAddressController.text,
+              )
+              .then(
+                (value) {
+                  setState(() {
+                    btStatus = OperationStatus.SUCCESS;
+                    btMessage = '$value';
+                  });
+                },
+                onError: (error, stacktrace) {
+                  try {
+                    throw error;
+                  } on PlatformException catch (e) {
+                    Printer.PrinterResponse printerResponse;
+                    try {
+                      printerResponse = Printer.PrinterResponse.fromMap(
+                        e.details,
+                      );
+                      btMessage =
+                          '${printerResponse.message} ${printerResponse.errorCode} ${printerResponse.statusInfo.status} ${printerResponse.statusInfo.cause}';
+                    } catch (e) {
+                      print(e);
+                      btMessage = e.toString();
+                    }
+                  } on MissingPluginException catch (e) {
+                    btMessage = '${e.message}';
+                  } catch (e) {
+                    btMessage = e.toString();
+                  }
+                  setState(() {
+                    btStatus = OperationStatus.ERROR;
+                  });
+                },
+              );
+          break;
+        case btnGetPrinterLanguageOverBluetooth:
+          if (btMacAddressController.text.isEmpty) {
+            throw Exception("MAC address can't be empty");
+          }
+          setState(() {
+            btMessage = 'Getting printer language...';
+            btStatus = OperationStatus.RECEIVING;
+          });
+          widget.zsdk
+              .getPrinterLanguageOverBluetooth(
+                macAddress: btMacAddressController.text,
+              )
+              .then(
+                (value) {
+                  setState(() {
+                    btStatus = OperationStatus.SUCCESS;
+                    btMessage = '$value';
+                  });
+                },
+                onError: (error, stacktrace) {
+                  try {
+                    throw error;
+                  } on PlatformException catch (e) {
+                    Printer.PrinterResponse printerResponse;
+                    try {
+                      printerResponse = Printer.PrinterResponse.fromMap(
+                        e.details,
+                      );
+                      btMessage =
+                          '${printerResponse.message} ${printerResponse.errorCode} ${printerResponse.statusInfo.status} ${printerResponse.statusInfo.cause}';
+                    } catch (e) {
+                      print(e);
+                      btMessage = e.toString();
+                    }
+                  } on MissingPluginException catch (e) {
+                    btMessage = '${e.message}';
+                  } catch (e) {
+                    btMessage = e.toString();
+                  }
+                  setState(() {
+                    btStatus = OperationStatus.ERROR;
+                  });
+                },
+              );
+          break;
+        case btnChangePrinterLanguageOverBluetooth:
+          if (btMacAddressController.text.isEmpty) {
+            throw Exception("MAC address can't be empty");
+          }
+          if (languageController.text.isEmpty) {
+            throw Exception("Language can't be empty");
+          }
+          setState(() {
+            btMessage = 'Changing printer language...';
+            btStatus = OperationStatus.SENDING;
+          });
+          widget.zsdk
+              .changePrinterLanguageOverBluetooth(
+                macAddress: btMacAddressController.text,
+                language: languageController.text,
               )
               .then(
                 (value) {
